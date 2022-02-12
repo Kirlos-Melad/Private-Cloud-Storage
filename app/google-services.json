@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "720109250156",
+    "project_id": "private-cloud-storage-gp",
+    "storage_bucket": "private-cloud-storage-gp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720109250156:android:e56531d784d9112920da49",
+        "android_client_info": {
+          "package_name": "com.example.privatecloudstorage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "720109250156-c2if2cblsk3kbp8jbjhfm95q5r33nsfg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDouavOM7cJd4jEEr3MMbW3u6PqLqNZybI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "720109250156-c2if2cblsk3kbp8jbjhfm95q5r33nsfg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
