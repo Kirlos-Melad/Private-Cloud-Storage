@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -72,7 +73,8 @@ public class CreateGroupActivity extends AppCompatActivity {
                 // Convert the password to hash
                 hashedPassword.digest(password.getBytes(StandardCharsets.UTF_8));
                 // Save hashed password
-                group.mPassword = hashedPassword.toString();
+                group.mPassword =new BigInteger(1, hashedPassword.digest(password.getBytes(StandardCharsets.UTF_8))).toString(16);
+                //group.mPassword = hashedPassword.digest(password.getBytes(StandardCharsets.UTF_8)).toString();
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }

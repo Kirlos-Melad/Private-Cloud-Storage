@@ -5,11 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 //3rd Party Libraries
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -65,11 +67,9 @@ public class FirebaseDatabaseManager {
                 });
 
         //Add the User as a member
-        databaseReference.updateChildren(new HashMap<String,Object>() {{
-            //TODO: Use AUTH-ID not HARD-CODE
-            put(databaseReference.child("Members").child("lolxD2").toString(), (Object)"User Name");
-        }});
-
+        //TODO: Use AUTH-ID not HARD-CODE
+        databaseReference.child("Members").child("lolxD2").setValue("User Name");
+        
        return GenerateQRCodeImage(databaseReference.getKey(),800,800);
 
     }
@@ -80,8 +80,6 @@ public class FirebaseDatabaseManager {
      * @param information
      * @param width
      * @param height
-     * @param parentDirectory
-     * @param groupName
      *
      * @return return QR Code
      */
@@ -112,11 +110,11 @@ public class FirebaseDatabaseManager {
     }
 
     public boolean JoinGroup(String groupId){
-        DatabaseReference databaseReference = mDataBase.getReference().child("Groups").child(groupId);
+        DatabaseReference databaseReference = mDataBase.getReference().child("Groups").child(groupId).child("Members");
         //Add the User as a member
         databaseReference.updateChildren(new HashMap<String,Object>() {{
             //TODO: Use AUTH-ID not HARD-CODE
-            put(databaseReference.child("Members").child("lolxD2").toString(), (Object)"User Name");
+            put("lolxD3", (Object)"User Name");
         }});
 
         return true;
