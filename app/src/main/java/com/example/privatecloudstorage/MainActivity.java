@@ -7,24 +7,34 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+/**
+ * main class to start program
+ */
 public class MainActivity extends AppCompatActivity {
-    private Button mSignIn, mSignUp;
+    private Button _SignIn, _SignUp;
+    private FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSignIn = findViewById(R.id.signInMain);
-        mSignUp = findViewById(R.id.signUpMain);
+        _SignIn = findViewById(R.id.signInMain);
+        _SignUp = findViewById(R.id.signUpMain);
 
-        mSignIn.setOnClickListener(new View.OnClickListener() {
+        mFirebaseAuthenticationManager = FirebaseAuthenticationManager.getInstance();
+
+        if(mFirebaseAuthenticationManager.getCurrentUser() != null){
+            startActivity(new Intent(getApplicationContext(),HomePageActivity.class));
+        }
+
+        _SignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(),SignInActivity.class));
             }
         });
 
-        mSignUp.setOnClickListener(new View.OnClickListener() {
+        _SignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(),SignUpActivity.class));

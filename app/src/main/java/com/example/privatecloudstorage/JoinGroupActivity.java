@@ -1,14 +1,15 @@
 package com.example.privatecloudstorage;
+
+// Android Libraries
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+// 3rd Party Libraries
 import com.google.zxing.Result;
-
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 public class JoinGroupActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
@@ -24,7 +25,11 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 123);
         }
 
-        //TODO: Close if permission denied
+        // Close if permission denied
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED){
+            finish();
+        }
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
 
         // Start the Camera
@@ -39,10 +44,9 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
      */
     @Override
     public void handleResult(Result result) {
-        onBackPressed();
-
+        super.onBackPressed();
         //Extract Group ID
-        mFirebaseDatabaseManager.JoinGroup(result.getText());
+        mFirebaseDatabaseManager.JoinGroup(result.getText().split(","));
     }
 
     /**
