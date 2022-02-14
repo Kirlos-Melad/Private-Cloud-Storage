@@ -3,11 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group1.xml" value="0.25" />
-        <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group_list.xml" value="0.25" />
-        <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group_view.xml" value="0.25" />
-        <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_main.xml" value="0.25" />
-        <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/fragment_file_picker.xml" value="0.25" />
+        <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_create_group.xml" value="0.20260416666666667" />
+        <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_home_page.xml" value="0.18854166666666666" />
+        <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_sign_in.xml" value="0.25" />
+        <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_sign_up.xml" value="0.25" />
       </map>
     </option>
   </component>
