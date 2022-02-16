@@ -1,9 +1,12 @@
 package com.example.privatecloudstorage;
 
 // Android Libraries
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -24,11 +27,12 @@ public class CreateGroupActivity extends AppCompatActivity {
 
     FirebaseDatabaseManager mFirebaseDatabaseManager;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_group);
-
+        FirebaseStorageManager.getInstance(null).print();
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
 
         _GroupName = (EditText)findViewById(R.id.GroupName);
@@ -88,11 +92,14 @@ public class CreateGroupActivity extends AppCompatActivity {
                 try {
                     // Save the QR code in the folder and show it
                     File image = new File(directory, group.mName + " QR Code" + ".png");
+
                     FileOutputStream fileOutputStream = new FileOutputStream(image);
                     bitmap.compress(Bitmap.CompressFormat.PNG, 85, fileOutputStream);
-
                     fileOutputStream.flush();
                     fileOutputStream.close();
+                    if(image.exists()){
+                        Log.d("path", "exist-----------------------------------------");
+                    }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
