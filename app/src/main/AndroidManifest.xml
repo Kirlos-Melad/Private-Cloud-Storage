@@ -2,8 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.privatecloudstorage">
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +14,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
+        <activity
+            android:name=".GroupContentActivity"
+            android:exported="true" />
+        <activity
+            android:name=".GroupListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UploadsData"
+            android:exported="false" />
+        <activity
+            android:name=".Group1"
+            android:exported="false" />
         <activity
             android:name=".JoinGroupActivity"
             android:exported="true" />
