@@ -3,6 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_file.xml" value="0.23369565217391305" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_file_manager_list.xml" value="0.15520833333333334" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group1.xml" value="0.2115036231884058" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_content.xml" value="0.24048913043478262" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_list.xml" value="0.2115036231884058" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_home_page.xml" value="0.264" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_main.xml" value="0.2115036231884058" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/file_item.xml" value="0.23369565217391305" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/recycler_item.xml" value="0.15520833333333334" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/resycle_item.xml" value="0.15520833333333334" />
         <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group1.xml" value="0.25" />
         <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group_list.xml" value="0.25" />
         <entry key="..\:/college/4th/GP/Private-Cloud-Storage/app/src/main/res/layout/activity_group_view.xml" value="0.25" />
@@ -11,7 +21,8 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
