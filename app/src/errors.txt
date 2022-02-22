@@ -1,0 +1,62 @@
+E/FileDownloadTask: Exception occurred during file write.  Aborting.
+    java.io.IOException: No such file or directory
+        at java.io.UnixFileSystem.createFileExclusively0(Native Method)
+        at java.io.UnixFileSystem.createFileExclusively(UnixFileSystem.java:281)
+        at java.io.File.createNewFile(File.java:1000)
+        at com.google.firebase.storage.FileDownloadTask.processResponse(FileDownloadTask.java:136)
+        at com.google.firebase.storage.FileDownloadTask.run(FileDownloadTask.java:228)
+        at com.google.firebase.storage.StorageTask.lambda$getRunnable$7$StorageTask(StorageTask.java:1072)
+        at com.google.firebase.storage.StorageTask$$ExternalSyntheticLambda3.run(Unknown Source:2)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1162)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:636)
+        at java.lang.Thread.run(Thread.java:764)
+E/StorageException: StorageException has occurred.
+    An unknown error occurred, please check the HTTP result code and inner exception for server response.
+     Code: -13000 HttpResult: 200
+E/StorageException: No such file or directory
+    java.io.IOException: No such file or directory
+        at java.io.UnixFileSystem.createFileExclusively0(Native Method)
+        at java.io.UnixFileSystem.createFileExclusively(UnixFileSystem.java:281)
+        at java.io.File.createNewFile(File.java:1000)
+        at com.google.firebase.storage.FileDownloadTask.processResponse(FileDownloadTask.java:136)
+        at com.google.firebase.storage.FileDownloadTask.run(FileDownloadTask.java:228)
+        at com.google.firebase.storage.StorageTask.lambda$getRunnable$7$StorageTask(StorageTask.java:1072)
+        at com.google.firebase.storage.StorageTask$$ExternalSyntheticLambda3.run(Unknown Source:2)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1162)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:636)
+        at java.lang.Thread.run(Thread.java:764)
+E/StorageException: StorageException has occurred.
+    An unknown error occurred, please check the HTTP result code and inner exception for server response.
+     Code: -13000 HttpResult: 200
+W/System.err: com.google.firebase.storage.StorageException: An unknown error occurred, please check the HTTP result code and inner exception for server response.
+W/System.err:     at com.google.firebase.storage.FileDownloadTask.snapStateImpl(FileDownloadTask.java:91)
+E/StorageException: No such file or directory
+    java.io.IOException: No such file or directory
+        at java.io.UnixFileSystem.createFileExclusively0(Native Method)
+        at java.io.UnixFileSystem.createFileExclusively(UnixFileSystem.java:281)
+        at java.io.File.createNewFile(File.java:1000)
+        at com.google.firebase.storage.FileDownloadTask.processResponse(FileDownloadTask.java:136)
+        at com.google.firebase.storage.FileDownloadTask.run(FileDownloadTask.java:228)
+        at com.google.firebase.storage.StorageTask.lambda$getRunnable$7$StorageTask(StorageTask.java:1072)
+        at com.google.firebase.storage.StorageTask$$ExternalSyntheticLambda3.run(Unknown Source:2)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1162)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:636)
+        at java.lang.Thread.run(Thread.java:764)
+W/System.err:     at com.google.firebase.storage.FileDownloadTask.snapStateImpl(FileDownloadTask.java:32)
+W/System.err:     at com.google.firebase.storage.StorageTask.snapState(StorageTask.java:343)
+W/System.err:     at com.google.firebase.storage.TaskListenerImpl.onInternalStateChanged(TaskListenerImpl.java:85)
+W/System.err:     at com.google.firebase.storage.StorageTask.tryChangeState(StorageTask.java:390)
+W/System.err:     at com.google.firebase.storage.StorageTask.tryChangeState(StorageTask.java:426)
+W/System.err:     at com.google.firebase.storage.FileDownloadTask.run(FileDownloadTask.java:260)
+W/System.err:     at com.google.firebase.storage.StorageTask.lambda$getRunnable$7$StorageTask(StorageTask.java:1072)
+W/System.err:     at com.google.firebase.storage.StorageTask$$ExternalSyntheticLambda3.run(Unknown Source:2)
+W/System.err:     at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1162)
+W/System.err:     at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:636)
+W/System.err:     at java.lang.Thread.run(Thread.java:764)
+W/System.err: Caused by: java.io.IOException: No such file or directory
+W/System.err:     at java.io.UnixFileSystem.createFileExclusively0(Native Method)
+W/System.err:     at java.io.UnixFileSystem.createFileExclusively(UnixFileSystem.java:281)
+W/System.err:     at java.io.File.createNewFile(File.java:1000)
+W/System.err:     at com.google.firebase.storage.FileDownloadTask.processResponse(FileDownloadTask.java:136)
+W/System.err:     at com.google.firebase.storage.FileDownloadTask.run(FileDownloadTask.java:228)
+W/System.err: 	... 5 more

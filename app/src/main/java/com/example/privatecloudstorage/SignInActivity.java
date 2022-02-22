@@ -8,6 +8,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 // 3rd party libraries
 
@@ -19,6 +21,8 @@ import android.widget.Toast;
 public class SignInActivity extends AppCompatActivity {
     EditText _Email, _Pass;
     Button _SignInBtn;
+    TextView _ForgetPasword;
+    ProgressBar _ProgressBar;
 
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     /**
@@ -33,7 +37,17 @@ public class SignInActivity extends AppCompatActivity {
         _Email = findViewById(R.id.Email);
         _Pass = findViewById(R.id.SignInPassword);
         _SignInBtn = findViewById(R.id.SignIn_Button);
+        _ForgetPasword=findViewById(R.id.forgetPassword);
+        _ProgressBar = findViewById(R.id.ProgressBar_ForgetPass);
         mFirebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
+
+        _ForgetPasword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                _ProgressBar.setVisibility(View.VISIBLE);
+                mFirebaseAuthenticationManager.ForgetPassword(_Email.getText().toString().trim(), _ProgressBar, SignInActivity.this);
+            }
+        });
 
         /**
          * handle Sign Up button press
@@ -60,9 +74,15 @@ public class SignInActivity extends AppCompatActivity {
                 {
                     boolean validSignIn = mFirebaseAuthenticationManager.SignIn(email, pass, SignInActivity.this);
                     if(!validSignIn)
-                        Toast.makeText(SignInActivity.this, "Invalid Email or password", Toast.LENGTH_LONG).show();
-                    else
-                        startActivity(new Intent(getApplicationContext(),HomePageActivity.class));
+                        Toast.makeText(SignInActivity.this, "Invalid Email or Password", Toast.LENGTH_LONG).show();
+                    else{
+                        if(mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()){
+                            startActivity(new Intent(getApplicationContext(),HomePageActivity.class));
+                            finish();
+                        }else{
+                            Toast.makeText(SignInActivity.this, "Please, Verify Your Email Address", Toast.LENGTH_LONG).show();
+                        }
+                    }
                 }
             }
         });

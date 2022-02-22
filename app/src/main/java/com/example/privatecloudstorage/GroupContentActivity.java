@@ -1,53 +1,28 @@
 package com.example.privatecloudstorage;
 
-import static android.os.Environment.getExternalStorageDirectory;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
+import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.util.Log;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import com.google.android.material.button.MaterialButton;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
+import java.io.File;
 
 public class GroupContentActivity extends AppCompatActivity {
-    Button _AddData;
-    Button _SeeGroupData;
-    ImageView _QrCode;
-    private Uri mFileUri;
-    private String mFilePath;
-
-
-    String selectedGroupName;
-    String selectedGroupKey;
+    private Button _AddData;
+    private Button _SeeGroupData;
+    private ImageView _QrCode;
+    private String mSelectedGroupName;
+    private String mSelectedGroupKey;
     FirebaseDatabaseManager mFirebaseDatabaseManager;
-    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,23 +31,18 @@ public class GroupContentActivity extends AppCompatActivity {
         if(bundle == null)
             finish();
 
-        selectedGroupName = bundle.getString("selectedGroupName");
-        selectedGroupKey = bundle.getString("selectedGroupKey");
+        mSelectedGroupName = bundle.getString("selectedGroupName");
+        mSelectedGroupKey = bundle.getString("selectedGroupKey");
         mFirebaseDatabaseManager=FirebaseDatabaseManager.getInstance();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_content);
-        _AddData=findViewById(R.id.AddData);
-        _SeeGroupData=findViewById(R.id.SeeGroupData);
 
         _QrCode=findViewById(R.id.QrCodeImage);
-        //Bitmap drawable = BitmapFactory.decodeFile(getFilesDir() + File.separator + selectedGroupName + File.separator + selectedGroupName + " QR Code" + ".png");
-       File file=new File(getFilesDir() + File.separator + selectedGroupName + File.separator + selectedGroupName + " QR Code" + ".png");
-        if(file.exists()){
-            Log.d("path", file.getPath());
-        }
-       _QrCode.setImageURI(Uri.fromFile(file) );
+        File file=new File(getFilesDir() + File.separator + mSelectedGroupKey + " " + mSelectedGroupName + File.separator + mSelectedGroupName + " QR Code" + ".png");
+        _QrCode.setImageURI(Uri.fromFile(file) );
 
+        _AddData=findViewById(R.id.AddData);
         _AddData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -80,6 +50,9 @@ public class GroupContentActivity extends AppCompatActivity {
                 Intent intent = new Intent(GroupContentActivity.this,FileManagerListActivity.class);
                 String path = Environment.getExternalStorageDirectory().getPath();
                 intent.putExtra("path",path);
+                intent.putExtra("action",Intent.ACTION_GET_CONTENT);
+                intent.putExtra("selectedGroupName", mSelectedGroupName);
+                intent.putExtra("selectedGroupKey", mSelectedGroupKey);
                 startActivity(intent);
                 }
                 else{
@@ -87,13 +60,16 @@ public class GroupContentActivity extends AppCompatActivity {
                 }
             }
         });
+
+        _SeeGroupData=findViewById(R.id.SeeGroupData);
         _SeeGroupData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(checkPermission()) {
                     Intent intent = new Intent(GroupContentActivity.this, FileManagerListActivity.class);
-                    String path = getFilesDir() + File.separator + selectedGroupName;
+                    String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
                     intent.putExtra("path", path);
+                    intent.putExtra("action",Intent.ACTION_VIEW);
                     startActivity(intent);
                 }
                 else
@@ -102,6 +78,11 @@ public class GroupContentActivity extends AppCompatActivity {
         });
     }
 
+    /** Check if permisson is granted or not
+     * true : if granted
+     * false : if not
+     * @return true/false
+     */
     private boolean checkPermission(){
         int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if(result == PackageManager.PERMISSION_GRANTED)
@@ -110,60 +91,13 @@ public class GroupContentActivity extends AppCompatActivity {
             return false;
     }
 
+    /**
+     * request permission if it's not granted
+     */
     private void requestPermission(){
         if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
             Toast.makeText(this,"Storage Perimission is required, please allow from settings",Toast.LENGTH_SHORT);
         else
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
     }
-
-
-    private void CallNextActivity(Class<?> next){
-        Intent intent = new Intent(GroupContentActivity.this, next);
-        Bundle bundle = new Bundle();
-        bundle.putString("selectedGroupName", selectedGroupName); //Your Group number in listview
-        intent.putExtras(bundle); //Put Group number to your next Intent
-        bundle.putString("selectedGroupKey", selectedGroupKey); //Your Group number in listview
-        intent.putExtras(bundle); //Put Group number to your next Intent
-        startActivity(intent);
-        finish();
-    }
-    @RequiresApi(api = Build.VERSION_CODES.O)
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case PICK_IMAGE_REQUEST:
-                if (resultCode == -1) {
-                    mFileUri = data.getData();
-                    mFilePath = mFileUri.getPath();
-                    //tvItemPath.setText(filePath);
-                    Toast.makeText(GroupContentActivity.this, mFilePath, Toast.LENGTH_SHORT).show();
-                    System.out.println(mFilePath);
-
-                    //copy the file chosen to the group folder
-                    if(getExternalFilesDir(mFilePath).exists())
-                    {
-                        Log.d("file", "exists:------------------------------- ");
-                    }
-                    try {
-                        File file= new File(getFilesDir() + File.separator + selectedGroupName
-                                            + File.separator + Uri.fromFile(new File(mFilePath)).getLastPathSegment());
-
-                        Files.copy(getExternalFilesDir(mFilePath).toPath(),file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-                        if(file.exists())
-                        {
-                            Log.d("file", "exists:------------------------------- ");
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
-    }
-
 }

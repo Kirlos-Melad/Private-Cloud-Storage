@@ -1,65 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
     android:gravity="center"
+    android:padding="30dp"
     tools:context=".CreateGroupActivity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="371dp"
+        android:layout_height="189dp"
+        android:src="@drawable/creategroup"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.132"
+        tools:ignore="MissingConstraints" />
 
     <EditText
         android:id="@+id/GroupName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Group Name"
-        android:textSize="22sp"
+        android:layout_width="349dp"
+        android:layout_height="43dp"
+        android:background="@drawable/edit_text_background"
         android:gravity="center"
-        android:layout_marginTop="20dp"
-        />
+        android:hint="Group Name"
+        android:textColor="@color/black"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.532"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.465" />
+
     <EditText
         android:id="@+id/GroupDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Group Description"
-        android:textSize="22sp"
+        android:layout_width="349dp"
+        android:layout_height="43dp"
+        android:background="@drawable/edit_text_background"
         android:gravity="center"
-        android:layout_marginTop="20dp"
-        />
+        android:hint="Group Description"
+        android:textColor="@color/black"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.553" />
 
     <EditText
         android:id="@+id/Password"
-        android:hint="Your Password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="22sp"
-        android:gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_width="349dp"
+        android:layout_height="43dp"
+        android:background="@drawable/edit_text_background"
         android:ems="10"
-        android:inputType="textPassword" />
+        android:gravity="center"
+        android:hint="Your Password"
+        android:inputType="textPassword"
+        android:textColor="@color/black"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.642" />
 
     <EditText
         android:id="@+id/RePassword"
-        android:hint="Your RePassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="22sp"
-        android:gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_width="349dp"
+        android:layout_height="43dp"
+        android:background="@drawable/edit_text_background"
         android:ems="10"
-        android:inputType="textPassword" />
+        android:gravity="center"
+        android:hint="Your RePassword"
+        android:inputType="textPassword"
+        android:textColor="@color/black"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.532"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.734" />
 
     <Button
         android:id="@+id/CreateGroup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_width="348dp"
+        android:layout_height="48dp"
+        android:background="@drawable/button"
         android:text="Create Group"
-        />
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/img"
-        ></ImageView>
-</LinearLayout>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.888"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.881" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

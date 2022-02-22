@@ -58,4 +58,8 @@ dependencies {
     // Declare the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation 'com.google.firebase:firebase-auth'
+    //RXJava
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.9'
+    //RXAndroid
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
 }

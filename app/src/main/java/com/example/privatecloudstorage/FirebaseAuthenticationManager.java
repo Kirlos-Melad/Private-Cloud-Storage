@@ -1,10 +1,12 @@
 package com.example.privatecloudstorage;
-
 //android libraries
 import android.app.Activity;
 import android.util.Log;
-import androidx.annotation.NonNull;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 //3rd party libraries
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -37,44 +39,57 @@ public class FirebaseAuthenticationManager {
 
     /**
      * validte Sign Up
-     * @param email the user email
-     * @param pass1 the user password
+     * @param email    the user email
+     * @param pass1    the user password
      * @param userName the user name
      * @param isOnline the user statuse
-     *
      */
-    public boolean SignUp(final String email, String pass1, final String userName, final boolean isOnline, Activity activity){
+    public boolean SignUp(final String email, String pass1, final String userName, final boolean isOnline, final Activity activity) {
         mFirebaseAuth.createUserWithEmailAndPassword(email, pass1).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if(!task.isSuccessful()) {
+                if (!task.isSuccessful()) {
                     Log.w("message", "createUserWithEmail:failure", task.getException());
-                }
-                else{
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                } else {
+                    mFirebaseAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful())
+                            {
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(userName).build();
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(userName).build();
 
-                    user.updateProfile(profileUpdates)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.d("TAG", "User profile updated.");
-                                    }
-                                }
-                            });
+                                user.updateProfile(profileUpdates)
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    Log.d("TAG", "User profile updated.");
+                                                }
+                                            }
+                                        });
+                            }else{
+                                Toast.makeText(activity, task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
                 }
             }
         });
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return (mFirebaseAuth.getCurrentUser() != null);
     }
 
     /**
      * validate user sign in
-     * @param email user email
-     * @param pass user password
+     * @param email    user email
+     * @param pass     user password
      * @param activity Sign in activity
      * @return true in case of successful sign in, else false
      */
@@ -86,10 +101,38 @@ public class FirebaseAuthenticationManager {
                     Log.w("message", "SignIn:failure", task.getException());
             }
         });
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return (mFirebaseAuth.getCurrentUser() != null);
     }
-
-    public FirebaseUser getCurrentUser(){
+    /**
+     * gets the current user
+     * @return the current user
+     */
+    public FirebaseUser getCurrentUser() {
         return mFirebaseAuth.getCurrentUser();
+    }
+    /**
+     * allow user to reset his password when been forgetten
+     * @param email the user email
+     * @param _ProgressBar the progress bar
+     * @param activity the sign in activity
+     */
+    public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity){
+        mFirebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                _ProgressBar.setVisibility(View.GONE);
+                if(task.isSuccessful()){
+                    Toast.makeText(activity,"Check Your Email to Change Your Passwored", Toast.LENGTH_LONG).show();
+                }else{
+                    Log.d("show", task.getException().getMessage());
+                    Toast.makeText(activity,task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }

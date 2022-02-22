@@ -1,79 +1,125 @@
 package com.example.privatecloudstorage;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-
+// Android Libraries
 import android.net.Uri;
 import android.os.Build;
-import android.os.FileObserver;
 import android.util.Log;
-
+import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
+// 3rd Party Libraries
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
+// Java Libraries
 import java.io.File;
-import java.util.concurrent.Executor;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
+
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+//import io.reactivex.Observer;
+//import io.reactivex.disposables.Disposable;
+//import io.reactivex.schedulers.Schedulers;
 
 public class FirebaseStorageManager {
+    // Used for debugging
+    private static final String TAG = "FirebaseStorageManager";
+
     private static FirebaseStorageManager mFirebaseStorageManager;
     private FirebaseStorage mStorage;
     private FirebaseDatabaseManager mFirebaseDatabaseManager;
-    private RecursiveFileObserver mRecursiveFileObserver;
+    private RecursiveDirectoryObserver mRecursiveDirectoryObserver;
     private ExecutorService mExecutorService;
 
+    private File mGroupsFolder;
+    private ArrayDeque<File> mRecentlyDownloaded;
+
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private FirebaseStorageManager(File groupsFolder, int events){
+    private FirebaseStorageManager(File groupsFolder, int events ){
+        mRecentlyDownloaded = new ArrayDeque<File>();
+        this.mGroupsFolder = groupsFolder;
+
         mStorage = FirebaseStorage.getInstance();
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
-        mExecutorService = newSingleThreadExecutor();
+
+        mExecutorService = Executors.newSingleThreadExecutor();
+//        mFirebaseDatabaseManager.SubscribeToGroupsSharedFilesFlowable(o -> {
+//            Pair<Uri, String> fileLocation = (Pair<Uri, String>)o;
+//            Download(fileLocation.first, fileLocation.second);
+//        }, mExecutorService);
 
         // Create Recursive Directory Listener
-        mRecursiveFileObserver = new RecursiveFileObserver(groupsFolder.getAbsolutePath(), events,
+        mRecursiveDirectoryObserver = new RecursiveDirectoryObserver(groupsFolder.getAbsolutePath(), events,
                 (event, file) -> {
-            if(!file.isFile())
-                return;
-            //FileObserver Monitors files to fire events if file accessed or changed by any process
-            mFirebaseDatabaseManager.GetUserGroups().addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    boolean isGroup = false;
-                    String group = null;
-                    String path = file.getAbsolutePath();
+                    if (!file.isFile())
+                        return;
 
-                    for(DataSnapshot child : snapshot.getChildren()){
-                        group = child.getValue().toString();
-                        isGroup = path.endsWith(group);
+                    TakeAction(file);
+                });
+        // Start Monitoring the Directory
+        mRecursiveDirectoryObserver.startWatching();
+    }
 
-                        if(path.contains(group)){
-                            group = child.getKey();
-                            break;
+    /**
+     * if the event is file Upload it
+     * else do nothing
+     *
+     * @param file
+     */
+    private void TakeAction(File file){
+        String path = file.getAbsolutePath();
+        mFirebaseDatabaseManager.GetUserGroupsObservable()
+                .observeOn(Schedulers.from(mExecutorService))
+                .subscribe(new Observer() {
+                    Disposable disposable = null;
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                        disposable = d;
+                    }
+
+                    @Override
+                    public void onNext(@NonNull Object o) {
+
+
+                        // [Group ID, Group Name]
+                        Pair<String, String> groupInformation = (Pair<String, String>) o;
+
+                        // If we found the group name and the file isn't a DIRECTORY THEN UPLOAD
+                        if (path.contains(groupInformation.second)){
+                            if(path.endsWith(groupInformation.second)){
+                                disposable.dispose();
+                                return;
+                            }
+                            UploadFile(groupInformation.first, new File(path));
+                            disposable.dispose();
                         }
                     }
 
-                    if(!isGroup) UploadFile(group, new File(path));
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                }
-            });
-        });
+                    @Override
+                    public void onError(Throwable e) {
 
-        // Start Monitoring the Directory
-        mRecursiveFileObserver.startWatching();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        disposable.dispose();
+                    }
+                });
     }
 
 
@@ -81,11 +127,9 @@ public class FirebaseStorageManager {
         return mFirebaseStorageManager;
     }
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public static FirebaseStorageManager CreateInstance(File observed, int events){
+    public static void CreateInstance(File observed, int events){
         if(mFirebaseStorageManager == null)
             mFirebaseStorageManager  = new FirebaseStorageManager(observed, events);
-
-        return mFirebaseStorageManager;
     }
 
     /**
@@ -94,58 +138,70 @@ public class FirebaseStorageManager {
      * @param file File path
      */
     private void UploadFile(String groupId, File file) {
+        Log.d(TAG, "Upload File >> " +Thread.currentThread().getId());
+        if(!mRecentlyDownloaded.isEmpty() && mRecentlyDownloaded.peek().equals(file)){
+            mRecentlyDownloaded.remove();
+            return;
+        }
+
         StorageMetadata metadata = new StorageMetadata.Builder()
                 .setContentType("*/*")
                 .build();
 
         Uri fileUri = Uri.fromFile(file);
         StorageReference fileReference = mStorage.getReference().child(groupId ).child(fileUri.getLastPathSegment());
-       /* fileReference.putFile(fileUri, metadata)
+        fileReference.putFile(fileUri, metadata)
                 .addOnSuccessListener(taskSnapshot -> {
                     // Wait for task to complete
-                    mExecutorService.execute(() -> {
-                        while(!(taskSnapshot.getTask().isComplete()&&taskSnapshot.getTask().isSuccessful()));
-                        Log.d("output", Boolean.valueOf(taskSnapshot.getTask().isComplete() && taskSnapshot.getTask().isSuccessful()).toString());
+                    while(!(taskSnapshot.getTask().isComplete()&&taskSnapshot.getTask().isSuccessful()));
 
-                        mFirebaseDatabaseManager.AddFile(groupId, taskSnapshot.getMetadata());
-                    });
-                    mExecutorService.shutdown();
-                    try {
-                        mExecutorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+
+                    mFirebaseDatabaseManager.AddFile(groupId, taskSnapshot.getMetadata());
                 })
-                .addOnFailureListener(e -> e.printStackTrace());*/
+                .addOnFailureListener(e -> e.printStackTrace());
     }
 
     /**
      * Download new file from storage cloud
      *
-     * @param groupId Group ID
-     *  @param fileSnapshot
+     * @param url Group ID
+     *  @param groupPath
      */
-    public void Download(Uri url, String groupPath){
-        StorageReference storageReference = mStorage.getReference().child(url.toString());
-        storageReference.getMetadata().addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void Download(Uri url, String groupPath) {
+
+        mExecutorService.execute(new Runnable() {
             @Override
-            public void onSuccess(StorageMetadata storageMetadata) {
-                storageReference.getFile(new File(groupPath, storageMetadata.getName()))
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                e.printStackTrace();
+            public void run() {
+                Log.d(TAG, "Download File >> " +Thread.currentThread().getId());
+                if(url == Uri.EMPTY || groupPath.equals("")){
+                    return;
+                }
+
+                StorageReference storageReference = mStorage.getReference().child(url.toString());
+                //File file = new File(mGroupsFolder.toPath()+File.separator+groupPath, storageMetadata.getName())
+                storageReference.getMetadata().addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onSuccess(StorageMetadata storageMetadata) {
+                        mRecentlyDownloaded.add(new File(mGroupsFolder.toPath()+File.separator+groupPath, storageMetadata.getName()));
+                        Log.d(TAG, mGroupsFolder.toPath()+File.separator+groupPath+ File.separator+ storageMetadata.getName() );
+                        storageReference.getFile(new File(mGroupsFolder.toPath()+File.separator+groupPath, storageMetadata.getName()))
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        mRecentlyDownloaded.remove();
+                                        e.printStackTrace();
+                                    }
+                                });
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             }
         });
-
-
-
     }
 }
