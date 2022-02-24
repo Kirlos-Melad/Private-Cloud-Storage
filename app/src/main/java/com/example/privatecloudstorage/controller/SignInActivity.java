@@ -47,21 +47,11 @@ public class SignInActivity extends AppCompatActivity {
         _SignUp=findViewById(R.id.SignUp);
         mFirebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
         if(mFirebaseAuthenticationManager.getCurrentUser() != null && mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()){
             startActivity(new Intent(SignInActivity.this,HomePageActivity.class));
             finish();
         }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
         /**
          * handle Forget Password Text press
          */

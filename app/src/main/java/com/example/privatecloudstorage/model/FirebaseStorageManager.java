@@ -11,12 +11,6 @@ import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.RecursiveDirectoryObserver;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-<<<<<<< HEAD
-=======
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.reactivex.rxjava3.core.Observer;
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
 
 // Java Libraries
 import java.io.File;
@@ -24,13 +18,10 @@ import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-<<<<<<< HEAD
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-=======
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
 
 public class FirebaseStorageManager {
     // Used for debugging
@@ -171,12 +162,9 @@ public class FirebaseStorageManager {
     public void Download(Uri url, String groupPath) {
 
         mExecutorService.execute(() -> {
-<<<<<<< HEAD
 //                if(url == Uri.EMPTY || groupPath.equals("")){
 //                    return;
 //                }
-=======
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
             //Get metadata info
             StorageReference storageReference = mStorage.getReference().child(url.toString());
             storageReference.getMetadata().addOnSuccessListener(storageMetadata -> mExecutorService.execute(() -> {

@@ -39,29 +39,17 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         _Img.setAnimation(_TopAnim);
        _App_name.setAnimation(_BottomAnim);
-<<<<<<< HEAD
-=======
 
-
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
         /**
          * take the user to main activity after delay
          */
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-<<<<<<< HEAD
-
-=======
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
                 Intent intent=new Intent(SplashScreenActivity.this,SignInActivity.class);
                 startActivity(intent);
                 finish();
             }
         },Delay_Time);
-<<<<<<< HEAD
-=======
-
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
     }
 }

@@ -112,8 +112,4 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd

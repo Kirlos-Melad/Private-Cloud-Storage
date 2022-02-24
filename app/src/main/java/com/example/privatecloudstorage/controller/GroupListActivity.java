@@ -17,13 +17,8 @@ import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 
 import java.util.ArrayList;
 
-<<<<<<< HEAD
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-=======
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
 
 /**
  * GroupListActivity class is to make a dynamic List to view user's Group(s)

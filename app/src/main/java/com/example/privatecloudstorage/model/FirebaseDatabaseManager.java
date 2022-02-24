@@ -26,13 +26,8 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-<<<<<<< HEAD
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
-=======
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
 
 
 /**
@@ -298,11 +293,6 @@ public class FirebaseDatabaseManager {
                         }
                     });
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
             // Add the file to the group
             mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles").updateChildren(new HashMap<String,Object>() {{
                 put(fileReference.getKey(), metadata.getReference().getName());
