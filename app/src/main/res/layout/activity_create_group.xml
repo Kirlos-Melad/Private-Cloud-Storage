@@ -8,7 +8,7 @@
     android:background="@color/white"
     android:gravity="center"
     android:padding="30dp"
-    tools:context=".CreateGroupActivity">
+    tools:context=".controller.CreateGroupActivity">
 
     <ImageView
         android:id="@+id/imageView"
@@ -24,7 +24,7 @@
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/GroupName"
+        android:id="@+id/Name"
         android:layout_width="349dp"
         android:layout_height="43dp"
         android:background="@drawable/edit_text_background"
@@ -41,7 +41,7 @@
         app:layout_constraintVertical_bias="0.465" />
 
     <EditText
-        android:id="@+id/GroupDescription"
+        android:id="@+id/Description"
         android:layout_width="349dp"
         android:layout_height="43dp"
         android:background="@drawable/edit_text_background"
@@ -76,7 +76,7 @@
         app:layout_constraintVertical_bias="0.642" />
 
     <EditText
-        android:id="@+id/RePassword"
+        android:id="@+id/ConfirmPassword"
         android:layout_width="349dp"
         android:layout_height="43dp"
         android:background="@drawable/edit_text_background"

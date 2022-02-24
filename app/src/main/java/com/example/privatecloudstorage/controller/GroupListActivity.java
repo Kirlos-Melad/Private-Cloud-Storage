@@ -1,4 +1,4 @@
-package com.example.privatecloudstorage;
+package com.example.privatecloudstorage.controller;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,12 +12,18 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DatabaseReference;
+import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 
 import java.util.ArrayList;
 
+<<<<<<< HEAD
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+=======
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
+>>>>>>> 3cf31ad621841d00c810c9a9c646d8a050414dbd
 
 /**
  * GroupListActivity class is to make a dynamic List to view user's Group(s)
@@ -43,7 +49,7 @@ public class GroupListActivity extends AppCompatActivity {
         _ListView.setAdapter(_Adapter);
 
         //getting user's group(s)
-        mFirebaseDatabaseManager.GetUserGroupsObservable()
+        mFirebaseDatabaseManager.getUserGroupsObservable()
                 .subscribe(new Observer() {
                     Disposable disposable = null;
 
@@ -75,7 +81,7 @@ public class GroupListActivity extends AppCompatActivity {
         _ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override //on any click (choosing a group) to enter and view group contents
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                mFirebaseDatabaseManager.GetUserGroupsObservable()
+                mFirebaseDatabaseManager.getUserGroupsObservable()
                         .subscribe(new Observer() {
                             Disposable disposable = null;
                             int index = -1;

@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
-            android:name=".SplashScreenActivity"
+            android:name=".controller.SplashScreenActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -43,40 +43,30 @@
         </provider>
 
         <activity
-            android:name=".FileManagerListActivity"
+            android:name=".controller.FileManagerListActivity"
             android:exported="false" />
         <activity
-            android:name=".GroupContentActivity"
-            android:exported="false"></activity>
-        <activity
-            android:name=".GroupListActivity"
+            android:name=".controller.GroupContentActivity"
             android:exported="false" />
         <activity
-            android:name=".JoinGroupActivity"
+            android:name=".controller.GroupListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".controller.CreateGroupActivity"
             android:exported="true" />
         <activity
-            android:name=".CreateGroupActivity"
+            android:name=".controller.JoinGroupActivity"
             android:exported="true" />
         <activity
-            android:name=".SignInActivity"
+            android:name=".controller.SignInActivity"
             android:exported="true" />
         <activity
-            android:name=".SignUpActivity"
+            android:name=".controller.SignUpActivity"
             android:exported="true" />
         <activity
-            android:name=".HomePageActivity"
+            android:name=".controller.HomePageActivity"
             android:exported="true" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
 
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-
-                </intent-filter>
-        </activity>
     </application>
 
 </manifest>

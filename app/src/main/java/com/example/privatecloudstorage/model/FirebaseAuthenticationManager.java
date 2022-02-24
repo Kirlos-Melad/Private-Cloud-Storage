@@ -1,5 +1,6 @@
-package com.example.privatecloudstorage;
+package com.example.privatecloudstorage.model;
 //android libraries
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.util.Log;
 import android.view.View;
@@ -14,13 +15,13 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
-
 /**
  * manage firebase authentication
  */
 public class FirebaseAuthenticationManager {
     private static FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     private FirebaseAuth mFirebaseAuth;
+    private static final String TAG = "FirebaseAuthenticationManager";
 
     private FirebaseAuthenticationManager() {
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -46,10 +47,11 @@ public class FirebaseAuthenticationManager {
      */
     public boolean SignUp(final String email, String pass1, final String userName, final boolean isOnline, final Activity activity) {
         mFirebaseAuth.createUserWithEmailAndPassword(email, pass1).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
+            @SuppressLint("LongLogTag")
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (!task.isSuccessful()) {
-                    Log.w("message", "createUserWithEmail:failure", task.getException());
+                    Log.w(TAG, "createUserWithEmail:failure", task.getException());
                 } else {
                     mFirebaseAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -63,15 +65,16 @@ public class FirebaseAuthenticationManager {
 
                                 user.updateProfile(profileUpdates)
                                         .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @SuppressLint("LongLogTag")
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {
-                                                    Log.d("TAG", "User profile updated.");
+                                                    Log.d(TAG, "User profile updated.");
                                                 }
                                             }
                                         });
                             }else{
-                                Toast.makeText(activity, task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(activity, "Error in sending email verification email", Toast.LENGTH_LONG).show();
                             }
                         }
                     });
@@ -95,10 +98,11 @@ public class FirebaseAuthenticationManager {
      */
     public boolean SignIn(String email, String pass, Activity activity) {
         mFirebaseAuth.signInWithEmailAndPassword(email, pass).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
+            @SuppressLint("LongLogTag")
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (!task.isSuccessful())
-                    Log.w("message", "SignIn:failure", task.getException());
+                    Log.w(TAG, "SignIn:failure", task.getException());
             }
         });
         try {
@@ -121,16 +125,17 @@ public class FirebaseAuthenticationManager {
      * @param _ProgressBar the progress bar
      * @param activity the sign in activity
      */
-    public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity){
+    public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity) {
         mFirebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @SuppressLint("LongLogTag")
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 _ProgressBar.setVisibility(View.GONE);
-                if(task.isSuccessful()){
-                    Toast.makeText(activity,"Check Your Email to Change Your Passwored", Toast.LENGTH_LONG).show();
-                }else{
-                    Log.d("show", task.getException().getMessage());
-                    Toast.makeText(activity,task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                if (task.isSuccessful()) {
+                    Toast.makeText(activity, "Check your email to change your passwored", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.d(TAG, task.getException().getMessage());
+                    Toast.makeText(activity, "Error in sending password reset email", Toast.LENGTH_LONG).show();
                 }
             }
         });

@@ -1,4 +1,4 @@
-package com.example.privatecloudstorage;
+package com.example.privatecloudstorage.controller;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -13,6 +13,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 
 import java.io.File;
 
@@ -47,7 +50,7 @@ public class GroupContentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(checkPermission()){
-                Intent intent = new Intent(GroupContentActivity.this,FileManagerListActivity.class);
+                Intent intent = new Intent(GroupContentActivity.this, FileManagerListActivity.class);
                 String path = Environment.getExternalStorageDirectory().getPath();
                 intent.putExtra("path",path);
                 intent.putExtra("action",Intent.ACTION_GET_CONTENT);

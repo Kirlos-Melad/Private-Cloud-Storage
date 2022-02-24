@@ -1,19 +1,26 @@
-package com.example.privatecloudstorage;
+package com.example.privatecloudstorage.model;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.privatecloudstorage.BuildConfig;
+import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.controller.FileManagerListActivity;
+import com.example.privatecloudstorage.controller.GroupListActivity;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,8 +82,8 @@ public class FileManagerAdapter extends RecyclerView.Adapter<FileManagerAdapter.
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     _Context.startActivity(intent);
                 }else{
-                    //open the selected file
                     try {
+                        //open the selected file
                         openFile(selectedFile.getAbsolutePath(), mAction);
                     }catch (Exception e){
                         e.printStackTrace();
@@ -85,8 +92,46 @@ public class FileManagerAdapter extends RecyclerView.Adapter<FileManagerAdapter.
                 }
             }
         }));
+
+        /**
+         * Show Menu
+         */
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                PopupMenu popupMenu = new PopupMenu(_Context,v);
+                popupMenu.getMenu().add("Send");
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        if(item.getTitle().equals("Send")){
+                            //the destination that the file will be moved to
+                            File dstFile= new File(_Context.getFilesDir() + File.separator + mGroupKey + " " + mGroupName
+                                    + File.separator + Uri.fromFile(selectedFile).getLastPathSegment());
+                            //copy the file from original directory to group directory
+                            try {
+                                //copy the file from original directory to group directory
+                                Files.copy(selectedFile.toPath() , dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                Toast.makeText(_Context.getApplicationContext(),"Sending...",Toast.LENGTH_LONG).show();
+                                Intent intent = new Intent(_Context, GroupListActivity.class);
+                                _Context.startActivity(intent);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(_Context.getApplicationContext(),"The Group is not exist",Toast.LENGTH_LONG).show();
+                            }
+                        }
+                        return true;
+                    }
+                });
+                if(!selectedFile.isDirectory() && mAction.equals(Intent.ACTION_GET_CONTENT)){
+                    popupMenu.show();
+                }
+                return true;
+            }
+        });
     }
-// --> /data/data/com.example.privatecloudstorage/files/-MwOjgHSGSHehZcd-AuB group
+
     /**
      * open the file and perform action (VIEW or GET_CONTENT)
      * @param filePath
@@ -95,28 +140,15 @@ public class FileManagerAdapter extends RecyclerView.Adapter<FileManagerAdapter.
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void openFile(String filePath, String action) {
         File file = new File(filePath);
-        Uri uri =  FileProvider.getUriForFile(Objects.requireNonNull(_Context.getApplicationContext()),BuildConfig.APPLICATION_ID + ".provider",file);
+        Uri uri =  FileProvider.getUriForFile(Objects.requireNonNull(_Context.getApplicationContext()), BuildConfig.APPLICATION_ID + ".provider",file);
         String mime = _Context.getContentResolver().getType(uri);
         Intent intent = new Intent();
         intent.setAction(action);
         intent.setDataAndType(uri, mime);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        if(action.equals(Intent.ACTION_GET_CONTENT)){
-            try {
-                Toast.makeText(_Context.getApplicationContext(),"Sending...",Toast.LENGTH_LONG).show();
-                //destination that the file will be moved to
-                File dstFile= new File(_Context.getFilesDir() + File.separator + mGroupKey + " " + mGroupName
-                        + File.separator + Uri.fromFile(new File(filePath)).getLastPathSegment());
-                //copy the file from original directory to group directory
-                Files.copy(file.toPath() , dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                //Intent goBack = new Intent(mContext,GroupListActivity.class);
-                //mContext.startActivity(goBack);
-                return;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        if(action.equals(Intent.ACTION_GET_CONTENT))
+            return;
         _Context.startActivity(intent);
     }
 
