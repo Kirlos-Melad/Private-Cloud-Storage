@@ -29,8 +29,7 @@ public class HomePageActivity extends AppCompatActivity {
 
         // Start monitoring Cloud and Physical storage
         // MUST CALL THIS HERE
-        FirebaseStorageManager.CreateInstance(getFilesDir(), (FileObserver.CREATE | FileObserver.MOVED_TO));
-        FirebaseDatabaseManager.getInstance();
+        FirebaseStorageManager.CreateInstance(getFilesDir());
 
         //TODO: Add Log out Button
         //Button to direct to CreateGroupActivity

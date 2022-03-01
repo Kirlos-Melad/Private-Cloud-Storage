@@ -68,15 +68,15 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
                     Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();
                 }
                 // Try Generating & Saving the QR Code
-                try {
-                    group.GenerateGroupQRCode(getFilesDir().toString());
-                } catch (IOException e) {
-                    Toast.makeText(this, "Failed to save QR Code", Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
-                } catch (WriterException e) {
-                    Toast.makeText(this, "Failed to create QR Code", Toast.LENGTH_LONG).show();
-                    e.printStackTrace();
-                }
+//                try {
+//                    group.GenerateGroupQRCode(getFilesDir().toString());
+//                } catch (IOException e) {
+//                    Toast.makeText(this, "Failed to save QR Code", Toast.LENGTH_LONG).show();
+//                    e.printStackTrace();
+//                } catch (WriterException e) {
+//                    Toast.makeText(this, "Failed to create QR Code", Toast.LENGTH_LONG).show();
+//                    e.printStackTrace();
+//                }
 
                 // Tell user it was a success
                 Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();

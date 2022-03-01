@@ -1,33 +1,28 @@
 package com.example.privatecloudstorage.controller;
 
 //android libraries
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
-import com.example.privatecloudstorage.R;
-// 3rd party libraries
+
+import java.util.Observable;
+import java.util.Observer;
 
 
 /**
  * signs users in in case if them email and password are valid
  * , if not it tell them that there's invalid name or password
  */
-public class SignInActivity extends AppCompatActivity {
+public class SignInActivity extends AppCompatActivity implements Observer {
     private static final String TAG = "SignInActivity";
-    EditText _Email, _Pass;
-    Button _SignInBtn;
-    TextView _ForgetPasword;
-    ProgressBar _ProgressBar;
-    TextView _SignUp;
+    private @NonNull ActivitySignInBinding _ActivitySignInBinding;
 
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     /**
@@ -37,15 +32,13 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_in);
 
-        _Email = findViewById(R.id.Email);
-        _Pass = findViewById(R.id.SignInPassword);
-        _SignInBtn = findViewById(R.id.SignIn_Button);
-        _ForgetPasword=findViewById(R.id.forgetPassword);
-        _ProgressBar = findViewById(R.id.ProgressBar_ForgetPass);
-        _SignUp=findViewById(R.id.SignUp);
+        _ActivitySignInBinding = ActivitySignInBinding.inflate(getLayoutInflater());
+        setContentView(_ActivitySignInBinding.getRoot());
+
+
         mFirebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
+        mFirebaseAuthenticationManager.addObserver(this);
 
         if(mFirebaseAuthenticationManager.getCurrentUser() != null && mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()){
             startActivity(new Intent(SignInActivity.this,HomePageActivity.class));
@@ -55,18 +48,18 @@ public class SignInActivity extends AppCompatActivity {
         /**
          * handle Forget Password Text press
          */
-        _ForgetPasword.setOnClickListener(new View.OnClickListener() {
+        _ActivitySignInBinding.forgetPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _ProgressBar.setVisibility(View.VISIBLE);
-                mFirebaseAuthenticationManager.ForgetPassword(_Email.getText().toString().trim(), _ProgressBar, SignInActivity.this);
+                _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.VISIBLE);
+                mFirebaseAuthenticationManager.ForgetPassword(_ActivitySignInBinding.Email.getText().toString().trim(), _ActivitySignInBinding.ProgressBarForgetPass, SignInActivity.this);
             }
         });
 
         /**
          * handle Sign up Text press
          */
-        _SignUp.setOnClickListener(new View.OnClickListener() {
+        _ActivitySignInBinding.SignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(SignInActivity.this,SignUpActivity.class);
@@ -76,25 +69,25 @@ public class SignInActivity extends AppCompatActivity {
 
 
         /**
-         * handle Sign Up button press
+         * handle Sign In button press
          */
-        _SignInBtn.setOnClickListener(new View.OnClickListener() {
+        _ActivitySignInBinding.SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-                    String email = _Email.getText().toString().trim();
-                    String pass = _Pass.getText().toString().trim();
+                String email=_ActivitySignInBinding.Email.getText().toString().trim();
+                String password=_ActivitySignInBinding.SignInPassword.getText().toString().trim();
 
                     if (TextUtils.isEmpty(email)) {
-                        _Email.setError("Email is required");
+                        _ActivitySignInBinding.emailLayout.setError("Email is required");
                         return;
-                    } else if (TextUtils.isEmpty(pass)) {
-                        _Pass.setError("Password is required");
+                    } else if (TextUtils.isEmpty(password)) {
+                        _ActivitySignInBinding.passwordLayout.setError("Password is required");
                         return;
-                    } else if (email.isEmpty() && pass.isEmpty()) {
+                    } else if (email.isEmpty() && password.isEmpty()) {
                         Toast.makeText(SignInActivity.this, "Enter Your Data", Toast.LENGTH_LONG).show();
                         return;
-                    } else if (!(email.isEmpty() && pass.isEmpty())) {
-                        boolean validSignIn = mFirebaseAuthenticationManager.SignIn(email, pass, SignInActivity.this);
+                    } else if (!(email.isEmpty() && password.isEmpty())) {
+                        boolean validSignIn = mFirebaseAuthenticationManager.SignIn(email, password, SignInActivity.this);
                         if (!validSignIn)
                             Toast.makeText(SignInActivity.this, "Invalid Email or Password", Toast.LENGTH_LONG).show();
                         else {
@@ -110,4 +103,8 @@ public class SignInActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void update(Observable observable, Object o) {
+        Toast.makeText(SignInActivity.this, o.toString(), Toast.LENGTH_LONG).show();
+    }
 }

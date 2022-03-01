@@ -6,9 +6,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import java.util.Observable;
 
 import androidx.annotation.NonNull;
 //3rd party libraries
+import com.example.privatecloudstorage.controller.SignUpActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -18,10 +20,11 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 /**
  * manage firebase authentication
  */
-public class FirebaseAuthenticationManager {
+public class FirebaseAuthenticationManager extends Observable {
     private static FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     private FirebaseAuth mFirebaseAuth;
     private static final String TAG = "FirebaseAuthenticationManager";
+    String message="";
 
     private FirebaseAuthenticationManager() {
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -73,20 +76,26 @@ public class FirebaseAuthenticationManager {
                                                 }
                                             }
                                         });
-                            }else{
-                                Toast.makeText(activity, "Error in sending email verification email", Toast.LENGTH_LONG).show();
-                            }
+                                //Log.d("++++++++++++++++++++++++++++++++++++++", String.valueOf(user.isEmailVerified()));
+                                 message = "Please, verify your email ";
+                            }else
+                                message = "Error in sending email verification email";
+                            setChanged();
+                            notifyObservers(message);
                         }
                     });
                 }
             }
         });
+        //mFirebaseAuthenticationManager.SignIn(email,pass1, activity);
         try {
             Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return (mFirebaseAuth.getCurrentUser() != null);
+
+        //mFirebaseAuth.getCurrentUser() != null
+        return (mFirebaseAuth.getCurrentUser().isEmailVerified());
     }
 
     /**
@@ -132,11 +141,13 @@ public class FirebaseAuthenticationManager {
             public void onComplete(@NonNull Task<Void> task) {
                 _ProgressBar.setVisibility(View.GONE);
                 if (task.isSuccessful()) {
-                    Toast.makeText(activity, "Check your email to change your passwored", Toast.LENGTH_LONG).show();
+                    message = "Check your email to change your passwored";
                 } else {
                     Log.d(TAG, task.getException().getMessage());
-                    Toast.makeText(activity, "Error in sending password reset email", Toast.LENGTH_LONG).show();
+                    message = "Error in sending password reset email";
                 }
+                setChanged();
+                notifyObservers(message);
             }
         });
     }
