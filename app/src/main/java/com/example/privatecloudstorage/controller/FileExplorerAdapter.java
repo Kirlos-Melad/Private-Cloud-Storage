@@ -20,10 +20,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.BuildConfig;
 import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityGroupContentBinding;
 import com.example.privatecloudstorage.model.FileManager;
 
 import java.io.File;
@@ -52,7 +54,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
         this.mAction = action;
         this.mGroupName = groupName;
         this.mGroupKey = selectedGroupKey;
-        mFileManager = FileManager.getInstance();
+        mFileManager = new FileManager(_Context.getFilesDir());
     }
 
     @Override
@@ -99,7 +101,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
             public void onClick(View view) {
                 //open the selected directory
                 if(selectedFile.isDirectory()){
-                    Intent intent = new Intent(_Context, FileExplorerListActivity.class);
+                    Intent intent = new Intent(_Context, GroupContentActivity.class);
                     String path = selectedFile.getAbsolutePath();
                     intent.putExtra("path",path);
                     intent.putExtra("action",mAction);
