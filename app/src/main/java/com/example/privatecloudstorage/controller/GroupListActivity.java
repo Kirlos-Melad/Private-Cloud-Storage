@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
+import com.example.privatecloudstorage.model.Group;
 
 import java.util.ArrayList;
 
@@ -56,8 +57,8 @@ public class GroupListActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(@NonNull Object o) {
-                        Pair<String, String> groupInformation = (Pair<String, String>) o;
-                        mItems.add(groupInformation.second);
+                        Group groupInformation = (Group) o;
+                        mItems.add(groupInformation.getName());
                         _ListView.setAdapter(_Adapter);
                     }
 
@@ -91,12 +92,12 @@ public class GroupListActivity extends AppCompatActivity {
                             public void onNext(@NonNull Object o) {
                                 index++;
                                 if (index == position) {
-                                    Pair<String, String> groupInformation = (Pair<String, String>) o;
+                                    Group groupInformation = (Group) o;
                                     //before go to new activity send group name and id as a parameter
                                     Intent intent = new Intent(GroupListActivity.this, GroupContentActivity.class);
                                     Bundle bundle = new Bundle();
-                                    bundle.putString("selectedGroupName", groupInformation.second);
-                                    bundle.putString("selectedGroupKey", groupInformation.first);
+                                    bundle.putString("selectedGroupName", groupInformation.getName());
+                                    bundle.putString("selectedGroupKey", groupInformation.getId());
 
                                     intent.putExtras(bundle); //Put Group number to your next Intent
                                     startActivity(intent);

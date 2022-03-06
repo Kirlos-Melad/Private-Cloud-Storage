@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 // 3rd Party Libraries
@@ -16,6 +17,7 @@ import com.google.zxing.WriterException;
 // Java Libraries
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.jar.Attributes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +44,7 @@ public class CreateGroupActivity extends AppCompatActivity {
             // skip if user input wasn't a success
             if(group == null) return;
             // skip if group wasn't created
-            if(!group.CreateGroup(getFilesDir().toString(),false)) return;
+            if(!group.CreateGroup(false)) return;
             // Try Generating & Saving the QR Code
             try {
                 group.GenerateGroupQRCode(getFilesDir().toString());
@@ -73,11 +75,27 @@ public class CreateGroupActivity extends AppCompatActivity {
      */
     private Group ReadInput() {
         //Get Values entered by user
-        String groupName = _ActivityCreateGroupBinding.Name.getText().toString();
-        String groupDescription = _ActivityCreateGroupBinding.Description.getText().toString();
-        String password = _ActivityCreateGroupBinding.Password.getText().toString();
-        String confirmPassword = _ActivityCreateGroupBinding.ConfirmPassword.getText().toString();
+        String groupName = _ActivityCreateGroupBinding.Name.getText().toString().trim();
+        String groupDescription = _ActivityCreateGroupBinding.Description.getText().toString().trim();
+        String password = _ActivityCreateGroupBinding.Password.getText().toString().trim();
+        String confirmPassword = _ActivityCreateGroupBinding.ConfirmPassword.getText().toString().trim();
 
+        if(TextUtils.isEmpty(groupName)){
+            _ActivityCreateGroupBinding.groupname.setError("Group Name is required");
+            return null;
+        }
+        if(TextUtils.isEmpty(groupDescription)){
+            _ActivityCreateGroupBinding.groupdesc.setError("Group Description is required");
+            return null;
+        }
+        if(TextUtils.isEmpty(password)){
+            _ActivityCreateGroupBinding.grouppass.setError("Group password is required");
+            return null;
+        }
+        if(TextUtils.isEmpty(confirmPassword)){
+            _ActivityCreateGroupBinding.repass.setError("Group Repassword is required");
+            return null;
+        }
         // Check if password matches
         if(!password.equals(confirmPassword)){
             Toast.makeText(this, "Password doesn't match", Toast.LENGTH_LONG).show();
@@ -91,15 +109,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         }
 
         // Create new group with the values provided by the user
-        Group group = null;
-        try {
-            group = new Group(groupName, groupDescription, password);
-        } catch (NoSuchAlgorithmException e) {
-            Toast.makeText(this, "Something went wrong, Please try again", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-
-        return group;
+        return new Group(groupName, groupDescription, password);
     }
 
     /**

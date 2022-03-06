@@ -10,7 +10,6 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +34,7 @@ public class Group {
      * @param password
      * @throws NoSuchAlgorithmException failed to use SHA-256 to hash the password
      */
-    public Group(String id, String name, String description, String password) throws NoSuchAlgorithmException {
+    public Group(String id, String name, String description, String password)  {
         this(name, description, password);
         mId = id;
     }
@@ -47,7 +46,7 @@ public class Group {
      * @param password
      * @throws NoSuchAlgorithmException failed to use SHA-256 to hash the password
      */
-    public Group(String name, String description, String password) throws NoSuchAlgorithmException {
+    public Group(String name, String description, String password)  {
         this.mName = name;
         this.mDescription = description;
         setPassword(password);
@@ -59,11 +58,16 @@ public class Group {
      * @param password sent Password from user
      * @return true when the password is hashed and save, false when there's an exception
      */
-    private void setPassword(String password) throws NoSuchAlgorithmException {
+    private void setPassword(String password) {
         if(password.isEmpty())
             return;
         // Create Hashing Function instance of SHA-256
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         // Convert the password to hash value
         byte[] hashedPassword = messageDigest.digest(password.getBytes(StandardCharsets.UTF_8));
         // Save hashed password as HexString
@@ -94,15 +98,20 @@ public class Group {
      * Add new group to firebase
      * Create group folder in the root directory
      */
-    public boolean CreateGroup(String rootDirectory,boolean isJoin){
-        if(isJoin){FirebaseDatabaseManager.getInstance().JoinGroup(this);}
-        else {// Add this group to Real-Time Database
+    public boolean CreateGroup(boolean isJoin){
+        if(isJoin){
+            // Join an existing group in the Real-Time Database
+            FirebaseDatabaseManager.getInstance().JoinGroup(this);
+        }
+        else {
+            // Add this group to Real-Time Database
             mId = FirebaseDatabaseManager.getInstance().AddGroup(this);
         }
-        // Create group folder = GroupID GroupName
-        File groupDirectory = new File(rootDirectory, mId + " " + mName);
 
-        return groupDirectory.mkdir();
+        // Create group folder = GroupID GroupName
+        File groupDirectory = new File(FileManager.getInstance().getApplicationDirectory(), mId + " " + mName);
+
+        return FileManager.getInstance().CreateDirectory(groupDirectory);
     }
 
     /**
@@ -119,10 +128,7 @@ public class Group {
 
         // Save the QR code in the folder -> path = ${rootDir}/${id} ${name}/${name} QR Code.png
         File image = new File(rootDirectory, mId + " " + mName + File.separator + mName + " QR Code.png");
-        FileOutputStream fileOutputStream = new FileOutputStream(image);
-        bitmap.compress(Bitmap.CompressFormat.PNG, 85, fileOutputStream);
-        fileOutputStream.flush();
-        fileOutputStream.close();
+        FileManager.getInstance().CreateImage(bitmap, image);
     }
 
     /**

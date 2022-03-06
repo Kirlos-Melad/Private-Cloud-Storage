@@ -97,12 +97,14 @@ public class SignUpActivity extends AppCompatActivity implements Observer {
                 //call ValidateSignUp to validate sign up
                 boolean signedUp = mFirebaseAuthenticationManager.SignUp(email, password1, userName, false, SignUpActivity.this);
                 if (signedUp) {
-                    // mFirebaseAuthenticationManager.getCurrentUser().reload();
-                    mFirebaseAuthenticationManager.SignIn(email,password1,SignUpActivity.this);
-                    if (mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()) {
-                        startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
-                        finish();
-                    }
+                    mFirebaseAuthenticationManager.Logout();
+                    startActivity(new Intent(getApplicationContext(), SignInActivity.class));
+                    finish();
+//                    if (mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()) {
+//                        Toast.makeText(SignUpActivity.this, "Your Email Is Verified :)", Toast.LENGTH_LONG).show();
+//                        startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
+//                        finish();
+//                    }
                 }
             }
         });

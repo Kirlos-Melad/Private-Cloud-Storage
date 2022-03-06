@@ -59,38 +59,24 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
 
         // groupInformation array holds [Group ID, Group Name]
         String[] groupInformation = result.getText().split(",");
-        try {
-            Group group = new Group(groupInformation[0], groupInformation[1], "", "");
-            // If joined successfully Create a folder for the group
-            if(FirebaseDatabaseManager.getInstance().JoinGroup(group)) {
-                // skip if group wasn't created
-                if(!group.CreateGroup(getFilesDir().toString(),true)) {
-                    Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();
-                }
-                // Try Generating & Saving the QR Code
-//                try {
-//                    group.GenerateGroupQRCode(getFilesDir().toString());
-//                } catch (IOException e) {
-//                    Toast.makeText(this, "Failed to save QR Code", Toast.LENGTH_LONG).show();
-//                    e.printStackTrace();
-//                } catch (WriterException e) {
-//                    Toast.makeText(this, "Failed to create QR Code", Toast.LENGTH_LONG).show();
-//                    e.printStackTrace();
-//                }
 
-                // Tell user it was a success
-                Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();
-
-                // Go to the group activity
-                Intent intent = new Intent(this, GroupContentActivity.class);
-                intent.putExtra("selectedGroupKey",group.getId());
-                intent.putExtra("selectedGroupName", group.getName());
-
-                startActivity(intent);
+        Group group = new Group(groupInformation[0], groupInformation[1], "", "");
+        // If joined successfully Create a folder for the group
+        if (FirebaseDatabaseManager.getInstance().JoinGroup(group)) {
+            // skip if group wasn't created
+            if (!group.CreateGroup(true)) {
+                Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();
             }
-        } catch (NoSuchAlgorithmException e) {
-            Toast.makeText(this, "Something went wrong, Please try again", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
+
+            // Tell user it was a success
+            Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();
+
+            // Go to the group activity
+            Intent intent = new Intent(this, GroupContentActivity.class);
+            intent.putExtra("selectedGroupKey", group.getId());
+            intent.putExtra("selectedGroupName", group.getName());
+
+            startActivity(intent);
         }
     }
 

@@ -25,6 +25,8 @@ import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.crypto.Cipher;
+
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -43,12 +45,10 @@ public class FirebaseStorageManager {
     private ExecutorService mExecutorService;
 
     private File mGroupsFolder;
-    private ArrayDeque<File> mRecentlyDownloaded;
 
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private FirebaseStorageManager(File groupsFolder ){
-        mRecentlyDownloaded = new ArrayDeque<File>();
         this.mGroupsFolder = groupsFolder;
 
         mStorage = FirebaseStorage.getInstance();
@@ -66,28 +66,31 @@ public class FirebaseStorageManager {
      * @param groupsFolder
      */
     private void OnEvent(File groupsFolder){
-        FileManager.CreateInstance(groupsFolder,
-                (event, file) -> {
-                    // We don't want to sync directories
-                    switch (event){
-                        case FileManager.CREATE:
-                            TakeAction(file, Action.Upload);
-                            break;
-                        case FileManager.RENAME:
-                            TakeAction(file, Action.Update);
-                            break;
-                        case FileManager.DELETE:
-                            TakeAction(file, Action.Delete);
-                            break;
-                    }
-                });
+        FileManager.CreateInstance(groupsFolder, new FileManager.EventListener() {
+            @Override
+            public void onChildAdded(File file) {
+                TakeAction(file,null, Action.Upload);
+            }
+
+            @Override
+            public void onChildRemoved(File file) {
+                TakeAction(file,null, Action.Delete);
+
+            }
+
+            @Override
+            public void onChildChanged(File oldFile,File newFile) {
+                TakeAction(oldFile,newFile, Action.Update);
+
+            }
+        });
     }
 
     /**
      * Upload the file
      * @param file
      */
-    private void TakeAction(File file, Action action){
+    private void TakeAction(File file,File newFile, Action action){
         String path = file.getAbsolutePath();
         mFirebaseDatabaseManager.getUserGroupsObservable()
                 .observeOn(Schedulers.from(mExecutorService))
@@ -96,36 +99,25 @@ public class FirebaseStorageManager {
 
             @Override
             public void onSubscribe(Disposable d) {
-
                 disposable = d;
             }
 
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onNext(@NonNull Object o) {
-                // [Group ID, Group Name]
-                Pair<String, String> groupInformation = (Pair<String, String>) o;
+                Group group = (Group) o;
 
                 // when we find the group name do action
-                if (path.contains(groupInformation.second)){
+                if (path.contains(group.getId()+" "+group.getName())){
                     switch (action){
                         case Upload:
-                            //Check if the file is in the recently downloaded queue
-                            if(!mRecentlyDownloaded.isEmpty() && mRecentlyDownloaded.peek().equals(file))
-                                mRecentlyDownloaded.remove();
-                            else
-                                Upload(groupInformation, new File(path));
+                            Upload(group,file);
                             break;
                         case Update:
-                            /*try {
-                                Update(groupInformation.first, new File(path));
-                            } catch (IOException e) {
-                                Log.d(TAG, "onNext: line 130");
-                                e.printStackTrace();
-                            }*/
+                            Update(group.getId(),file,newFile);
                             break;
                         case Delete:
-                            Delete(groupInformation.first, new File(path));
+                            Delete(group.getId(), file);
                             break;
                     }
                     disposable.dispose();
@@ -156,25 +148,33 @@ public class FirebaseStorageManager {
 
     /**
      * Upload new file to cloud
-     * @param groupId Group ID
      * @param file File path
      */
-    private void Upload(Pair<String, String> groupInformation, File file) {
+    private void Upload(Group group, File file) {
         mExecutorService.execute(() -> {
-            StorageMetadata storageMetadata = new StorageMetadata.Builder()
-                    .setCustomMetadata("FileOwner",FirebaseAuthenticationManager.getInstance().getCurrentUser().getUid())
-                    .build();
-            Uri fileUri = Uri.fromFile(file);
-            StorageReference fileReference = mStorage.getReference().child(groupInformation.first).child(fileUri.getLastPathSegment());
+            File encryptedFile = null;
+            try {
+                encryptedFile = FileManager.getInstance().EncryptDecryptFile(file, group, Cipher.ENCRYPT_MODE);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            //location file in physical storage
+            Uri fileUri = Uri.fromFile(encryptedFile);
+
+            String fileId = fileUri.getLastPathSegment();
+            StorageReference fileReference = mStorage.getReference().child(group.getId()).child(fileId);
 
             //Start uploading file
-            fileReference.putFile(fileUri, storageMetadata)
+            fileReference.putFile(fileUri)
                     .addOnSuccessListener(taskSnapshot -> {
                         mExecutorService.execute(() -> {
                             // Wait for task to complete
                             //while(!(taskSnapshot.getTask().isComplete() && taskSnapshot.getTask().isSuccessful()));
                             taskSnapshot.getTask().addOnSuccessListener(taskSnapshot1 -> {
-                                mFirebaseDatabaseManager.AddFile(groupInformation, taskSnapshot.getMetadata());
+                                mFirebaseDatabaseManager.AddFile(group.getId(),fileId, Uri.fromFile(file).getLastPathSegment(),taskSnapshot.getMetadata());
+                                // TODO: Delete the file
+                                //FileManager.getInstance().DeleteFile(encryptedFile);
                             });
                         });
                     })
@@ -187,23 +187,29 @@ public class FirebaseStorageManager {
 
     /**
      * Download new file from storage cloud
-     *
      * @param url Group ID
-     *  @param groupPath
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void Download(Uri url, String groupPath) {
+    public void Download(Group group, Uri url, String fileName) {
         mExecutorService.execute(() -> {
+            String path = FileManager.getInstance().getApplicationDirectory() + File.separator +
+            group.getId() + " " + group.getName();
+
+            File file = new File(path, fileName);
+
             //Get metadata info
             StorageReference storageReference = mStorage.getReference().child(url.toString());
             storageReference.getMetadata()
                     .addOnSuccessListener(storageMetadata -> mExecutorService.execute(() -> {
                         //Start download and add it to the downloaded queue
-                        File file = new File(mGroupsFolder.toPath() + File.separator + groupPath, storageMetadata.getName());
 
                         storageReference.getFile(file)
                                 .addOnSuccessListener(taskSnapshot -> {
-                                    mRecentlyDownloaded.add(file);
+                                    try {
+                                        FileManager.getInstance().EncryptDecryptFile(file, group, Cipher.DECRYPT_MODE);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.d(TAG, "Download: line 203");
@@ -218,29 +224,46 @@ public class FirebaseStorageManager {
     }
 
     private void Delete(String groupId, File file){
+        //TODO:loop on fileName in SharedFiles
         mExecutorService.execute(() -> {
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(Uri.fromFile(file).getLastPathSegment());
-            fileReference.delete().addOnSuccessListener(unused -> {
-                mFirebaseDatabaseManager.DeleteFile(groupId, fileReference.toString());
-            }).addOnFailureListener(e -> {
-                Log.d(TAG, "onFailure: line 219");
-                e.printStackTrace();
-            });
+            //get id to delete the file from physical storage
+            mFirebaseDatabaseManager.GetFileId(groupId,Uri.fromFile(file).getLastPathSegment())
+            .observeOn(Schedulers.from(mExecutorService))
+                    .subscribe(new Observer(){
+                        Disposable disposable = null;
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                            disposable = d;
+                        }
+
+                        @Override
+                        public void onNext(Object o) {
+                            StorageReference fileReference = mStorage.getReference().child(groupId).child((String)o);
+                            fileReference.delete().addOnSuccessListener(unused -> {
+                                mFirebaseDatabaseManager.DeleteFile(groupId,(String) o);
+                            }).addOnFailureListener(e -> {
+                                Log.d(TAG, "onFailure: line 219");
+                                e.printStackTrace();
+                            });
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                        e.printStackTrace();
+                        disposable.dispose();
+                        }
+
+                        @Override
+                        public void onComplete() {
+                        disposable.dispose();
+                        }
+                    });
         });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void Update(String groupId, File file) throws IOException {
-        StorageReference fileReference = mStorage.getReference().child(groupId).child(Uri.fromFile(file).getLastPathSegment());
-
-        BasicFileAttributes basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-
-        fileReference.updateMetadata((StorageMetadata) basicFileAttributes).addOnSuccessListener(storageMetadata -> {
-            // TODO: Update real time
-            //mFirebaseDatabaseManager.UpdateFile(fileReference.toString(), storageMetadata.getPath());
-        }).addOnFailureListener(e -> {
-            Log.d(TAG, "ModifyAttribute: line 242");
-            e.printStackTrace();
-        });
+    private void Update(String groupId, File oldFile,File newFile) {
+        mFirebaseDatabaseManager.RenameFile(groupId,oldFile.getName(), newFile.getName());
     }
 }

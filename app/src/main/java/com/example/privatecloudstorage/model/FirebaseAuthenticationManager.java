@@ -2,6 +2,7 @@ package com.example.privatecloudstorage.model;
 //android libraries
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -10,6 +11,7 @@ import java.util.Observable;
 
 import androidx.annotation.NonNull;
 //3rd party libraries
+import com.example.privatecloudstorage.controller.SignInActivity;
 import com.example.privatecloudstorage.controller.SignUpActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -93,9 +95,8 @@ public class FirebaseAuthenticationManager extends Observable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         //mFirebaseAuth.getCurrentUser() != null
-        return (mFirebaseAuth.getCurrentUser().isEmailVerified());
+        return (mFirebaseAuth.getCurrentUser()!= null);
     }
 
     /**
@@ -150,5 +151,8 @@ public class FirebaseAuthenticationManager extends Observable {
                 notifyObservers(message);
             }
         });
+    }
+    public void Logout(){
+        mFirebaseAuth.getInstance().signOut();
     }
 }

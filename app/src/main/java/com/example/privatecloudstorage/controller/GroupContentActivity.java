@@ -25,6 +25,7 @@ import com.example.privatecloudstorage.databinding.ActivityGroupContentBinding;
 import com.example.privatecloudstorage.model.FileManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class GroupContentActivity extends AppCompatActivity {
@@ -44,27 +45,23 @@ public class GroupContentActivity extends AppCompatActivity {
 
         mSelectedGroupName = bundle.getString("selectedGroupName");
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
-        mFileManager = FileManager.getInstance(getFilesDir());
+        mFileManager = FileManager.getInstance();
 
         super.onCreate(savedInstanceState);
         _ActivityGroupContentBinding = ActivityGroupContentBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupContentBinding.getRoot());
 
-        String filePath = getIntent().getStringExtra("path");
-        String action =  getIntent().getStringExtra("action");
-
-        if(filePath != null && action != null) {
-            initAdapter(filePath, action);
-            return;
-        }
-
         _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(checkPermission()){
+                    Intent intent = new Intent(GroupContentActivity.this, FileExplorerListActivity.class);
                     String path = Environment.getExternalStorageDirectory().getPath();
-                    _ActivityGroupContentBinding.menu.close(true);
-                    initAdapter(path,Intent.ACTION_GET_CONTENT);
+                    intent.putExtra("path",path);
+                    intent.putExtra("action",Intent.ACTION_GET_CONTENT);
+                    intent.putExtra("selectedGroupName", mSelectedGroupName);
+                    intent.putExtra("selectedGroupKey", mSelectedGroupKey);
+                    startActivity(intent);
                 }
                 else requestPermission();
             }
@@ -77,7 +74,6 @@ public class GroupContentActivity extends AppCompatActivity {
                     String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName
                                 + File.separator + mSelectedGroupName +" QR Code.png";
                     ShowQrCode(path);
-                    _ActivityGroupContentBinding.menu.close(true);
                 }
                 else requestPermission();
             }
@@ -86,7 +82,6 @@ public class GroupContentActivity extends AppCompatActivity {
         _ActivityGroupContentBinding.fabCreateTextFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _ActivityGroupContentBinding.menu.close(true);
                 showDialog("Enter File Name :",false);
             }
         });
@@ -94,7 +89,6 @@ public class GroupContentActivity extends AppCompatActivity {
         _ActivityGroupContentBinding.fabCreateFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _ActivityGroupContentBinding.menu.close(true);
                 showDialog("Enter Folder Name :",true);
             }
         });
@@ -109,7 +103,6 @@ public class GroupContentActivity extends AppCompatActivity {
         if(checkPermission()) {
             String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
             initAdapter(path,Intent.ACTION_VIEW);
-            _ActivityGroupContentBinding.menu.close(true);
         }
         else requestPermission();
     }
@@ -128,6 +121,10 @@ public class GroupContentActivity extends AppCompatActivity {
                     Toast.makeText(GroupContentActivity.this,"Name Field cannot be empty",Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if(name.contains(".")){
+                    Toast.makeText(GroupContentActivity.this,"Name Field cannot contain dot",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if(isDir){
                     //create dir
                     File directory = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " +
@@ -138,7 +135,11 @@ public class GroupContentActivity extends AppCompatActivity {
                     //create txt file
                     File txtFile = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " +
                             mSelectedGroupName+ File.separator ,name + ".txt");
-                    mFileManager.CreateFile(txtFile);
+                    try {
+                        mFileManager.CreateFile(txtFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -188,7 +189,6 @@ public class GroupContentActivity extends AppCompatActivity {
     public void initAdapter(String path , String Action){
         File file = new File(path);
         File[] filesAndFolders = file.listFiles();
-        System.out.println(filesAndFolders.length);
         if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders.length ==0){
             _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.VISIBLE);
             return;
