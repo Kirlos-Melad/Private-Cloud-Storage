@@ -22,9 +22,9 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.privatecloudstorage.BuildConfig;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.BuildConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,7 +99,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
             public void onClick(View view) {
                 //open the selected directory
                 if(selectedFile.isDirectory()){
-                    Intent intent = new Intent(_Context, FileExplorerListActivity.class);
+                    Intent intent = new Intent(_Context, GroupContentActivity.class);
                     String path = selectedFile.getAbsolutePath();
                     intent.putExtra("path",path);
                     intent.putExtra("action",mAction);
@@ -156,13 +156,16 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                             renameDialog.setTitle("Rename File :");
                             final EditText fileNameEditText = new EditText(_Context);
                             fileNameEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+                            fileNameEditText.setText(selectedFile.toString().
+                                    substring((selectedFile.getPath().lastIndexOf(File.separator))+1,selectedFile.toString().length()));
+                            fileNameEditText.setSelectAllOnFocus(true);
                             renameDialog.setView(fileNameEditText);
                             renameDialog.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     String newName = fileNameEditText.getText().toString();
                                     //ToDo:rename file
-                                    mFileManager.RenameFile(selectedFile,newName );
+                                    mFileManager.RenameFile(selectedFile ,newName);
                                 }
                             });
                             System.out.println(selectedFile);

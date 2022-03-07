@@ -90,8 +90,8 @@ public class FileManager {
     }
 
     public boolean RenameFile(File oldFile, String newName){
-        String extension = oldFile.toString().substring(oldFile.getPath().lastIndexOf("."),oldFile.toString().length());
-        File newFile = new File(oldFile.getPath().substring(0, oldFile.getPath().lastIndexOf(File.separator)), newName + extension);
+        //String extension = oldFile.toString().substring(oldFile.getPath().lastIndexOf("."),oldFile.toString().length());
+        File newFile = new File(oldFile.getPath().substring(0, oldFile.getPath().lastIndexOf(File.separator)), newName );
         oldFile.renameTo(newFile);
 
         CallOnEvent(RENAME, oldFile ,newFile);
