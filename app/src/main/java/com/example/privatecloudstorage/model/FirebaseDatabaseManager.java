@@ -9,7 +9,9 @@ package com.example.privatecloudstorage.model;
         import androidx.annotation.Nullable;
         import androidx.annotation.RequiresApi;
 
+        import com.example.privatecloudstorage.interfaces.IAction;
         import com.google.android.gms.tasks.OnSuccessListener;
+        import com.google.android.gms.tasks.Task;
         import com.google.firebase.auth.FirebaseUser;
         import com.google.firebase.database.ChildEventListener;
         import com.google.firebase.database.DataSnapshot;
@@ -22,14 +24,12 @@ package com.example.privatecloudstorage.model;
 
 //Java Libraries
         import java.io.File;
-        import java.security.NoSuchAlgorithmException;
+        import java.util.ArrayList;
         import java.util.HashMap;
         import java.util.concurrent.ExecutorService;
         import java.util.concurrent.Executors;
 
         import io.reactivex.Observable;
-        import io.reactivex.ObservableEmitter;
-        import io.reactivex.ObservableOnSubscribe;
         import io.reactivex.Observer;
         import io.reactivex.disposables.Disposable;
         import io.reactivex.schedulers.Schedulers;
@@ -40,19 +40,18 @@ package com.example.privatecloudstorage.model;
  */
 public class FirebaseDatabaseManager {
     // Used for debugging
-    private static final String TAG = "FirebaseDatabaseManager";
+    public static final String TAG = "FirebaseDatabaseManager";
 
     private static FirebaseDatabaseManager mFirebaseDatabaseManager;
     private final FirebaseDatabase mDataBase;
     private final FirebaseUser mCurrentUser;
     private final ExecutorService mExecutorService;
-    private final Observable mUserGroupsObservable;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private FirebaseDatabaseManager(){
         mDataBase = FirebaseDatabase.getInstance();
         mCurrentUser = FirebaseAuthenticationManager.getInstance().getCurrentUser();
         mExecutorService = Executors.newSingleThreadExecutor();
-        mUserGroupsObservable = CreateUserGroupsObservable();
 
         // Monitor all existing groups
         MonitorGroups();
@@ -63,12 +62,15 @@ public class FirebaseDatabaseManager {
      *
      * @return FirebaseDatabaseManager instance
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public static FirebaseDatabaseManager getInstance(){
         if(mFirebaseDatabaseManager == null)
             mFirebaseDatabaseManager  = new FirebaseDatabaseManager();
 
         return mFirebaseDatabaseManager;
     }
+
+    /* =============================================== Group Functions ===============================================*/
 
     /**
      * Create new group in firebase and add the user to the group
@@ -77,6 +79,7 @@ public class FirebaseDatabaseManager {
      *
      * @return Group Information [Group ID, Group Name]
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public String AddGroup(Group group){
         DatabaseReference groupsReference = mDataBase.getReference().child("Groups");
         //Generate new group id
@@ -108,6 +111,7 @@ public class FirebaseDatabaseManager {
      *
      * @return True on Success
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public boolean JoinGroup(Group group){
         //Add the User as a member
         mDataBase.getReference().child("Groups").child(group.getId())
@@ -128,60 +132,39 @@ public class FirebaseDatabaseManager {
     }
 
     /**
-     * @return Observable for user groups
-     */
-    public Observable getUserGroupsObservable(){
-        return mUserGroupsObservable;
-    }
-
-    /**
      * Create an Observable that works on this class thread
      * The observable emits User Groups as Pair<String, String>(ID, Name)
      *
      * @return Observable for this user groups
      */
-    private Observable CreateUserGroupsObservable() {
-        return Observable.create(emitter -> {
+
+    public void UserGroupsRetriever(IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
             mDataBase.getReference().child("Users").child(mCurrentUser.getUid())
-                    .child("Groups").addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(@NonNull DataSnapshot groupSnapshot, @Nullable String previousChildName) {
-                    Group group = null;
-                    group = new Group(groupSnapshot.getKey(),
-                          groupSnapshot.getValue().toString(),
-                            "","");
+                    .child("Groups").get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    ArrayList<Group> retGroup = new ArrayList<>();
 
-                    emitter.onNext(group);
-                }
+                    for(DataSnapshot group : dataSnapshot.getChildren()){
+                        Group g = new Group(
+                                group.getKey(),
+                                group.child("Name").getValue(String.class),
+                                group.child("Description").getValue(String.class),
+                                group.child("Password").getValue(String.class)
+                        );
+                        retGroup.add(g);
+                    }
 
-                @Override
-                public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                }
-
-                @Override
-                public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                    //TODO: return something to remove the group from the list
-                }
-
-                @Override
-                public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
+                    action.onSuccess(retGroup);
+                });
             });
-        })
-                .subscribeOn(Schedulers.from(mExecutorService));
+        });
     }
-
 
     /**
      * Monitor all user groups changes in cloud
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void MonitorGroups(){
         DatabaseReference databaseReference = mDataBase.getReference();
         databaseReference.child("Users").child(mCurrentUser.getUid())
@@ -205,14 +188,15 @@ public class FirebaseDatabaseManager {
      *
      * @param fileSnapshot snapshot of the shared file
      */
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
         Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue().toString());
         //String physicalLocation = group.getId() + " " + group.getName();
 
         // Download the file
-        FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
+        ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation, fileSnapshot.child("Name").getValue(String.class));
+        //FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
 
         // Add user to SeenBy
         fileSnapshot.child("SeenBy").getRef().updateChildren(new HashMap<String, Object>() {{
@@ -225,21 +209,17 @@ public class FirebaseDatabaseManager {
      *
      * @return runnable to run the code in your thread
      */
+
     private Runnable MonitorSingleGroup(Group group){
         return () -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             // Listen to newly added files
             mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(new ChildEventListener() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
+                @RequiresApi(api = Build.VERSION_CODES.Q)
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot sharedFileSnapshot, @Nullable String previousChildName) {
                     mExecutorService.execute(() -> {
                         if(!sharedFileSnapshot.child("SeenBy").hasChild(mCurrentUser.getUid()))
-                            TakeAction(sharedFileSnapshot,group);
+                            TakeAction(sharedFileSnapshot, group);
 
                         sharedFileSnapshot.child("Name").getRef().addValueEventListener(new ValueEventListener() {
                             @Override
@@ -249,7 +229,7 @@ public class FirebaseDatabaseManager {
 
                                     String previousName = sharedFileSnapshot.child("Name").getValue().toString();
                                     String groupFolder = group.getId() + " " + group.getName();
-                                    File file = new File(FileManager.getInstance().getApplicationDirectory() + File.separator + groupFolder,
+                                    File file = new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder,
                                             previousName);
                                     //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
                                     File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue().toString());
@@ -258,7 +238,6 @@ public class FirebaseDatabaseManager {
                                 }catch (Exception e){
                                     e.printStackTrace();
                                 }
-
                             }
 
                             @Override
@@ -279,7 +258,7 @@ public class FirebaseDatabaseManager {
                             .get().addOnSuccessListener(dataSnapshot -> {
                                 String fileName = sharedFileSnapshot.child("Name").getValue().toString();
                                 String groupName = dataSnapshot.getValue().toString();
-                                File file = new File(FileManager.getInstance().getApplicationDirectory(),
+                                File file = new File(FileManager.getInstance().GetApplicationDirectory(),
                                         group.getId() + " " + groupName + File.separator + fileName);
                         FileManager.getInstance().DeleteFile(file);
                             });
@@ -298,8 +277,29 @@ public class FirebaseDatabaseManager {
         };
     }
 
-    public String getFileKey(String groupId){
-        return mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles").push().getKey();
+    /* =============================================== File Functions ===============================================*/
+
+    public void GenerateNewFileId(IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            String fileId = mDataBase.getReference().child("Files").push().getKey();
+            action.onSuccess(fileId);
+        });
+    }
+
+    public void FindFileId(String groupId, String fileName, IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups")
+                    .child(groupId).child("SharedFiles").get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    for(DataSnapshot file : dataSnapshot.getChildren()){
+                        if(file.child("Name").getValue().toString().equals(fileName)){
+                            action.onSuccess(file.getKey());
+                            return;
+                        }
+                    }
+                });
+            });
+        });
     }
 
     /**
@@ -308,8 +308,8 @@ public class FirebaseDatabaseManager {
      * @param groupId Group ID
      * @param metadata Uploaded file Metadata
      */
-    public void AddFile(String groupId, String fileId, String fileName,StorageMetadata metadata) {
-        mExecutorService.execute(() -> {
+    public void AddFile(String groupId, String fileId, String fileName, StorageMetadata metadata, IAction action, ExecutorService executorService) {
+        executorService.execute(() -> {
             HashMap<String,String>children=new HashMap<String,String>(){{
                 put("Name",fileName);
                 put("URL",metadata.getPath());
@@ -326,63 +326,23 @@ public class FirebaseDatabaseManager {
         });
     }
 
-    public void DeleteFile(String groupId, String fileId){
-        mExecutorService.execute(() -> {
+    public void DeleteFile(String groupId, String fileId, IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
             mDataBase.getReference().child("Groups")
                     .child(groupId).child("SharedFiles").child(fileId).removeValue()
                     .addOnFailureListener(e -> e.printStackTrace());
         });
     }
-    public Observable GetFileId(String groupId , String fileName){
-        return Observable.create(new ObservableOnSubscribe<Object>() {
-            @Override
-            public void subscribe(ObservableEmitter<Object> emitter) throws Exception {
-                mDataBase.getReference().child("Groups")
-                        .child(groupId).child("SharedFiles").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
-                    @Override
-                    public void onSuccess(DataSnapshot dataSnapshot) {
-                        for(DataSnapshot file:dataSnapshot.getChildren() ){
-                            if(file.child("Name").getValue().toString().equals(fileName)){
-                                emitter.onNext(file.getKey());
-                                emitter.onComplete();
-                                return;
-                            }
-                        }
-                    }
-                });
-            }
-        });
 
-    }
-    public void RenameFile(String groupId,String oldName,String newName){
-        mExecutorService.execute(() -> {
+    public void RenameFile(String groupId, String oldName, String newName, IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
             //get id to delete the file from physical storage
-            mFirebaseDatabaseManager.GetFileId(groupId,oldName)
-                    .observeOn(Schedulers.from(mExecutorService))
-                    .subscribe(new Observer(){
-                        Disposable disposable = null;
-                        @Override
-                        public void onSubscribe(Disposable d) {
-                            disposable = d;
-                        }
-
-                        @Override
-                        public void onNext(Object o) {
-                            mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
-                                    .child((String)o).child("Name").setValue(newName);
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            e.printStackTrace();
-                            disposable.dispose();
-                        }
-
-                        @Override
-                        public void onComplete() {
-                            disposable.dispose();
-                        }
-                    });
+            mFirebaseDatabaseManager.FindFileId(groupId, oldName, fileId -> {
+                executorService.execute(() -> {
+                    mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
+                            .child((String)fileId).child("Name").setValue(newName);
+                });
+            }, executorService);
         });
     }
 }

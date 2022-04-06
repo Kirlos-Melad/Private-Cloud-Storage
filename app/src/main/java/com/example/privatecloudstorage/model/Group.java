@@ -109,7 +109,7 @@ public class Group {
         }
 
         // Create group folder = GroupID GroupName
-        File groupDirectory = new File(FileManager.getInstance().getApplicationDirectory(), mId + " " + mName);
+        File groupDirectory = new File(FileManager.getInstance().GetApplicationDirectory(), mId + " " + mName);
 
         return FileManager.getInstance().CreateDirectory(groupDirectory);
     }
