@@ -51,17 +51,21 @@ public class GroupContentActivity extends AppCompatActivity {
         _ActivityGroupContentBinding = ActivityGroupContentBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupContentBinding.getRoot());
 
+        String filePath = getIntent().getStringExtra("path");
+        String action =  getIntent().getStringExtra("action");
+
+        if(filePath != null && action != null) {
+            initAdapter(filePath, action);
+            return;
+        }
+
         _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(checkPermission()){
-                    Intent intent = new Intent(GroupContentActivity.this, FileExplorerListActivity.class);
                     String path = Environment.getExternalStorageDirectory().getPath();
-                    intent.putExtra("path",path);
-                    intent.putExtra("action",Intent.ACTION_GET_CONTENT);
-                    intent.putExtra("selectedGroupName", mSelectedGroupName);
-                    intent.putExtra("selectedGroupKey", mSelectedGroupKey);
-                    startActivity(intent);
+                    _ActivityGroupContentBinding.menu.close(true);
+                    initAdapter(path,Intent.ACTION_GET_CONTENT);
                 }
                 else requestPermission();
             }
@@ -72,8 +76,9 @@ public class GroupContentActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(checkPermission()){
                     String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName
-                                + File.separator + mSelectedGroupName +" QR Code.png";
+                            + File.separator + mSelectedGroupName +" QR Code.png";
                     ShowQrCode(path);
+                    _ActivityGroupContentBinding.menu.close(true);
                 }
                 else requestPermission();
             }
@@ -82,6 +87,7 @@ public class GroupContentActivity extends AppCompatActivity {
         _ActivityGroupContentBinding.fabCreateTextFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                _ActivityGroupContentBinding.menu.close(true);
                 showDialog("Enter File Name :",false);
             }
         });
@@ -89,6 +95,7 @@ public class GroupContentActivity extends AppCompatActivity {
         _ActivityGroupContentBinding.fabCreateFolder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                _ActivityGroupContentBinding.menu.close(true);
                 showDialog("Enter Folder Name :",true);
             }
         });
@@ -103,6 +110,7 @@ public class GroupContentActivity extends AppCompatActivity {
         if(checkPermission()) {
             String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
             initAdapter(path,Intent.ACTION_VIEW);
+            _ActivityGroupContentBinding.menu.close(true);
         }
         else requestPermission();
     }
@@ -119,10 +127,6 @@ public class GroupContentActivity extends AppCompatActivity {
                 String name = editText.getText().toString();
                 if(TextUtils.isEmpty(name)){
                     Toast.makeText(GroupContentActivity.this,"Name Field cannot be empty",Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if(name.contains(".")){
-                    Toast.makeText(GroupContentActivity.this,"Name Field cannot contain dot",Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if(isDir){

@@ -1,38 +1,38 @@
 package com.example.privatecloudstorage.model;
 
 //Android Libraries
-        import android.net.Uri;
-        import android.os.Build;
+import android.net.Uri;
+import android.os.Build;
 
 //3rd Party Libraries
-        import androidx.annotation.NonNull;
-        import androidx.annotation.Nullable;
-        import androidx.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
-        import com.google.android.gms.tasks.OnSuccessListener;
-        import com.google.firebase.auth.FirebaseUser;
-        import com.google.firebase.database.ChildEventListener;
-        import com.google.firebase.database.DataSnapshot;
-        import com.google.firebase.database.DatabaseError;
-        import com.google.firebase.database.DatabaseReference;
-        import com.google.firebase.database.FirebaseDatabase;
-        import com.google.firebase.database.ValueEventListener;
-        import com.google.firebase.storage.StorageMetadata;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.StorageMetadata;
 
 
 //Java Libraries
-        import java.io.File;
-        import java.security.NoSuchAlgorithmException;
-        import java.util.HashMap;
-        import java.util.concurrent.ExecutorService;
-        import java.util.concurrent.Executors;
+import java.io.File;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-        import io.reactivex.Observable;
-        import io.reactivex.ObservableEmitter;
-        import io.reactivex.ObservableOnSubscribe;
-        import io.reactivex.Observer;
-        import io.reactivex.disposables.Disposable;
-        import io.reactivex.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -148,7 +148,7 @@ public class FirebaseDatabaseManager {
                 public void onChildAdded(@NonNull DataSnapshot groupSnapshot, @Nullable String previousChildName) {
                     Group group = null;
                     group = new Group(groupSnapshot.getKey(),
-                          groupSnapshot.getValue().toString(),
+                            groupSnapshot.getValue().toString(),
                             "","");
 
                     emitter.onNext(group);
@@ -191,7 +191,7 @@ public class FirebaseDatabaseManager {
                 for(DataSnapshot group : task.getResult().getChildren()){
                     mExecutorService.execute(MonitorSingleGroup(new Group(
                             group.getKey(),
-                          group.getValue().toString(),
+                            group.getValue().toString(),
                             "",
                             ""
                     )));
@@ -246,15 +246,23 @@ public class FirebaseDatabaseManager {
                             public void onDataChange(@NonNull DataSnapshot fileNameSnapshot) {
                                 // TODO: Change file name !
                                 try{
-
-                                    String previousName = sharedFileSnapshot.child("Name").getValue().toString();
-                                    String groupFolder = group.getId() + " " + group.getName();
-                                    File file = new File(FileManager.getInstance().getApplicationDirectory() + File.separator + groupFolder,
-                                            previousName);
-                                    //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
-                                    File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue().toString());
-                                    file.renameTo(newFile);
-                                    //FileManager.getInstance().RenameFile(file, fileNameSnapshot.getValue().toString());
+                                    fileNameSnapshot.getRef().getParent().child("PreviousName").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                                        @Override
+                                        public void onSuccess(DataSnapshot previousNameSnapshot) {
+                                            try {
+                                                String previousName = previousNameSnapshot.getValue().toString();
+                                                String groupFolder = group.getId() + " " + group.getName();
+                                                File file = new File(FileManager.getInstance().getApplicationDirectory() + File.separator + groupFolder,
+                                                        previousName);
+                                                //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
+                                                File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue().toString());
+                                                file.renameTo(newFile);
+                                                //FileManager.getInstance().RenameFile(file, fileNameSnapshot.getValue().toString());
+                                            }catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }) ;
                                 }catch (Exception e){
                                     e.printStackTrace();
                                 }
@@ -277,12 +285,12 @@ public class FirebaseDatabaseManager {
                 public void onChildRemoved(@NonNull DataSnapshot sharedFileSnapshot) {
                     mDataBase.getReference().child("Groups").child(group.getId()).child("Name")
                             .get().addOnSuccessListener(dataSnapshot -> {
-                                String fileName = sharedFileSnapshot.child("Name").getValue().toString();
-                                String groupName = dataSnapshot.getValue().toString();
-                                File file = new File(FileManager.getInstance().getApplicationDirectory(),
-                                        group.getId() + " " + groupName + File.separator + fileName);
+                        String fileName = sharedFileSnapshot.child("Name").getValue().toString();
+                        String groupName = dataSnapshot.getValue().toString();
+                        File file = new File(FileManager.getInstance().getApplicationDirectory(),
+                                group.getId() + " " + groupName + File.separator + fileName);
                         FileManager.getInstance().DeleteFile(file);
-                            });
+                    });
                 }
 
                 @Override
@@ -314,6 +322,7 @@ public class FirebaseDatabaseManager {
                 put("Name",fileName);
                 put("URL",metadata.getPath());
                 put("Md5Hash",metadata.getMd5Hash());
+                put("PreviousName", "NoName");
             }};
             mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
                     .updateChildren(new HashMap<String,Object>() {{
@@ -368,6 +377,9 @@ public class FirebaseDatabaseManager {
 
                         @Override
                         public void onNext(Object o) {
+                            mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
+                                    .child((String)o).child("PreviousName").setValue(oldName);
+
                             mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
                                     .child((String)o).child("Name").setValue(newName);
                         }
