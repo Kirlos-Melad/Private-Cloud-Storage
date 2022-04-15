@@ -18,9 +18,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
+            android:name=".controller.ProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".controller.GroupListActivity"/>
+        <activity
+            android:name=".controller.HomeActivity"
+            android:exported="false"
+            android:parentActivityName=".controller.GroupListActivity" />
+        <activity
             android:name=".controller.SplashScreenActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -50,10 +59,11 @@
             android:exported="true" />
         <activity
             android:name=".controller.GroupListActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".controller.CreateGroupActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".controller.GroupListActivity" />
         <activity
             android:name=".controller.JoinGroupActivity"
             android:exported="true" />

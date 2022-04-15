@@ -41,7 +41,7 @@ public class SignInActivity extends AppCompatActivity implements Observer {
         mFirebaseAuthenticationManager.addObserver(this);
 
         if(mFirebaseAuthenticationManager.getCurrentUser() != null && mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()){
-            startActivity(new Intent(SignInActivity.this,HomePageActivity.class));
+            startActivity(new Intent(SignInActivity.this,GroupListActivity.class));
             finish();
         }
 
