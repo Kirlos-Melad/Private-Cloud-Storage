@@ -25,22 +25,22 @@ public class ManagersMediator {
 
     private static ManagersMediator mManagersMediator;
 
-    private ExecutorService mExecutorService;
+    private final ExecutorService EXECUTOR_SERVICE;
 
     // All the managers
-    private FirebaseDatabaseManager mFirebaseDatabaseManager;
-    private FirebaseStorageManager mFirebaseStorageManager;
-    private FirebaseUser mFirebaseUser;
-    private FileManager mFileManager;
+    private final FirebaseDatabaseManager DATABASE_MANAGER;
+    private final FirebaseStorageManager STORAGE_MANAGER;
+    private final FirebaseAuthenticationManager AUTHENTICATION_MANAGER;
+    private final FileManager FILE_MANAGER;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private ManagersMediator(){
-        mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
-        mFirebaseStorageManager = FirebaseStorageManager.getInstance();
-        mFirebaseUser = FirebaseAuthenticationManager.getInstance().getCurrentUser();
-        mFileManager = FileManager.getInstance();
+        DATABASE_MANAGER = FirebaseDatabaseManager.getInstance();
+        STORAGE_MANAGER = FirebaseStorageManager.getInstance();
+        AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
+        FILE_MANAGER = FileManager.getInstance();
 
-        mExecutorService = Executors.newSingleThreadExecutor();
+        EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
         // Listen to directory changes
         AddFileEventListener();
@@ -56,8 +56,22 @@ public class ManagersMediator {
 
     /* =============================================== User Functions ===============================================*/
 
+    /**
+     * Retrieve all groups associated with the current user
+     *
+     * @param action do something upon retrieval
+     */
     public void UserGroupsRetriever(IAction action){
-        mFirebaseDatabaseManager.UserGroupsRetriever(action, mExecutorService);
+        DATABASE_MANAGER.UserGroupsRetriever(action, EXECUTOR_SERVICE);
+    }
+
+    /**
+     * Get current user
+     *
+     * @return current user
+     */
+    public FirebaseUser GetCurrentUser(){
+        return AUTHENTICATION_MANAGER.getCurrentUser();
     }
 
     /* =============================================== File Functions ===============================================*/
@@ -66,13 +80,13 @@ public class ManagersMediator {
      * Add Event listener to the file manager
      */
     private void AddFileEventListener(){
-        mFileManager.AddEventListener(new IFileEventListener() {
+        FILE_MANAGER.AddEventListener(new IFileEventListener() {
             @Override
             public void onFileAdded(File file) {
                 if(file.isDirectory())
                     return;
 
-                mFirebaseDatabaseManager.UserGroupsRetriever(object -> {
+                DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
@@ -81,7 +95,7 @@ public class ManagersMediator {
                             break;
                         }
                     }
-                }, mExecutorService);
+                }, EXECUTOR_SERVICE);
             }
 
             @Override
@@ -89,7 +103,7 @@ public class ManagersMediator {
                 if(file.isDirectory())
                     return;
 
-                mFirebaseDatabaseManager.UserGroupsRetriever(object -> {
+                DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
@@ -98,7 +112,7 @@ public class ManagersMediator {
                             break;
                         }
                     }
-                }, mExecutorService);
+                }, EXECUTOR_SERVICE);
             }
 
             @Override
@@ -106,7 +120,7 @@ public class ManagersMediator {
                 if(file.isDirectory())
                     return;
 
-                mFirebaseDatabaseManager.UserGroupsRetriever(object -> {
+                DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
@@ -115,7 +129,7 @@ public class ManagersMediator {
                             break;
                         }
                     }
-                }, mExecutorService);
+                }, EXECUTOR_SERVICE);
             }
 
             @Override
@@ -123,7 +137,7 @@ public class ManagersMediator {
                 if(file.isDirectory())
                     return;
 
-                mFirebaseDatabaseManager.UserGroupsRetriever(object -> {
+                DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
@@ -132,76 +146,116 @@ public class ManagersMediator {
                             break;
                         }
                     }
-                }, mExecutorService);
+                }, EXECUTOR_SERVICE);
             }
         });
     }
 
+    /**
+     * Upload file to the storage
+     *
+     * @param group associated group to the file
+     * @param file the file being uploaded
+     * @param isNew true if new file else the file is modified
+     */
     private void FileUploadProcedure(Group group, File file, boolean isNew){
-        mExecutorService.execute(() -> {
+        EXECUTOR_SERVICE.execute(() -> {
             if(isNew){
-                mFirebaseDatabaseManager.GenerateNewFileId(UploadAction(group, file, true), mExecutorService);
+                DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, true), EXECUTOR_SERVICE);
             }
             else{
-                mFirebaseDatabaseManager.FindFileId(group.getId(), file.getName(), UploadAction(group, file, false), mExecutorService);
+                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, false), EXECUTOR_SERVICE);
             }
         });
     }
 
+    /**
+     * Define the action upon uploading the file
+     *
+     * @param group associated group to the file
+     * @param file the file being uploaded
+     * @param isNew true if new file else the file is modified
+     *
+     * @return  the action to be done upon uploading the file
+     */
     private IAction UploadAction(Group group, File file, boolean isNew){
         return fileId -> {
-            File encryptedFile;
-            try {
-                encryptedFile = mFileManager.EncryptDecryptFile(file, (String)fileId, group, Cipher.ENCRYPT_MODE);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
+            EXECUTOR_SERVICE.execute(() -> {
+                File encryptedFile;
+                try {
+                    encryptedFile = FILE_MANAGER.EncryptDecryptFile(file, (String)fileId, group, Cipher.ENCRYPT_MODE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
 
-            // Get encrypted file location in physical storage
-            Uri fileUri = Uri.fromFile(encryptedFile);
+                // Get encrypted file location in physical storage
+                Uri fileUri = Uri.fromFile(encryptedFile);
 
-            // Upload the file to cloud Storage
-            mFirebaseStorageManager.Upload(group.getId(), fileUri, object -> mExecutorService.execute(() -> {
-                // Extract information
-                StorageMetadata storageMetadata = (StorageMetadata) object;
-                String groupId = group.getId();
-                String fileName = file.getName();
+                // Upload the file to cloud Storage
+                STORAGE_MANAGER.Upload(group.getId(), fileUri, object -> EXECUTOR_SERVICE.execute(() -> {
+                    // Extract information
+                    StorageMetadata storageMetadata = (StorageMetadata) object;
+                    String groupId = group.getId();
+                    String fileName = file.getName();
 
-                // Add the file to Database
-                mFirebaseDatabaseManager.AddFile(groupId, (String)fileId, fileName, storageMetadata, null, mExecutorService);
-            }), mExecutorService);
+                    // Add the file to Database
+                    DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName, storageMetadata, null, EXECUTOR_SERVICE);
 
-            // Clear temp directory
-            mFileManager.DeleteFile(encryptedFile);
+                    // Clear temp directory
+                    FILE_MANAGER.DeleteFile(encryptedFile);
+                }), EXECUTOR_SERVICE);
+            });
         };
     }
 
+    /**
+     * Download file from storage
+     *
+     * @param group associated group to the file
+     * @param url download link
+     * @param fileName the file is saved by this name
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void FileDownloadProcedure(Group group, Uri url, String fileName) {
-        String path = mFileManager.GetApplicationDirectory() + File.separator +
-                group.getId() + " " + group.getName();
+        EXECUTOR_SERVICE.execute(() -> {
+            String path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
+                    group.getId() + " " + group.getName();
 
-        File file = new File(path, fileName);
-        mFirebaseStorageManager.Download(url, file,
-                object -> {
-                    try {
-                        FileManager.getInstance().EncryptDecryptFile(file, fileName, group, Cipher.DECRYPT_MODE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }, mExecutorService);
+            File file = new File(path, fileName);
+            STORAGE_MANAGER.Download(url, file,
+                    object -> {
+                        try {
+                            FileManager.getInstance().EncryptDecryptFile(file, fileName, group, Cipher.DECRYPT_MODE);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }, EXECUTOR_SERVICE);
+        });
     }
 
+    /**
+     * Rename the file
+     *
+     * @param groupId associated group id to the file
+     * @param oldName file old name
+     * @param newName file new name
+     */
     private void FileRenameProcedure(String groupId, String oldName, String newName){
-        mFirebaseDatabaseManager.RenameFile(groupId, oldName, newName, null, mExecutorService);
+        DATABASE_MANAGER.RenameFile(groupId, oldName, newName, null, EXECUTOR_SERVICE);
     }
 
+    /**
+     * Remove file from storage
+     *
+     * @param groupId associated group id to the file
+     * @param fileName file name
+     */
     private void FileRemoveProcedure(String groupId, String fileName){
-        mFirebaseDatabaseManager.FindFileId(groupId, fileName, fileId -> {
-                    mFirebaseStorageManager.Delete(groupId, (String)fileId, object -> {
-                        mFirebaseDatabaseManager.DeleteFile(groupId, (String)fileId, null, mExecutorService);
-                    }, mExecutorService);
-                }, mExecutorService);
+        DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
+                    STORAGE_MANAGER.Delete(groupId, (String)fileId, object -> {
+                        DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
+                    }, EXECUTOR_SERVICE);
+                }, EXECUTOR_SERVICE);
     }
 }

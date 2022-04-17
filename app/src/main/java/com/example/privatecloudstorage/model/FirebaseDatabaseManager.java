@@ -3,6 +3,8 @@ package com.example.privatecloudstorage.model;
 //Android Libraries
         import android.net.Uri;
         import android.os.Build;
+        import android.os.Handler;
+        import android.os.Looper;
 
 //3rd Party Libraries
         import androidx.annotation.NonNull;
@@ -135,7 +137,8 @@ public class FirebaseDatabaseManager {
      * Create an Observable that works on this class thread
      * The observable emits User Groups as Pair<String, String>(ID, Name)
      *
-     * @return Observable for this user groups
+     * @param action action to be executed on success
+     * @param executorService thread to run on
      */
 
     public void UserGroupsRetriever(IAction action, ExecutorService executorService){
@@ -148,14 +151,15 @@ public class FirebaseDatabaseManager {
                     for(DataSnapshot group : dataSnapshot.getChildren()){
                         Group g = new Group(
                                 group.getKey(),
-                                group.child("Name").getValue(String.class),
-                                group.child("Description").getValue(String.class),
-                                group.child("Password").getValue(String.class)
+                                group.getValue(String.class),
+                                "", ""
                         );
                         retGroup.add(g);
                     }
-
-                    action.onSuccess(retGroup);
+                    // Must run this on main thread to avoid problems
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        action.onSuccess(retGroup);
+                    });
                 });
             });
         });
@@ -174,9 +178,8 @@ public class FirebaseDatabaseManager {
                 for(DataSnapshot group : task.getResult().getChildren()){
                     mExecutorService.execute(MonitorSingleGroup(new Group(
                             group.getKey(),
-                          group.getValue().toString(),
-                            "",
-                            ""
+                            group.getValue(String.class),
+                            "", ""
                     )));
                 }
             }
@@ -187,11 +190,12 @@ public class FirebaseDatabaseManager {
      * Decides if we should download the file or not
      *
      * @param fileSnapshot snapshot of the shared file
+     * @param group group from which the snapshot was taken
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
-        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue().toString());
+        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
         //String physicalLocation = group.getId() + " " + group.getName();
 
         // Download the file
@@ -224,15 +228,14 @@ public class FirebaseDatabaseManager {
                         sharedFileSnapshot.child("Name").getRef().addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot fileNameSnapshot) {
-                                // TODO: Change file name !
                                 try{
 
-                                    String previousName = sharedFileSnapshot.child("Name").getValue().toString();
+                                    String previousName = sharedFileSnapshot.child("Name").getValue(String.class);
                                     String groupFolder = group.getId() + " " + group.getName();
                                     File file = new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder,
                                             previousName);
                                     //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
-                                    File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue().toString());
+                                    File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue(String.class));
                                     file.renameTo(newFile);
                                     //FileManager.getInstance().RenameFile(file, fileNameSnapshot.getValue().toString());
                                 }catch (Exception e){
@@ -256,8 +259,8 @@ public class FirebaseDatabaseManager {
                 public void onChildRemoved(@NonNull DataSnapshot sharedFileSnapshot) {
                     mDataBase.getReference().child("Groups").child(group.getId()).child("Name")
                             .get().addOnSuccessListener(dataSnapshot -> {
-                                String fileName = sharedFileSnapshot.child("Name").getValue().toString();
-                                String groupName = dataSnapshot.getValue().toString();
+                                String fileName = sharedFileSnapshot.child("Name").getValue(String.class);
+                                String groupName = dataSnapshot.getValue(String.class);
                                 File file = new File(FileManager.getInstance().GetApplicationDirectory(),
                                         group.getId() + " " + groupName + File.separator + fileName);
                         FileManager.getInstance().DeleteFile(file);
@@ -279,6 +282,12 @@ public class FirebaseDatabaseManager {
 
     /* =============================================== File Functions ===============================================*/
 
+    /**
+     * Generate an ID for the new file
+     *
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
     public void GenerateNewFileId(IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             String fileId = mDataBase.getReference().child("Files").push().getKey();
@@ -286,13 +295,21 @@ public class FirebaseDatabaseManager {
         });
     }
 
+    /**
+     * Find file ID using file name
+     *
+     * @param groupId the group that owns the file
+     * @param fileName file name
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
     public void FindFileId(String groupId, String fileName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             mDataBase.getReference().child("Groups")
                     .child(groupId).child("SharedFiles").get().addOnSuccessListener(dataSnapshot -> {
                 executorService.execute(() -> {
                     for(DataSnapshot file : dataSnapshot.getChildren()){
-                        if(file.child("Name").getValue().toString().equals(fileName)){
+                        if(file.child("Name").getValue(String.class).equals(fileName)){
                             action.onSuccess(file.getKey());
                             return;
                         }
@@ -303,10 +320,14 @@ public class FirebaseDatabaseManager {
     }
 
     /**
-     * Add the uploaded file to the Real-Time database -- Must call on Upload Success
+     * Add the uploaded file to the Real-Time database
      *
      * @param groupId Group ID
+     * @param fileId file id
+     * @param fileName file name
      * @param metadata Uploaded file Metadata
+     * @param action action to be executed on success
+     * @param executorService thread to run on
      */
     public void AddFile(String groupId, String fileId, String fileName, StorageMetadata metadata, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
@@ -326,6 +347,14 @@ public class FirebaseDatabaseManager {
         });
     }
 
+    /**
+     * Delete file from real-time database
+     *
+     * @param groupId Group ID
+     * @param fileId file id
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
     public void DeleteFile(String groupId, String fileId, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             mDataBase.getReference().child("Groups")
@@ -334,6 +363,15 @@ public class FirebaseDatabaseManager {
         });
     }
 
+    /**
+     * Rename file on real-time database
+     *
+     * @param groupId group id
+     * @param oldName old name
+     * @param newName new name
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
     public void RenameFile(String groupId, String oldName, String newName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             //get id to delete the file from physical storage

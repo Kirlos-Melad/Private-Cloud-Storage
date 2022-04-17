@@ -34,16 +34,11 @@ public class FileManager implements IFileNotify {
 
     private static FileManager mFileManager;
 
-    private File mApplicationDirectory;
+    private final File mApplicationDirectory;
 
     private final String TEMPORARY_DIRECTORY = "Temporary";
-    private final String HASH_FUNCTION = "SHA-256";
 
-    // Cipher
-    private final String CIPHER_ALGORITHM = "AES";
-    private final String CIPHER_TRANSFORMATION = "AES";
-
-    private Vector<IFileEventListener> mObserver;
+    private final Vector<IFileEventListener> mObserver;
 
     // Events
     public static final int CREATE = 1;
@@ -94,7 +89,8 @@ public class FileManager implements IFileNotify {
     }
 
     /**
-     *
+     * Remove an event listener
+     * 
      * @return true if an object exists and got removed
      */
     public boolean RemoveEventListener(IFileEventListener fileEventListener){
@@ -139,11 +135,14 @@ public class FileManager implements IFileNotify {
      */
     public boolean RenameFile(File oldFile, String newName){
         File newFile = new File(oldFile.getPath().substring(0, oldFile.getPath().lastIndexOf(File.separator)), newName);
-        oldFile.renameTo(newFile);
+        boolean isRenamed = oldFile.renameTo(newFile);
 
-        Notify(RENAME, oldFile ,newFile);
+        if(isRenamed){
+            Notify(RENAME, oldFile ,newFile);
+            return true;
+        }
 
-        return true;
+        return false;
     }
 
     /**
@@ -268,7 +267,7 @@ public class FileManager implements IFileNotify {
      *
      * @return true on success
      *
-     * @throws IOException
+     * @throws IOException exception is thrown if the path is wrong
      */
     public boolean CreateImage(Bitmap image, File path) throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream(path);
@@ -290,10 +289,14 @@ public class FileManager implements IFileNotify {
      *
      * @return true on success
      *
-     * @throws IOException
+     * @throws IOException exception is thrown if the path is wrong
      */
     public File EncryptDecryptFile(File file, String fileName, Group group, int cipherMode) throws IOException {
         try {
+            String HASH_FUNCTION = "SHA-256";
+            String CIPHER_ALGORITHM = "AES";
+            String CIPHER_TRANSFORMATION = "AES";
+
             // Use group info as a key
             String key = group.getId();
 

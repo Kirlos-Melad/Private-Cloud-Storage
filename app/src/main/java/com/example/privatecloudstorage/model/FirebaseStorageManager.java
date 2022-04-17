@@ -42,6 +42,8 @@ public class FirebaseStorageManager {
      * Upload new file to cloud
      *
      * @param file File path
+     * @param action action to be executed on success
+     * @param executorService thread to run on
      */
     public void Upload(String groupId, Uri file, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
@@ -68,6 +70,9 @@ public class FirebaseStorageManager {
      * Download new file from storage cloud
      *
      * @param url Group ID
+     * @param downloadFile File to be downloaded
+     * @param action action to be executed on success
+     * @param executorService thread to run on
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void Download(Uri url, File downloadFile, IAction action, ExecutorService executorService) {
@@ -86,6 +91,14 @@ public class FirebaseStorageManager {
         });
     }
 
+    /**
+     * Delete file from storage cloud
+     *
+     * @param groupId group id
+     * @param fileName file name
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
     public void Delete(String groupId, String fileName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
