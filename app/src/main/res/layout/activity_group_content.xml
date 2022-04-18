@@ -8,6 +8,7 @@
 
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/menu"
+        android:visibility="invisible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingRight="10dp"
@@ -81,15 +82,6 @@
             app:fab_label="Create Folder"
             app:fab_size="mini" />
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabRefresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_refresh"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Refresh"
-            app:fab_size="mini" />
 
     </com.github.clans.fab.FloatingActionMenu>
 

@@ -1,43 +1,64 @@
 package com.example.privatecloudstorage.controller;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ActionMenuView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.ActionBarContextView;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityGroupContentBinding;
 import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.BuildConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.Objects;
 
 public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapter.ViewHolder> {
     private static final String TAG = "FileExplorerAdapter";
-    Context _Context;
+    private ActivityGroupContentBinding _ActivityGroupContentBinding;
+    Activity _Context;
     File[] mFilesAndFolders;
     String mAction;
     String mGroupName;
     String mGroupKey;
     FileManager mFileManager;
+    private File mOpenedFile;
 
     /**
      * assign the values sent from fileManagerListActivity to the class memebers
@@ -46,13 +67,22 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
      * @param action Action that will be performed on the file
      * @param groupName The group that the file will be moved to
      */
-    public FileExplorerAdapter(Context context, File[] filesAndFolders,String action,String groupName,String selectedGroupKey){
+    public FileExplorerAdapter(Activity context, File[] filesAndFolders,String action,String groupName,String selectedGroupKey){
         this._Context = context;
         this.mFilesAndFolders = filesAndFolders;
         this.mAction = action;
         this.mGroupName = groupName;
         this.mGroupKey = selectedGroupKey;
         mFileManager = FileManager.getInstance();
+        mOpenedFile = null;
+    }
+
+    public File getOpenedFile() {
+        return mOpenedFile;
+    }
+
+    public void InvalidateOpenedFileValue() {
+        mOpenedFile = null;
     }
 
     @Override
@@ -64,6 +94,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File selectedFile = mFilesAndFolders[position];
+
         holder._TextView.setText(selectedFile.getName());
 
         if(selectedFile.isDirectory()){
@@ -111,7 +142,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                     try {
                         //open the selected file
                         OpenFile(selectedFile.getAbsolutePath(), mAction);
-                        //openFile(selectedFile.getAbsolutePath(), mAction);
+                        mOpenedFile = selectedFile;
                     }catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(_Context.getApplicationContext(),"Cannot open the file",Toast.LENGTH_SHORT).show();
@@ -130,9 +161,12 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                 if(!selectedFile.isDirectory() && mAction.equals(Intent.ACTION_GET_CONTENT)) {
                     popupMenu.getMenu().add("Send");
                 }
-                else {
+                else if(selectedFile.toString().contains(mGroupKey)) {
                     popupMenu.getMenu().add("Rename");
                     popupMenu.getMenu().add("Delete");
+                    if(selectedFile.getName().contains(".txt")) {
+                        popupMenu.getMenu().add("Edit");
+                    }
                 }
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -164,11 +198,10 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     String newName = fileNameEditText.getText().toString();
-                                    //ToDo:rename file
                                     mFileManager.RenameFile(selectedFile ,newName);
+                                    _Context.recreate();
                                 }
                             });
-                            System.out.println(selectedFile);
                             renameDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -178,10 +211,50 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                             renameDialog.show();
                         }
                         if(item.getTitle().equals("Delete")){
-                            //TODO:delete from group folder
-                            mFileManager.DeleteFile(selectedFile);
-                            //TODO:delete from Firebase
+                            File[] files = selectedFile.listFiles();
+                            if(files.length == 0)
+                                mFileManager.DeleteFile(selectedFile);
+                            else {
+                                System.out.println(files.length);
+                                for (File f : files)
+                                    mFileManager.DeleteFile(f);
+                                mFileManager.DeleteFile(selectedFile);
+                            }
+                            _Context.recreate();
                         }
+                        if(item.getTitle().equals("Edit")){
+                            AlertDialog.Builder editDialog = new AlertDialog.Builder(_Context);
+                            final EditText editText = new EditText(_Context);
+                            editText.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);
+                            editText.setSingleLine(false);
+                            try {
+                                byte[] b = Files.readAllBytes(selectedFile.toPath());
+                                String content = new String(b);
+                                editText.setText(content);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            editDialog.setView(editText);
+                            editDialog.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    try {
+                                        byte[] bytes = editText.getText().toString().getBytes();
+                                        Files.write(selectedFile.toPath(),bytes);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                            editDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.cancel();
+                                }
+                            });
+                            editDialog.show();
+                        }
+
                         return true;
                     }
                 });
@@ -196,8 +269,13 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
         return mFilesAndFolders.length;
     }
 
-    public void OpenFile(String filePath, String action) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void OpenFile(String filePath, String action) throws IOException {
+        if(action.equals(Intent.ACTION_GET_CONTENT))
+            return;
         File file = new File(filePath);
+        FileTime lastModifiedOnOpen = mFileManager.getLastModificationDate(file);
+        System.out.println("On opening File : "+lastModifiedOnOpen.toString());
         Uri uri =  FileProvider.getUriForFile(Objects.requireNonNull(_Context.getApplicationContext()), BuildConfig.APPLICATION_ID + ".provider",file);
         String mime = _Context.getContentResolver().getType(uri);
         Intent intent = new Intent();
@@ -205,17 +283,15 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
         intent.setDataAndType(uri, mime);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        if(action.equals(Intent.ACTION_GET_CONTENT))
-            return;
-        _Context.startActivity(intent);
+        _Context.startActivityForResult(intent,0);
     }
 
     /**
      * view directory/file icon and its name
      */
     public class ViewHolder extends RecyclerView.ViewHolder{
-        TextView _TextView;
-        ImageView _ImageView;
+        private TextView _TextView;
+        private ImageView _ImageView;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -224,3 +300,4 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
         }
     }
 }
+

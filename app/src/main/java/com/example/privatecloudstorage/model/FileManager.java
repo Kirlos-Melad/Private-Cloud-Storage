@@ -14,11 +14,15 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -108,6 +112,13 @@ public class FileManager {
         }
 
         return false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public FileTime getLastModificationDate(File file) throws IOException {
+            BasicFileAttributes attributes = Files.readAttributes(file.toPath(),BasicFileAttributes.class);
+            FileTime lastModified = attributes.lastModifiedTime();
+        return lastModified;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
