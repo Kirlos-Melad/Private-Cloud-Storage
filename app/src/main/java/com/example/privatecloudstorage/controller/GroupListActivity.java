@@ -82,10 +82,8 @@ public class GroupListActivity extends AppCompatActivity {
 
         //getting user's group(s)
 
-                    public void onNext(@NonNull Object o) {
         
 
-                    @Override
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
                 mItems.add(group.getName());
