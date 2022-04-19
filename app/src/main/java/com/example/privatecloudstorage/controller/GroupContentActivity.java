@@ -193,7 +193,7 @@ public class GroupContentActivity extends AppCompatActivity {
     public void initAdapter(String path , String Action){
         File file = new File(path);
         File[] filesAndFolders = file.listFiles();
-        if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders.length ==0){
+        if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders == null ||filesAndFolders.length ==0){
             _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.VISIBLE);
             return;
         }

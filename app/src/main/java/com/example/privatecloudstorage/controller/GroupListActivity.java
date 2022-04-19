@@ -2,6 +2,8 @@ package com.example.privatecloudstorage.controller;
 
 import android.content.Intent;
 import android.net.Uri;
+
+
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -11,10 +13,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.os.Build;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.Toolbar;
+import androidx.annotation.RequiresApi;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -25,9 +29,12 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupListBinding;
 import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
+import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
+import com.example.privatecloudstorage.model.FirebaseStorageManager;
 import com.example.privatecloudstorage.model.Group;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -41,7 +48,6 @@ import io.reactivex.disposables.Disposable;
  */
 public class GroupListActivity extends AppCompatActivity {
     private static final String TAG = "GroupListActivity";
-    ListView _ListView;
     ArrayList<String> mItems;
     ArrayAdapter<String> _Adapter;
     ActionBarDrawerToggle actionBarDrawerToggle;
@@ -53,6 +59,7 @@ public class GroupListActivity extends AppCompatActivity {
     ActivityGroupListBinding _ActivityGroupListBinding;
     private FirebaseDatabaseManager mFirebaseDatabaseManager;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +67,11 @@ public class GroupListActivity extends AppCompatActivity {
         setContentView(_ActivityGroupListBinding.getRoot());
 
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
+        // Start monitoring Cloud and Physical storage
+        // MUST CALL THIS HERE
+        FileManager.createInstance(getFilesDir());
+        FirebaseStorageManager.getInstance();
+
         profile=findViewById(R.id.img_second);
 
         mItems = new ArrayList<>();
@@ -69,75 +81,34 @@ public class GroupListActivity extends AppCompatActivity {
         _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
 
         //getting user's group(s)
-        mFirebaseDatabaseManager.getUserGroupsObservable()
-                .subscribe(new Observer() {
-                    Disposable disposable = null;
 
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        Log.d("TAG", "onEvent USER INNER: =====================================" + "Current thread " + Thread.currentThread().getId());
-                        disposable = d;
-                    }
-
-                    @Override
                     public void onNext(@NonNull Object o) {
-                        Group groupInformation = (Group) o;
-                        mItems.add(groupInformation.getName());
-                        _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
-                    }
+        
 
                     @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        disposable.dispose();
-                    }
-                });
+        ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
+            for(Group group : (ArrayList<Group>) groups){
+                mItems.add(group.getName());
+            }
+            _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
+        });
 
 
         _ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override //on any click (choosing a group) to enter and view group contents
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                mFirebaseDatabaseManager.getUserGroupsObservable()
-                        .subscribe(new Observer() {
-                            Disposable disposable = null;
-                            int index = -1;
+                 @Override //on any click (choosing a group) to enter and view group contents
+                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                     ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
+                         Group group = ((ArrayList<Group>) groups).get(position);
+                         //before go to new activity send group name and id as a parameter
+                         Intent intent = new Intent(GroupListActivity.this, GroupContentActivity.class);
+                         Bundle bundle = new Bundle();
+                         bundle.putString("selectedGroupName", group.getName());
+                         bundle.putString("selectedGroupKey", group.getId());
 
-                            @Override
-                            public void onSubscribe(Disposable d) {
-                                Log.d("TAG", "onEvent USER INNER: =====================================" + "Current thread " + Thread.currentThread().getId());
-                                disposable = d;
-                            }
-
-                            @Override
-                            public void onNext(@NonNull Object o) {
-                                index++;
-                                if (index == position) {
-                                    Group groupInformation = (Group) o;
-                                    //before go to new activity send group name and id as a parameter
-                                    Intent intent = new Intent(GroupListActivity.this, HomeActivity.class);
-                                    Bundle bundle = new Bundle();
-                                    bundle.putString("selectedGroupName", groupInformation.getName());
-                                    bundle.putString("selectedGroupKey", groupInformation.getId());
-
-                                    intent.putExtras(bundle); //Put Group number to your next Intent
-                                    startActivity(intent);
-                                }
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                            }
-
-                            @Override
-                            public void onComplete() {
-                                disposable.dispose();
-                            }
-                        });
-            }
+                         intent.putExtras(bundle); //Put Group number to your next Intent
+                         startActivity(intent);
+                     });
+                 }
         });
 
         actionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
@@ -157,9 +128,6 @@ public class GroupListActivity extends AppCompatActivity {
        // } catch (Exception e) {
           //  e.printStackTrace();
        // }
-
-
-
 
         _ActivityGroupListBinding.navgetion.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -184,6 +152,7 @@ public class GroupListActivity extends AppCompatActivity {
                 return true;
             }
         });
+
     }
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -192,3 +161,4 @@ public class GroupListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
+
