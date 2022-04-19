@@ -1,47 +1,64 @@
-package com.example.privatecloudstorage;
+package com.example.privatecloudstorage.controller;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialogFragment;
 
-public class Custom_Dialog2 extends AppCompatDialogFragment {
-    EditText about_layout;
-    ExampleDialogListener2 listener;
+import com.example.privatecloudstorage.R;
+
+public class Custom_Dialog1 extends AppCompatDialogFragment {
+    EditText userName;
+    ExampleDialogListener1 listener;
+
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
         LayoutInflater inflater=getActivity().getLayoutInflater();
 
-        View view =inflater.inflate(R.layout.user_about_layout,null);
+        View view =inflater.inflate(R.layout.user_name_layout,null);
 
         builder.setView(view).setTitle(" ")
                 .setNegativeButton("cansel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 
+
                     }
                 })
                 .setPositiveButton("ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        String userabout=about_layout.getText().toString();
-                        listener.ApplyTexts2(userabout);
+                        String username=userName.getText().toString();
+                        listener.ApplyTexts1(username);
                     }
                 });
 
-        about_layout=view.findViewById(R.id.about_layout);
+        userName = view.findViewById(R.id.name_layout);
         return builder.create();
     }
-    public interface ExampleDialogListener2{
-        void ApplyTexts2(String s);
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            listener=(ExampleDialogListener1) context;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public interface ExampleDialogListener1{
+        void ApplyTexts1(String s);
     }
 }

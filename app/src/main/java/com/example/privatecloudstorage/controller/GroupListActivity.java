@@ -1,6 +1,7 @@
 package com.example.privatecloudstorage.controller;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -22,6 +23,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityGroupListBinding;
+import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.Group;
 import com.github.dhaval2404.imagepicker.ImagePicker;
@@ -29,6 +32,7 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
@@ -40,25 +44,29 @@ public class GroupListActivity extends AppCompatActivity {
     ListView _ListView;
     ArrayList<String> mItems;
     ArrayAdapter<String> _Adapter;
-
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
     ActionBarDrawerToggle actionBarDrawerToggle;
+    CircleImageView profile;
+    String string;
+    Uri uri;
 
+    private @NonNull
+    ActivityGroupListBinding _ActivityGroupListBinding;
     private FirebaseDatabaseManager mFirebaseDatabaseManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_group_list);
+        _ActivityGroupListBinding = ActivityGroupListBinding.inflate(getLayoutInflater());
+        setContentView(_ActivityGroupListBinding.getRoot());
 
-        _ListView = findViewById(R.id.Listview);
-        mItems = new ArrayList<>();
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
+        profile=findViewById(R.id.img_second);
+
+        mItems = new ArrayList<>();
         //connecting _Adapter with the mItems List
         _Adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, mItems);
         //setting the ListView Adapter with _Adapter
-        _ListView.setAdapter(_Adapter);
+        _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
 
         //getting user's group(s)
         mFirebaseDatabaseManager.getUserGroupsObservable()
@@ -75,7 +83,7 @@ public class GroupListActivity extends AppCompatActivity {
                     public void onNext(@NonNull Object o) {
                         Group groupInformation = (Group) o;
                         mItems.add(groupInformation.getName());
-                        _ListView.setAdapter(_Adapter);
+                        _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
                     }
 
                     @Override
@@ -90,7 +98,7 @@ public class GroupListActivity extends AppCompatActivity {
                 });
 
 
-        _ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        _ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override //on any click (choosing a group) to enter and view group contents
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 mFirebaseDatabaseManager.getUserGroupsObservable()
@@ -132,32 +140,44 @@ public class GroupListActivity extends AppCompatActivity {
             }
         });
 
-        drawerLayout=findViewById(R.id.drawer_layout);
-        navigationView=findViewById(R.id.navgetion);
-        actionBarDrawerToggle=new ActionBarDrawerToggle(this,drawerLayout,R.string.menu_open,R.string.menu_close);
-        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
+        _ActivityGroupListBinding.drawerLayout.addDrawerListener(actionBarDrawerToggle);
 
         //whether the drawerlayout is in open or closed state
         actionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+       // Bundle bundle = getIntent().getExtras();
+       // if(bundle==null)
+        //    finish();
+       // try {
+        //    string = bundle.getString("profile");
+        //    uri=Uri.parse(string);
+        //    profile.setImageURI(uri);
+       // } catch (Exception e) {
+          //  e.printStackTrace();
+       // }
+
+
+
+
+        _ActivityGroupListBinding.navgetion.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.creat:
                         //Log.i(TAG, "first item clicked: ");
                         startActivity(new Intent(GroupListActivity.this,CreateGroupActivity.class));
-                        drawerLayout.closeDrawer(GravityCompat.START);
+                        _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
                     case R.id.join:
                         //Log.i(TAG, "second item clicked: ");
                         startActivity(new Intent(GroupListActivity.this,JoinGroupActivity.class));
-                        drawerLayout.closeDrawer(GravityCompat.START);
+                        _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
                     case R.id.profile:
                         startActivity(new Intent(GroupListActivity.this,ProfileActivity.class));
-                        drawerLayout.closeDrawer(GravityCompat.START);
+                        _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
 
                 }

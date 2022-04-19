@@ -92,7 +92,7 @@ public class SignInActivity extends AppCompatActivity implements Observer {
                             Toast.makeText(SignInActivity.this, "Invalid Email or Password", Toast.LENGTH_LONG).show();
                         else {
                             if (mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()) {
-                                startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
+                                startActivity(new Intent(getApplicationContext(), GroupListActivity.class));
                                 finish();
                             } else {
                                 Toast.makeText(SignInActivity.this, "Please, Verify Your Email Address", Toast.LENGTH_LONG).show();

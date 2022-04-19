@@ -3,6 +3,7 @@ package com.example.privatecloudstorage.model;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -149,5 +150,23 @@ public class FirebaseAuthenticationManager extends Observable {
     }
     public void Logout(){
         mFirebaseAuth.getInstance().signOut();
+    }
+
+    public void UpdateUserProfile(String userName, Uri uri){
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(userName)
+                .setPhotoUri(uri)
+                        .build();
+
+        mFirebaseAuth.getCurrentUser().updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @SuppressLint("LongLogTag")
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User profile updated.");
+                        }
+                    }
+                });
     }
 }

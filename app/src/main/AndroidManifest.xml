@@ -73,9 +73,6 @@
         <activity
             android:name=".controller.SignUpActivity"
             android:exported="true" />
-        <activity
-            android:name=".controller.HomePageActivity"
-            android:exported="true" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.example.privatecloudstorage.controller;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -10,26 +11,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.example.privatecloudstorage.Fragment1;
-import com.example.privatecloudstorage.Fragment2;
-import com.example.privatecloudstorage.MainAdapter;
 import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityHomeBinding;
+import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.google.android.material.tabs.TabLayout;
 
 public class HomeActivity extends AppCompatActivity {
-    //initialization
-    TabLayout tabLayout;
-    ViewPager viewPager;
 
     private String mSelectedGroupName;
     private String mSelectedGroupKey;
+    private @NonNull
+    ActivityHomeBinding _ActivityHomeBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
 
-        //put the grou name in action bar
+        _ActivityHomeBinding = ActivityHomeBinding.inflate(getLayoutInflater());
+        setContentView(_ActivityHomeBinding.getRoot());
+
+        //put the group name in action bar
         Bundle bundle = getIntent().getExtras();
         if(bundle == null)
             finish();
@@ -37,22 +38,14 @@ public class HomeActivity extends AppCompatActivity {
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
-        //assign variables
-        tabLayout=findViewById(R.id.tab_Layout);
-        viewPager=findViewById(R.id.view_pager);
-
-        //ArrayList<String>arrayList=new ArrayList();
-        //arrayList.add("Shared Files");
-        //arrayList.add("Group Members");
-        tabLayout.setupWithViewPager(viewPager);
+        _ActivityHomeBinding.tabLayout.setupWithViewPager(_ActivityHomeBinding.viewPager);
 
         MainAdapter mainAdapter=new MainAdapter(getSupportFragmentManager(),FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         mainAdapter.addFragment(new Fragment1(),"SHARED FILES");
         mainAdapter.addFragment(new Fragment2(),"MEMBERS");
 
-        viewPager.setAdapter(mainAdapter);
+        _ActivityHomeBinding.viewPager.setAdapter(mainAdapter);
 
-        //prepareViewPagger(viewPager,arrayList);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
