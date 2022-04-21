@@ -30,7 +30,7 @@ public class HomeActivity extends AppCompatActivity {
         _ActivityHomeBinding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(_ActivityHomeBinding.getRoot());
 
-        //put the group name in action bar
+        //put the group name in action bar from Group list activity
         Bundle bundle = getIntent().getExtras();
         if(bundle == null)
             finish();

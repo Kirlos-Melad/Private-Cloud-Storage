@@ -92,14 +92,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.642">
+        app:layout_constraintVertical_bias="0.642"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleTint="@color/colorAccent">
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/Password"
             android:hint="Your Password"
-            android:ems="10" />
+            android:ems="10"
+            android:inputType="textPassword"/>
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -121,14 +124,18 @@
         app:layout_constraintHorizontal_bias="0.532"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.734" >
+        app:layout_constraintVertical_bias="0.734"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleTint="@color/colorAccent">
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/ConfirmPassword"
             android:hint="Your RePassword"
-            android:ems="10" />
+            android:ems="10"
+            android:inputType="textPassword"
+            />
 
     </com.google.android.material.textfield.TextInputLayout>
 

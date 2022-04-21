@@ -12,8 +12,6 @@ package com.example.privatecloudstorage.model;
         import androidx.annotation.RequiresApi;
 
         import com.example.privatecloudstorage.interfaces.IAction;
-        import com.google.android.gms.tasks.OnSuccessListener;
-        import com.google.android.gms.tasks.Task;
         import com.google.firebase.auth.FirebaseUser;
         import com.google.firebase.database.ChildEventListener;
         import com.google.firebase.database.DataSnapshot;
@@ -30,11 +28,6 @@ package com.example.privatecloudstorage.model;
         import java.util.HashMap;
         import java.util.concurrent.ExecutorService;
         import java.util.concurrent.Executors;
-
-        import io.reactivex.Observable;
-        import io.reactivex.Observer;
-        import io.reactivex.disposables.Disposable;
-        import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -84,6 +77,7 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public String AddGroup(Group group){
         DatabaseReference groupsReference = mDataBase.getReference().child("Groups");
+
         //Generate new group id
         String groupId = groupsReference.push().getKey();
         DatabaseReference newGroupReference = groupsReference.child(groupId);
@@ -383,4 +377,21 @@ public class FirebaseDatabaseManager {
             }, executorService);
         });
     }
+    /*public void UpdateUserInfo(String name){
+        UserGroupsRetriever(new IAction() {
+            @Override
+            public void onSuccess(Object object) {
+                ArrayList<Group> groups = (ArrayList<Group>) object;
+                for(Group group : groups){
+                    mDataBase.getReference().child("Groups").child( group.getId()).child("Members")
+                            .child(mCurrentUser.getUid()).setValue(name);
+                    mDataBase.getReference().child("Groups").child( group.getId()).child("SharedFiles").child().child("SeenBy")
+                            .child(mCurrentUser.getUid()).setValue(name);
+                }
+
+            }
+        });
+
+    }*/
+
 }

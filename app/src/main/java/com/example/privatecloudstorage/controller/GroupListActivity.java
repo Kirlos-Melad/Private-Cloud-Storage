@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.os.Build;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 import androidx.annotation.RequiresApi;
@@ -30,6 +31,7 @@ import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupListBinding;
 import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.FirebaseStorageManager;
 import com.example.privatecloudstorage.model.Group;
@@ -51,9 +53,10 @@ public class GroupListActivity extends AppCompatActivity {
     ArrayList<String> mItems;
     ArrayAdapter<String> _Adapter;
     ActionBarDrawerToggle actionBarDrawerToggle;
+    FirebaseAuthenticationManager firebaseAuthenticationManager;
+    TextView HeaderName ;
+    TextView HeaderEmail ;
     CircleImageView profile;
-    String string;
-    Uri uri;
 
     private @NonNull
     ActivityGroupListBinding _ActivityGroupListBinding;
@@ -67,12 +70,23 @@ public class GroupListActivity extends AppCompatActivity {
         setContentView(_ActivityGroupListBinding.getRoot());
 
         mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
+        firebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
+
         // Start monitoring Cloud and Physical storage
         // MUST CALL THIS HERE
         FileManager.createInstance(getFilesDir());
         FirebaseStorageManager.getInstance();
 
-        profile=findViewById(R.id.img_second);
+        //To access navigation header
+        View view=_ActivityGroupListBinding.navgetion.getHeaderView(0);
+        HeaderName = (TextView) view.findViewById(R.id.nav_hedear_user_name);
+        HeaderEmail = (TextView) view.findViewById(R.id.nav_hedear_user_email);
+        profile= (CircleImageView)view.findViewById(R.id.img_second);
+
+        profile.setImageURI(firebaseAuthenticationManager.getUserImage());
+        HeaderName.setText(firebaseAuthenticationManager.getCurrentUser().getDisplayName());
+        HeaderEmail.setText(firebaseAuthenticationManager.getCurrentUser().getEmail());
+
 
         mItems = new ArrayList<>();
         //connecting _Adapter with the mItems List
@@ -98,7 +112,7 @@ public class GroupListActivity extends AppCompatActivity {
                      ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
                          Group group = ((ArrayList<Group>) groups).get(position);
                          //before go to new activity send group name and id as a parameter
-                         Intent intent = new Intent(GroupListActivity.this, GroupContentActivity.class);
+                         Intent intent = new Intent(GroupListActivity.this, HomeActivity.class);
                          Bundle bundle = new Bundle();
                          bundle.putString("selectedGroupName", group.getName());
                          bundle.putString("selectedGroupKey", group.getId());
@@ -109,23 +123,13 @@ public class GroupListActivity extends AppCompatActivity {
                  }
         });
 
+        //Manage navigation bar----------------------------------------------------------
         actionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
         _ActivityGroupListBinding.drawerLayout.addDrawerListener(actionBarDrawerToggle);
 
         //whether the drawerlayout is in open or closed state
         actionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-       // Bundle bundle = getIntent().getExtras();
-       // if(bundle==null)
-        //    finish();
-       // try {
-        //    string = bundle.getString("profile");
-        //    uri=Uri.parse(string);
-        //    profile.setImageURI(uri);
-       // } catch (Exception e) {
-          //  e.printStackTrace();
-       // }
 
         _ActivityGroupListBinding.navgetion.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override

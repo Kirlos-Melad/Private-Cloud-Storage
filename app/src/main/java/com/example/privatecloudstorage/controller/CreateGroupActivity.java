@@ -37,6 +37,7 @@ public class CreateGroupActivity extends AppCompatActivity {
 
         _ActivityCreateGroupBinding = ActivityCreateGroupBinding.inflate(getLayoutInflater());
         setContentView(_ActivityCreateGroupBinding.getRoot());
+        getSupportActionBar().setTitle("Create group");
 
         _ActivityCreateGroupBinding.CreateGroup.setOnClickListener(view -> {
             Group group = ReadInput();
@@ -61,10 +62,8 @@ public class CreateGroupActivity extends AppCompatActivity {
 
             // Go to the group activity
             startActivity(new Intent(CreateGroupActivity.this,GroupListActivity.class));
-            //Intent intent = new Intent(this, GroupContentActivity.class);
-            //intent.putExtra("selectedGroupKey",group.getId());
-            //intent.putExtra("selectedGroupName", group.getName());
-
+            //Intent intent = new Intent(this, HomeActivity.class);
+            //intent.putExtra("GroupDescription",group.getDescription());
             //startActivity(intent);
         });
     }

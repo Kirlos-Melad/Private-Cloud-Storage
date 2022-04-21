@@ -4,9 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -18,9 +21,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+
+
 public class ProfileActivity extends AppCompatActivity implements Custom_Dialog2.ExampleDialogListener2 , Custom_Dialog1.ExampleDialogListener1{
 
-    CircleImageView profile;
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     Uri uri;
 
@@ -33,12 +37,15 @@ public class ProfileActivity extends AppCompatActivity implements Custom_Dialog2
 
         _ActivityProfileBinding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(_ActivityProfileBinding.getRoot());
+        getSupportActionBar().setTitle("Profile");
 
         String userName = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getDisplayName();
-        //Log.d("user name------------", mFirebaseAuthenticationManager.getInstance().getCurrentUser().getDisplayName());
+        Uri ImageUri = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getPhotoUrl();
 
-        getSupportActionBar().setTitle("Profile");
+
         _ActivityProfileBinding.userName.setText(userName);
+        _ActivityProfileBinding.profileImage.setImageURI(ImageUri);
+
 
         _ActivityProfileBinding.edetImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,37 +78,30 @@ public class ProfileActivity extends AppCompatActivity implements Custom_Dialog2
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        try {
-            uri=data.getData();
-            Log.d("uri-------------------", uri.toString());
-            profile.setImageURI(uri);
+        if(resultCode == RESULT_OK && null != data){
+            uri = data.getData();
+            _ActivityProfileBinding.profileImage.setImageURI(uri);
+            mFirebaseAuthenticationManager.getInstance().UpdateUserProfileImage(uri);
 
-            //Intent intent=new Intent(ProfileActivity.this,GroupListActivity.class);
-            //intent.putExtra("profile",uri.toString());
-
-        }catch (Exception e){
-            e.printStackTrace();
         }
     }
 
     @Override
     public void ApplyTexts2(String s) {
         if(s.isEmpty()) {
-            Toast.makeText(ProfileActivity.this, "User info cann't be empty", Toast.LENGTH_LONG).show();
+            Toast.makeText(ProfileActivity.this, "User info can't be empty", Toast.LENGTH_LONG).show();
         }else{
             _ActivityProfileBinding.aboutText.setText(s);
         }
-
-
     }
 
     @Override
     public void ApplyTexts1(String s) {
         if(s.isEmpty()) {
-            Toast.makeText(ProfileActivity.this, "User name cann't be empty", Toast.LENGTH_LONG).show();
+            Toast.makeText(ProfileActivity.this, "User name can't be empty", Toast.LENGTH_LONG).show();
         }else{
             _ActivityProfileBinding.userName.setText(s);
-            mFirebaseAuthenticationManager.getInstance().UpdateUserProfile(s,uri);
+            mFirebaseAuthenticationManager.getInstance().UpdateUserProfileName(s);
         }
 
     }
