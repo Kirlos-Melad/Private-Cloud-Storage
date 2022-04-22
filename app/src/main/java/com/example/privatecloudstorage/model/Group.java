@@ -109,7 +109,7 @@ public class Group {
         }
         else {
             // Add this group to Real-Time Database
-            mId = FirebaseDatabaseManager.:getInstance().AddGroup(this);
+            mId = FirebaseDatabaseManager.getInstance().AddGroup(this);
         }
 
         // Create group folder = GroupID GroupName

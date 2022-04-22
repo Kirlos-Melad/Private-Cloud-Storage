@@ -258,4 +258,10 @@ public class ManagersMediator {
                     }, EXECUTOR_SERVICE);
                 }, EXECUTOR_SERVICE);
     }
+
+    /**
+     * TODO:
+     *  create private functions to extend other procedures
+     *  as the behaviour should change depending on the mode
+     */
 }

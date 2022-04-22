@@ -35,23 +35,44 @@ public class FileManager implements IFileNotify {
     private static FileManager mFileManager;
 
     private final File mApplicationDirectory;
-
     private final String TEMPORARY_DIRECTORY = "Temporary";
+    private final String STRIPPED_FILES_DIRECTORY = "Stripped Files";
+    private final String NORMAL_FILES_DIRECTORY = "Normal Files";
 
     private final Vector<IFileEventListener> mObserver;
 
     // Events
-    public static final int CREATE = 1;
-    public static final int DELETE = 2;
-    public static final int RENAME = 3;
-    public static final int CHANGE = 4;
+    public static final byte CREATE = 0x01;
+    public static final byte DELETE = 0x02;
+    public static final byte RENAME = 0x03;
+    public static final byte CHANGE = 0x04;
+
+    /*
+    * TODO:
+    *  add these modes as parameters to the functions
+    *  has a default value = NORMAL
+    *  Depending on the mode choose a directory [STRIPPED_FILES_DIRECTORY, NORMAL_FILES_DIRECTORY]
+    *  and weather to perform stripping or not
+    *  then perform the action
+    */
+
+    /**
+     * TODO:
+     *  modes should be sent with the event as a parameter in event listeners
+     */
+    // Modes
+    public static final byte NORMAL = 0x00;
+    public static final byte STRIP = (byte) 0xff; // -1
+
 
     private FileManager(File managedDirectory) {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
-        // Create a directory to save file temporarily
+        // Create needed directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
+        CreateDirectory(new File(mApplicationDirectory.toString(), NORMAL_FILES_DIRECTORY));
+        CreateDirectory(new File(mApplicationDirectory.toString(), STRIPPED_FILES_DIRECTORY));
     }
 
     public static FileManager createInstance(File parentDirectory){
@@ -105,7 +126,7 @@ public class FileManager implements IFileNotify {
      * @param newFile file after event - can be null
      */
     @Override
-    public void Notify(int event, File oldFile, File newFile){
+    public void Notify(byte event, File oldFile, File newFile){
         if(!oldFile.toString().contains(TEMPORARY_DIRECTORY)){
             for(IFileEventListener fileEventListener : mObserver){
                 switch (event){
@@ -343,4 +364,9 @@ public class FileManager implements IFileNotify {
             return null;
         }
     }
+
+    /*
+    * TODO:
+    *  2 public functions for stripping and merging the files
+    */
 }
