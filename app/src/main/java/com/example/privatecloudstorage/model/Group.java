@@ -3,6 +3,9 @@ package com.example.privatecloudstorage.model;
 // Java Libraries
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -98,6 +101,7 @@ public class Group {
      * Add new group to firebase
      * Create group folder in the root directory
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public boolean CreateGroup(boolean isJoin){
         if(isJoin){
             // Join an existing group in the Real-Time Database
@@ -109,7 +113,7 @@ public class Group {
         }
 
         // Create group folder = GroupID GroupName
-        File groupDirectory = new File(FileManager.getInstance().getApplicationDirectory(), mId + " " + mName);
+        File groupDirectory = new File(FileManager.getInstance().GetApplicationDirectory(), mId + " " + mName);
 
         return FileManager.getInstance().CreateDirectory(groupDirectory);
     }

@@ -4,13 +4,12 @@ package com.example.privatecloudstorage.controller;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.FileObserver;
+
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityHomePageBinding;
-import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
+import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseStorageManager;
 
 /**
@@ -29,7 +28,8 @@ public class HomePageActivity extends AppCompatActivity {
 
         // Start monitoring Cloud and Physical storage
         // MUST CALL THIS HERE
-        FirebaseStorageManager.CreateInstance(getFilesDir());
+        FileManager.createInstance(getFilesDir());
+        FirebaseStorageManager.getInstance();
 
         //TODO: Add Log out Button
         //Button to direct to CreateGroupActivity

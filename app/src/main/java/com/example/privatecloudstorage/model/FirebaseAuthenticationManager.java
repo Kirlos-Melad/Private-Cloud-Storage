@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import com.example.privatecloudstorage.controller.SignInActivity;
 import com.example.privatecloudstorage.controller.SignUpActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,42 +53,35 @@ public class FirebaseAuthenticationManager extends Observable {
      * @param isOnline the user statuse
      */
     public boolean SignUp(final String email, String pass1, final String userName, final boolean isOnline, final Activity activity) {
-        mFirebaseAuth.createUserWithEmailAndPassword(email, pass1).addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
-            @SuppressLint("LongLogTag")
+        mFirebaseAuth.createUserWithEmailAndPassword(email, pass1).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (!task.isSuccessful()) {
-                    Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                } else {
-                    mFirebaseAuth.getCurrentUser().sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+            public void onSuccess(AuthResult authResult) {
+                if (authResult.getAdditionalUserInfo().isNewUser()) {
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(userName).build();
+
+                    authResult.getUser().updateProfile(profileUpdates)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @SuppressLint("LongLogTag")
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "User profile updated.");
+                                    }
+                                }
+                            });
+                    //Log.d("++++++++++++++++++++++++++++++++++++++", String.valueOf(user.isEmailVerified()));
+                    message = "Please, verify your email ";
+                    authResult.getUser().sendEmailVerification().addOnFailureListener(new OnFailureListener() {
                         @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful())
-                            {
-                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(userName).build();
-
-                                user.updateProfile(profileUpdates)
-                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @SuppressLint("LongLogTag")
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    Log.d(TAG, "User profile updated.");
-                                                }
-                                            }
-                                        });
-                                //Log.d("++++++++++++++++++++++++++++++++++++++", String.valueOf(user.isEmailVerified()));
-                                 message = "Please, verify your email ";
-                            }else
-                                message = "Error in sending email verification email";
+                        public void onFailure(@NonNull Exception e) {
+                            message = "Error in sending email verification email";
                             setChanged();
                             notifyObservers(message);
                         }
                     });
                 }
+
             }
         });
         //mFirebaseAuthenticationManager.SignIn(email,pass1, activity);
