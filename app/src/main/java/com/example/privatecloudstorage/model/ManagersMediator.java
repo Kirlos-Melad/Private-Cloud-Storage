@@ -82,7 +82,7 @@ public class ManagersMediator {
     private void AddFileEventListener(){
         FILE_MANAGER.AddEventListener(new IFileEventListener() {
             @Override
-            public void onFileAdded(File file) {
+            public void onFileAdded(File file,byte mode) {
                 if(file.isDirectory())
                     return;
 
@@ -91,7 +91,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file, true);
+                            FileUploadProcedure(group,file,true,mode);
                             break;
                         }
                     }
@@ -125,7 +125,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file, false);
+                            FileUploadProcedure(group,file,false,FILE_MANAGER.NORMAL);
                             break;
                         }
                     }
@@ -158,7 +158,7 @@ public class ManagersMediator {
      * @param file the file being uploaded
      * @param isNew true if new file else the file is modified
      */
-    private void FileUploadProcedure(Group group, File file, boolean isNew){
+    private void FileUploadProcedure(Group group, File file, boolean isNew,byte mode){
         EXECUTOR_SERVICE.execute(() -> {
             if(isNew){
                 DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, true), EXECUTOR_SERVICE);
@@ -178,7 +178,7 @@ public class ManagersMediator {
      *
      * @return  the action to be done upon uploading the file
      */
-    private IAction UploadAction(Group group, File file, boolean isNew){
+    private IAction UploadAction(Group group,File file, boolean isNew){
         return fileId -> {
             EXECUTOR_SERVICE.execute(() -> {
                 File encryptedFile;
@@ -264,4 +264,6 @@ public class ManagersMediator {
      *  create private functions to extend other procedures
      *  as the behaviour should change depending on the mode
      */
+
+
 }

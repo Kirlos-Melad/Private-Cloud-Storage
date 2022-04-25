@@ -13,5 +13,5 @@ public interface IFileNotify extends INotify{
      * @param oldFile file before the event
      * @param newFile file after the event (may be null)
      */
-    void Notify(byte event, File oldFile, File newFile);
+    void Notify(byte event, byte mode, File oldFile, File newFile);
 }

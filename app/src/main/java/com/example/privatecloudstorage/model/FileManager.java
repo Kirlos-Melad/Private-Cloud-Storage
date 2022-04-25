@@ -8,6 +8,8 @@ import androidx.annotation.RequiresApi;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
 import com.example.privatecloudstorage.interfaces.IFileNotify;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,10 +18,13 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Vector;
 
 import javax.crypto.BadPaddingException;
@@ -63,7 +68,6 @@ public class FileManager implements IFileNotify {
     // Modes
     public static final byte NORMAL = 0x00;
     public static final byte STRIP = (byte) 0xff; // -1
-
 
     private FileManager(File managedDirectory) {
         mApplicationDirectory = managedDirectory;
@@ -126,12 +130,12 @@ public class FileManager implements IFileNotify {
      * @param newFile file after event - can be null
      */
     @Override
-    public void Notify(byte event, File oldFile, File newFile){
+    public void Notify(byte event,byte mode, File oldFile, File newFile){
         if(!oldFile.toString().contains(TEMPORARY_DIRECTORY)){
             for(IFileEventListener fileEventListener : mObserver){
                 switch (event){
                     case CREATE:
-                        fileEventListener.onFileAdded(oldFile);
+                        fileEventListener.onFileAdded(oldFile,mode);
                         break;
                     case CHANGE:
                         fileEventListener.onFileChanged(oldFile);
@@ -159,7 +163,7 @@ public class FileManager implements IFileNotify {
         boolean isRenamed = oldFile.renameTo(newFile);
 
         if(isRenamed){
-            Notify(RENAME, oldFile ,newFile);
+            Notify(RENAME,NORMAL, oldFile ,newFile);
             return true;
         }
 
@@ -179,11 +183,18 @@ public class FileManager implements IFileNotify {
         boolean success = file.createNewFile();
 
         if(success){
-            Notify(CREATE, file, null);
+            Notify(CREATE,NORMAL, file, null);
             return true;
         }
 
         return false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public FileTime getLastModificationDate(File file) throws IOException {
+        BasicFileAttributes attributes = Files.readAttributes(file.toPath(),BasicFileAttributes.class);
+        FileTime lastModified = attributes.lastModifiedTime();
+        return lastModified;
     }
 
     /**
@@ -197,10 +208,10 @@ public class FileManager implements IFileNotify {
      * @throws IOException
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public boolean CopyFile(Path src, Path dst) throws IOException {
+    public boolean CopyFile(Path src, Path dst,byte mode) throws IOException {
         Files.copy(src, dst);
 
-        Notify(CREATE, new File(dst.toString()),null);
+        Notify(CREATE, mode, new File(dst.toString()),null);
 
         return true;
     }
@@ -217,8 +228,8 @@ public class FileManager implements IFileNotify {
      * @throws IOException
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public boolean MoveFile(Path src, Path dst) throws IOException {
-        return (CopyFile(src, dst) && DeleteFile(src.toFile()));
+    public boolean MoveFile(Path src, Path dst, byte mode) throws IOException {
+        return (CopyFile(src, dst, mode) && DeleteFile(src.toFile()));
     }
 
     /**
@@ -233,7 +244,7 @@ public class FileManager implements IFileNotify {
             boolean success = directory.mkdir();
 
             if(success){
-                Notify(CREATE, directory, null);
+                Notify(CREATE, NORMAL, directory, null);
             }
 
             return success;
@@ -254,7 +265,7 @@ public class FileManager implements IFileNotify {
             boolean success = directory.mkdirs();
 
             if(success){
-                Notify(CREATE, directory, null);
+                Notify(CREATE, NORMAL, directory, null);
             }
 
             return success;
@@ -273,7 +284,7 @@ public class FileManager implements IFileNotify {
     public boolean DeleteFile(File file) {
         boolean success = file.delete();
         if(success){
-            Notify(DELETE, file,null);
+            Notify(DELETE, NORMAL, file,null);
             return true;
         }
 
@@ -296,7 +307,7 @@ public class FileManager implements IFileNotify {
         fileOutputStream.flush();
         fileOutputStream.close();
 
-        Notify(CREATE, path,null);
+        Notify(CREATE, NORMAL, path,null);
 
         return true;
     }
@@ -369,4 +380,35 @@ public class FileManager implements IFileNotify {
     * TODO:
     *  2 public functions for stripping and merging the files
     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void SplitFile(File f, int numOfChunks) throws IOException {
+        int partCounter = 1;    //parts from 001, 002, 003, ...
+        long originalFileSize = Files.size(f.toPath());
+        int partSize =(int) Math.ceil((double)(originalFileSize)/numOfChunks);
+        byte[] buffer = new byte[partSize];
+        String fileName = f.getName();
+
+        try (FileInputStream fis = new FileInputStream(f);
+             BufferedInputStream bis = new BufferedInputStream(fis)) {
+
+            int bytesAmount = 0;
+            while ((bytesAmount = bis.read(buffer)) > 0) {
+                //write each chunk of data into separate file with different number in name
+                String filePartName = String.format("%s.%03d", fileName, partCounter++);
+                File newFile = new File(f.getParent(), filePartName);
+                try (FileOutputStream out = new FileOutputStream(newFile)) {
+                    out.write(buffer, 0, bytesAmount);
+                }
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void MergeFiles(List<File> files, File into) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(into);
+             BufferedOutputStream mergingStream = new BufferedOutputStream(fos)) {
+            for (File f : files)
+                Files.copy(f.toPath(), mergingStream);
+        }
+    }
 }
