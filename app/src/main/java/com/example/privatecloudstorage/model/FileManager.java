@@ -24,6 +24,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -381,26 +382,30 @@ public class FileManager implements IFileNotify {
     *  2 public functions for stripping and merging the files
     */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void SplitFile(File f, int numOfChunks) throws IOException {
-        int partCounter = 1;    //parts from 001, 002, 003, ...
+    public ArrayList<File> SplitFile(File f, ArrayList<String> fileNames) throws IOException {
         long originalFileSize = Files.size(f.toPath());
-        int partSize =(int) Math.ceil((double)(originalFileSize)/numOfChunks);
+        int partSize =(int) Math.ceil((double)(originalFileSize)/fileNames.size());
         byte[] buffer = new byte[partSize];
         String fileName = f.getName();
+        ArrayList<File> Files = new ArrayList<File>();
 
         try (FileInputStream fis = new FileInputStream(f);
              BufferedInputStream bis = new BufferedInputStream(fis)) {
 
             int bytesAmount = 0;
+            int i=0;
             while ((bytesAmount = bis.read(buffer)) > 0) {
                 //write each chunk of data into separate file with different number in name
-                String filePartName = String.format("%s.%03d", fileName, partCounter++);
+                String filePartName = fileName + " " + fileNames.get(i);
                 File newFile = new File(f.getParent(), filePartName);
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
+                    Files.add(newFile);
+                    i++;
                     out.write(buffer, 0, bytesAmount);
                 }
             }
         }
+        return Files;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

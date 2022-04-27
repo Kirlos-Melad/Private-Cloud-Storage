@@ -38,7 +38,6 @@ public class GroupContentActivity extends AppCompatActivity {
     private String mSelectedGroupKey;
     private FileManager mFileManager;
     String mFilePath;
-    byte mode;
     FileExplorerAdapter mAdapter;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -62,13 +61,13 @@ public class GroupContentActivity extends AppCompatActivity {
         setContentView(_ActivityGroupContentBinding.getRoot());
 
         if(mFilePath != null && action != null) {
-            initAdapter(mFilePath, action,mode);
+            initAdapter(mFilePath, action);
             return;
         }
 
         if(checkPermission()) {
             String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
-            initAdapter(path,Intent.ACTION_VIEW,mode);
+            initAdapter(path,Intent.ACTION_VIEW);
             _ActivityGroupContentBinding.menu.close(true);
         }
         else requestPermission();
@@ -82,11 +81,11 @@ public class GroupContentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 _ActivityGroupContentBinding.menu.setVisibility(View.INVISIBLE);
-                byte selectedMode = SelectMode();
+
                 if(checkPermission()){
                     String path = Environment.getExternalStorageDirectory().getPath();
                     _ActivityGroupContentBinding.menu.close(true);
-                    initAdapter(path,Intent.ACTION_GET_CONTENT,selectedMode);
+                    initAdapter(path,Intent.ACTION_GET_CONTENT);
                 }
                 else requestPermission();
             }
@@ -225,44 +224,9 @@ public class GroupContentActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private byte SelectMode() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(GroupContentActivity.this);
-        dialog.setTitle("Select Mode");
-        String[] items = {"Normal Mode","Stripping Mode"};
-        int checkedItem = 1;
-        dialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        mode = mFileManager.NORMAL;
-                        Toast.makeText(GroupContentActivity.this, "Clicked on Normal", Toast.LENGTH_LONG).show();
-                        break;
-                    case 1:
-                        mode = mFileManager.STRIP;
-                        Toast.makeText(GroupContentActivity.this, "Clicked on Stripping", Toast.LENGTH_LONG).show();
-                        break;
-                }
-            }
-        });
-        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                recreate();
-            }
-        });
-        dialog.show();
-        return mode;
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void initAdapter(String path , String Action,byte mode){
+    public void initAdapter(String path , String Action){
         File file = new File(path);
         File[] filesAndFolders = file.listFiles();
         if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders.length ==0){
@@ -270,7 +234,7 @@ public class GroupContentActivity extends AppCompatActivity {
             return;
         }
         _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.INVISIBLE);
-        mAdapter = new FileExplorerAdapter(GroupContentActivity.this,filesAndFolders,Action,mSelectedGroupName,mSelectedGroupKey,mode);
+        mAdapter = new FileExplorerAdapter(GroupContentActivity.this,filesAndFolders,Action,mSelectedGroupName,mSelectedGroupKey);
         _ActivityGroupContentBinding.recyclerView.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
         _ActivityGroupContentBinding.recyclerView.setAdapter(mAdapter);
     }

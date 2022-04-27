@@ -68,7 +68,7 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
      * @param action Action that will be performed on the file
      * @param groupName The group that the file will be moved to
      */
-    public FileExplorerAdapter(Activity context, File[] filesAndFolders,String action,String groupName,String selectedGroupKey, byte mode){
+    public FileExplorerAdapter(Activity context, File[] filesAndFolders,String action,String groupName,String selectedGroupKey){
         this._Context = context;
         this.mFilesAndFolders = filesAndFolders;
         this.mAction = action;
@@ -76,7 +76,6 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
         this.mGroupKey = selectedGroupKey;
         mFileManager = FileManager.getInstance();
         mOpenedFile = null;
-        mMode = mode;
     }
 
     public File getOpenedFile() {
@@ -175,13 +174,16 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         if(item.getTitle().equals("Send")){
+
                             //the destination that the file will be moved to
                             File dstFile= new File(_Context.getFilesDir() + File.separator + mGroupKey + " " + mGroupName
                                     + File.separator + Uri.fromFile(selectedFile).getLastPathSegment());
                             try {
                                 //copy the file from original directory to group directory
-                                mFileManager.CopyFile(selectedFile.toPath() , dstFile.toPath(),mMode);
+                                byte mode = SelectMode();
+                                mFileManager.CopyFile(selectedFile.toPath() , dstFile.toPath(),mode);
                                 Toast.makeText(_Context.getApplicationContext(),"Sending...",Toast.LENGTH_LONG).show();
+                                System.out.println("==========================" + mode + "==========================");
                             } catch (IOException e) {
                                 e.printStackTrace();
                                 Toast.makeText(_Context.getApplicationContext(),"The Group is not exist",Toast.LENGTH_LONG).show();
@@ -256,6 +258,46 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                 return true;
             }
         });
+    }
+
+    private byte SelectMode() {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(_Context);
+        dialog.setTitle("Select Mode");
+        String[] items = {"Normal Mode","Stripping Mode"};
+        int checkedItem=0;
+        final byte[] mode = new byte[1];
+
+        dialog.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        mode[0] = mFileManager.NORMAL;
+                        Toast.makeText(_Context, "Clicked on Normal", Toast.LENGTH_LONG).show();
+                        break;
+                    case 1:
+                        mode[0] = mFileManager.STRIP;
+                        Toast.makeText(_Context, "Clicked on Stripping", Toast.LENGTH_LONG).show();
+                        break;
+                }
+            }
+        });
+        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+                mMode=mode[0];
+
+            }
+        });
+        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                _Context.recreate();
+            }
+        });
+        dialog.show();
+        return mMode;
     }
 
     @Override

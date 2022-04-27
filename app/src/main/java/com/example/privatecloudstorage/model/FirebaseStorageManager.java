@@ -20,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 public class FirebaseStorageManager {
     // Used for debugging
     public static final String TAG = "FirebaseStorageManager";
-
     private FirebaseStorage mStorage;
     private static FirebaseStorageManager mFirebaseStorageManager;
 

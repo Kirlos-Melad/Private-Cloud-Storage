@@ -1,10 +1,12 @@
 package com.example.privatecloudstorage.model;
 
 //Android Libraries
+        import android.hardware.biometrics.BiometricPrompt;
         import android.net.Uri;
         import android.os.Build;
         import android.os.Handler;
         import android.os.Looper;
+        import android.util.Pair;
 
 //3rd Party Libraries
         import androidx.annotation.NonNull;
@@ -28,6 +30,7 @@ package com.example.privatecloudstorage.model;
         import java.io.File;
         import java.util.ArrayList;
         import java.util.HashMap;
+        import java.util.Map;
         import java.util.concurrent.ExecutorService;
         import java.util.concurrent.Executors;
 
@@ -45,6 +48,11 @@ public class FirebaseDatabaseManager {
     public static final String TAG = "FirebaseDatabaseManager";
 
     private static FirebaseDatabaseManager mFirebaseDatabaseManager;
+
+    public FirebaseDatabase getmDataBase() {
+        return mDataBase;
+    }
+
     private final FirebaseDatabase mDataBase;
     private final FirebaseUser mCurrentUser;
     private final ExecutorService mExecutorService;
@@ -165,6 +173,25 @@ public class FirebaseDatabaseManager {
         });
     }
 
+    public void GetMembersIDs(String groupId, IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("Members").get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    ArrayList<String> membersIds = new ArrayList<>();
+                    for (DataSnapshot Member:dataSnapshot.getChildren()
+                         ) {
+                        membersIds.add(Member.getKey());
+                    }
+                    action.onSuccess(membersIds);
+                    });
+
+                });
+            });
+    }
+
+
+
     /**
      * Monitor all user groups changes in cloud
      */
@@ -195,18 +222,50 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
-        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
         //String physicalLocation = group.getId() + " " + group.getName();
-
         // Download the file
-        ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation, fileSnapshot.child("Name").getValue(String.class));
-        //FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
+        if(!fileSnapshot.child("Mode").hasChild("Striping")) {
+            Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/"
+                    + fileSnapshot.getKey() + " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
+            ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
+                    fileSnapshot.child("Name").getValue(String.class));
+        }
+        else {
+            Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
+
+            ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
+                    fileSnapshot.child("Name").getValue(String.class));
+        }//FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
 
         // Add user to SeenBy
         fileSnapshot.child("SeenBy").getRef().updateChildren(new HashMap<String, Object>() {{
             put(mCurrentUser.getUid(), mCurrentUser.getDisplayName());
         }});
     }
+
+
+    public void GetSharedFiles(String groupId, IAction action,ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("SharedFiles").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                @Override
+                public void onSuccess(DataSnapshot dataSnapshot) {
+                    ArrayList<SharedFile> filesModes = new ArrayList<>();
+                    SharedFile sharedFile = new SharedFile();
+                    for (DataSnapshot file:dataSnapshot.getChildren()
+                         ) {
+                        sharedFile.Id = file.getKey();
+                        sharedFile.mode = file.child("Mode").getValue(String.class);
+                        sharedFile.Name = file.child("Name").getValue(String.class);
+                        sharedFile.Url = file.child("URL").getValue(String.class);
+                        filesModes.add(sharedFile);
+                    }
+                    action.onSuccess(filesModes);
+                }
+            });
+        });
+    }
+
 
     /**
      * Add listener to the group Shared Files
@@ -216,6 +275,45 @@ public class FirebaseDatabaseManager {
 
     private Runnable MonitorSingleGroup(Group group){
         return () -> {
+            mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if(snapshot.getValue(String.class).equals("True")){
+                        GetMembersIDs(group.getId(), new IAction() {
+                            @RequiresApi(api = Build.VERSION_CODES.Q)
+                            @Override
+                            public void onSuccess(Object memIds) {
+                                ArrayList<String> membersIds = (ArrayList<String>) memIds;
+                                membersIds.remove(ManagersMediator.getInstance().GetCurrentUser().getUid());
+
+                                GetSharedFiles(group.getId(), new IAction() {
+                                    @Override
+                                    public void onSuccess(Object f) {
+                                        ArrayList<SharedFile> filesdata = (ArrayList<SharedFile>) f;
+                                            for (SharedFile file:filesdata) {
+                                            if (file.mode.equals("Striping")) {
+                                                for (String id:membersIds) {
+                                                    Uri cloudLocation = Uri.parse(file.Url + "/"
+                                                            + file.Id + " " + id);
+                                                    ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
+                                                            file.Id + " " + id);
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                },mExecutorService);
+
+                            }
+                        },mExecutorService);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
             // Listen to newly added files
             mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(new ChildEventListener() {
                 @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -248,7 +346,10 @@ public class FirebaseDatabaseManager {
 
                             }
                         });
+
+
                     });
+
                 }
 
                 @Override
