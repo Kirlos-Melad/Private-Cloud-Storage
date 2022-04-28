@@ -64,6 +64,9 @@ public class ManagersMediator {
     public void UserGroupsRetriever(IAction action){
         DATABASE_MANAGER.UserGroupsRetriever(action, EXECUTOR_SERVICE);
     }
+    public void GroupMembersRetriever(String groupId , IAction action){
+        DATABASE_MANAGER.GroupMembersRetriever(groupId,action, EXECUTOR_SERVICE);
+    }
 
     /**
      * Get current user

@@ -158,6 +158,33 @@ public class FirebaseDatabaseManager {
             });
         });
     }
+    /**
+     * Create an Observable that works on this class thread
+     * The observable emits Group Members as Pair<String, String>(ID, Name)
+     *
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
+
+    public void GroupMembersRetriever(String groupId,IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("Members").get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    ArrayList<String> users = new ArrayList<>();
+
+                    for(DataSnapshot user : dataSnapshot.getChildren()){
+                        users.add(user.getKey());
+                    }
+                    // Must run this on main thread to avoid problems
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        action.onSuccess(users);
+                    });
+                });
+            });
+        });
+
+    }
 
     /**
      * Monitor all user groups changes in cloud
@@ -377,21 +404,5 @@ public class FirebaseDatabaseManager {
             }, executorService);
         });
     }
-    /*public void UpdateUserInfo(String name){
-        UserGroupsRetriever(new IAction() {
-            @Override
-            public void onSuccess(Object object) {
-                ArrayList<Group> groups = (ArrayList<Group>) object;
-                for(Group group : groups){
-                    mDataBase.getReference().child("Groups").child( group.getId()).child("Members")
-                            .child(mCurrentUser.getUid()).setValue(name);
-                    mDataBase.getReference().child("Groups").child( group.getId()).child("SharedFiles").child().child("SeenBy")
-                            .child(mCurrentUser.getUid()).setValue(name);
-                }
-
-            }
-        });
-
-    }*/
 
 }

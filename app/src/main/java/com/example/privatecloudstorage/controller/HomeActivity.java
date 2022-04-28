@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,7 +18,7 @@ import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.google.android.material.tabs.TabLayout;
 
 public class HomeActivity extends AppCompatActivity {
-
+    public static final String TAG = "HomeActivity";
     private String mSelectedGroupName;
     private String mSelectedGroupKey;
     private @NonNull
@@ -41,12 +42,26 @@ public class HomeActivity extends AppCompatActivity {
         _ActivityHomeBinding.tabLayout.setupWithViewPager(_ActivityHomeBinding.viewPager);
 
         MainAdapter mainAdapter=new MainAdapter(getSupportFragmentManager(),FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-        mainAdapter.addFragment(new Fragment1(),"SHARED FILES");
-        mainAdapter.addFragment(new Fragment2(),"MEMBERS");
+        mainAdapter.addFragment(new Fragment1(),"NORMAL FILES");
+        mainAdapter.addFragment(new Fragment2(),"STREPPED FILES");
+
+
+        //TODO:use old Bundle if valid to be used more than one time
+        Bundle bundle1 = new Bundle();
+        bundle1.putString("selectedGroupKey1",mSelectedGroupKey);
+       // set Fragment class Arguments
+        Fragment3 fragobj = new Fragment3();
+        fragobj.setArguments(bundle1);
+        //getSupportFragmentManager().beginTransaction()
+          //      .replace(R.id.fragment_id, fragobj, TAG).commit();
+
+        mainAdapter.addFragment(fragobj,"MEMBERS");
+
 
         _ActivityHomeBinding.viewPager.setAdapter(mainAdapter);
 
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();

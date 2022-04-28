@@ -96,7 +96,7 @@ public class GroupListActivity extends AppCompatActivity {
 
         //getting user's group(s)
 
-        
+
 
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
@@ -117,7 +117,7 @@ public class GroupListActivity extends AppCompatActivity {
                          bundle.putString("selectedGroupName", group.getName());
                          bundle.putString("selectedGroupKey", group.getId());
 
-                         intent.putExtras(bundle); //Put Group number to your next Intent
+                         intent.putExtras(bundle);//Put Group number to your next Intent
                          startActivity(intent);
                      });
                  }
@@ -149,6 +149,10 @@ public class GroupListActivity extends AppCompatActivity {
                         startActivity(new Intent(GroupListActivity.this,ProfileActivity.class));
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
+                    case R.id.logout:
+                        firebaseAuthenticationManager.Logout();
+                        startActivity(new Intent(GroupListActivity.this,SignInActivity.class));
+                        _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
 
                 }
                 return true;

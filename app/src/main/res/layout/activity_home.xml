@@ -21,7 +21,14 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SHARED FILES"
+            android:text="NORMAL FILES"
+            >
+
+        </com.google.android.material.tabs.TabItem>
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STREPPED FILES"
             >
 
         </com.google.android.material.tabs.TabItem>
@@ -32,6 +39,7 @@
             >
 
         </com.google.android.material.tabs.TabItem>
+
     </com.google.android.material.tabs.TabLayout>
 
     <androidx.viewpager.widget.ViewPager

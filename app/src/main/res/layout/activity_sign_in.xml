@@ -49,6 +49,8 @@
         android:layout_marginRight="40dp"
         android:layout_marginTop="35dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        app:counterEnabled="true"
+        app:counterMaxLength="16"
         app:errorEnabled="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

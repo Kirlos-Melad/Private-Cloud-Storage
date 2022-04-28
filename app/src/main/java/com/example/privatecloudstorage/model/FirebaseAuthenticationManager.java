@@ -140,6 +140,7 @@ public class FirebaseAuthenticationManager extends Observable {
      * @param activity the sign in activity
      */
     public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity) {
+        //TODO: handel empty email/password in forget password request
         mFirebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
             @SuppressLint("LongLogTag")
             @Override

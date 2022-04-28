@@ -41,6 +41,10 @@
     <item android:title="Communicate">
         <menu>
             <item
+                android:id="@+id/logout"
+                android:icon="@drawable/arrow_back"
+                android:title="Log out" />
+            <item
                 android:id="@+id/share"
                 android:icon="@drawable/ic_group"
                 android:title="Shared with Me" />
