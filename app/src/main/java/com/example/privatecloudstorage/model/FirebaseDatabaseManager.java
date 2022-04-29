@@ -174,7 +174,7 @@ public class FirebaseDatabaseManager {
                     ArrayList<String> users = new ArrayList<>();
 
                     for(DataSnapshot user : dataSnapshot.getChildren()){
-                        users.add(user.getKey());
+                        users.add(user.getValue(String.class));
                     }
                     // Must run this on main thread to avoid problems
                     new Handler(Looper.getMainLooper()).post(() -> {

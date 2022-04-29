@@ -18,11 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
-            android:name=".controller.ProfileActivity"
-            android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity"/>
+            android:name=".controller.GroupSliderActivity"
+            android:exported="false" />
         <activity
-            android:name=".controller.HomeActivity"
+            android:name=".controller.ProfileActivity"
             android:exported="false"
             android:parentActivityName=".controller.GroupListActivity" />
         <activity

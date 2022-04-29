@@ -112,7 +112,7 @@ public class GroupListActivity extends AppCompatActivity {
                      ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
                          Group group = ((ArrayList<Group>) groups).get(position);
                          //before go to new activity send group name and id as a parameter
-                         Intent intent = new Intent(GroupListActivity.this, HomeActivity.class);
+                         Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
                          Bundle bundle = new Bundle();
                          bundle.putString("selectedGroupName", group.getName());
                          bundle.putString("selectedGroupKey", group.getId());
