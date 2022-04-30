@@ -41,5 +41,6 @@ public class HomePageActivity extends AppCompatActivity {
         //Button to direct to GroupListActivity
         _ActivityHomePageBinding.chickyourgroup.setOnClickListener(v ->
                 startActivity(new Intent(this,GroupListActivity.class)));
+
     }
 }

@@ -66,7 +66,8 @@ public class GroupContentActivity extends AppCompatActivity {
         }
 
         if(checkPermission()) {
-            String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
+            //  /data/data/com.example.privatecloudstorage/files/Normal Files
+            String path = getFilesDir()+ File.separator + "Normal Files";
             initAdapter(path,Intent.ACTION_VIEW);
             _ActivityGroupContentBinding.menu.close(true);
         }
@@ -144,8 +145,7 @@ public class GroupContentActivity extends AppCompatActivity {
                     Toast.makeText(GroupContentActivity.this,"Name Field cannot be empty",Toast.LENGTH_SHORT).show();
                     return;
                 }
-                File txtFile = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " +
-                        mSelectedGroupName+ File.separator ,name + ".txt");
+                File txtFile = new File(getFilesDir()+ File.separator + "Normal Files" ,name + ".txt");
 
                 if(txtFile.exists()){
                     ReplaceMsgDialog("Do you want to replace the text file ?",txtFile);
@@ -223,7 +223,6 @@ public class GroupContentActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void initAdapter(String path , String Action){

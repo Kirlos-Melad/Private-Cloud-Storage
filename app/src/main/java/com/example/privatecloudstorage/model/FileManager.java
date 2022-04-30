@@ -76,8 +76,8 @@ public class FileManager implements IFileNotify {
 
         // Create needed directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
-        CreateDirectory(new File(mApplicationDirectory.toString(), NORMAL_FILES_DIRECTORY));
-        CreateDirectory(new File(mApplicationDirectory.toString(), STRIPPED_FILES_DIRECTORY));
+        //CreateDirectory(new File(mApplicationDirectory.toString(), NORMAL_FILES_DIRECTORY));
+        //CreateDirectory(new File(mApplicationDirectory.toString(), STRIPPED_FILES_DIRECTORY));
     }
 
     public static FileManager createInstance(File parentDirectory){
@@ -210,6 +210,7 @@ public class FileManager implements IFileNotify {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean CopyFile(Path src, Path dst,byte mode) throws IOException {
+
         Files.copy(src, dst);
 
         Notify(CREATE, mode, new File(dst.toString()),null);

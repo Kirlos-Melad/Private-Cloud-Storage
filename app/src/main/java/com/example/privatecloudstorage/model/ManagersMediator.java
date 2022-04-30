@@ -6,6 +6,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.example.privatecloudstorage.controller.FileExplorerAdapter;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
 import com.google.firebase.auth.FirebaseUser;
@@ -44,6 +45,7 @@ public class ManagersMediator {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private ManagersMediator(){
         DATABASE_MANAGER = FirebaseDatabaseManager.getInstance();
+
         STORAGE_MANAGER = FirebaseStorageManager.getInstance();
         AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
         FILE_MANAGER = FileManager.getInstance();
@@ -277,8 +279,15 @@ public class ManagersMediator {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void FileDownloadProcedure(Group group, Uri url, String fileName) {
         EXECUTOR_SERVICE.execute(() -> {
-            String path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
-                    group.getId() + " " + group.getName();
+            byte mode = DATABASE_MANAGER.getMode();
+            String path;
+            if(mode == FILE_MANAGER.NORMAL){
+                path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
+            }
+            else{
+                path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
+                        group.getId() + " " + group.getName();
+            }
 
             File file = new File(path, fileName);
             STORAGE_MANAGER.Download(url, file,
@@ -316,6 +325,8 @@ public class ManagersMediator {
                     }, EXECUTOR_SERVICE);
                 }, EXECUTOR_SERVICE);
     }
+
+
 
     /**
      * TODO:

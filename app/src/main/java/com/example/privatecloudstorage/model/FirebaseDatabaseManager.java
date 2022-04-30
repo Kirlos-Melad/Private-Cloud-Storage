@@ -6,6 +6,7 @@ package com.example.privatecloudstorage.model;
         import android.os.Build;
         import android.os.Handler;
         import android.os.Looper;
+        import android.util.Log;
         import android.util.Pair;
 
 //3rd Party Libraries
@@ -30,6 +31,7 @@ package com.example.privatecloudstorage.model;
         import java.io.File;
         import java.util.ArrayList;
         import java.util.HashMap;
+        import java.util.List;
         import java.util.Map;
         import java.util.concurrent.ExecutorService;
         import java.util.concurrent.Executors;
@@ -57,6 +59,16 @@ public class FirebaseDatabaseManager {
     private final FirebaseUser mCurrentUser;
     private final ExecutorService mExecutorService;
 
+    private byte mMode;
+
+    public void setMode(byte mode) {
+        this.mMode = mode;
+    }
+
+    public byte getMode() {
+        return mMode;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private FirebaseDatabaseManager(){
         mDataBase = FirebaseDatabase.getInstance();
@@ -65,6 +77,28 @@ public class FirebaseDatabaseManager {
 
         // Monitor all existing groups
         MonitorGroups();
+    }
+
+    public void CheckConnection(IAction action,ExecutorService executorService){
+        executorService.execute(() -> {
+            DatabaseReference connectedRef = mDataBase.getReference(".info/connected");
+            connectedRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    boolean connected = snapshot.getValue(Boolean.class);
+                    action.onSuccess(connected);
+                    if (connected) {
+                        Log.d(TAG, "-----------------------connected-----------------------");
+                    } else {
+                        Log.d(TAG, "-----------------------not connected-----------------------");
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.w(TAG, "Listener was cancelled");
+                }
+            });
+        });
     }
 
     /**
@@ -191,7 +225,6 @@ public class FirebaseDatabaseManager {
     }
 
 
-
     /**
      * Monitor all user groups changes in cloud
      */
@@ -275,7 +308,7 @@ public class FirebaseDatabaseManager {
 
     private Runnable MonitorSingleGroup(Group group){
         return () -> {
-            mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").addValueEventListener(new ValueEventListener() {
+            /*mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if(snapshot.getValue(String.class).equals("True")){
@@ -313,7 +346,7 @@ public class FirebaseDatabaseManager {
                 public void onCancelled(@NonNull DatabaseError error) {
 
                 }
-            });
+            });*/
             // Listen to newly added files
             mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(new ChildEventListener() {
                 @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -329,12 +362,22 @@ public class FirebaseDatabaseManager {
                                 try{
 
                                     String previousName = sharedFileSnapshot.child("Name").getValue(String.class);
+                                    String mode = sharedFileSnapshot.child("Mode").getValue(String.class);
                                     String groupFolder = group.getId() + " " + group.getName();
-                                    File file = new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder,
-                                            previousName);
-                                    //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
+                                    File file;
+                                    if(mode.equals("Normal")){
+                                        file= new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder + File.separator + "Normal Files",
+                                                previousName);
+                                    }
+                                    else{
+                                        file= new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder + File.separator + "Stripped Files",
+                                                previousName);
+                                    }
                                     File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue(String.class));
                                     file.renameTo(newFile);
+
+                                    //String extension = file.toString().substring(file.getPath().lastIndexOf("."),file.toString().length());
+
                                     //FileManager.getInstance().RenameFile(file, fileNameSnapshot.getValue().toString());
                                 }catch (Exception e){
                                     e.printStackTrace();
@@ -361,10 +404,23 @@ public class FirebaseDatabaseManager {
                     mDataBase.getReference().child("Groups").child(group.getId()).child("Name")
                             .get().addOnSuccessListener(dataSnapshot -> {
                                 String fileName = sharedFileSnapshot.child("Name").getValue(String.class);
+                                String mode = sharedFileSnapshot.child("Mode").getValue(String.class);
                                 String groupName = dataSnapshot.getValue(String.class);
-                                File file = new File(FileManager.getInstance().GetApplicationDirectory(),
-                                        group.getId() + " " + groupName + File.separator + fileName);
-                        FileManager.getInstance().DeleteFile(file);
+                                File file;
+                                if(mode.equals("Normal")){
+                                    file = new File(FileManager.getInstance().GetApplicationDirectory(),
+                                            group.getId() + " " + groupName + File.separator + "Normal Files" + File.separator +fileName);
+                                    FileManager.getInstance().DeleteFile(file);
+                                }
+                                else if(mode.equals("Striping")){
+                                    file = new File(FileManager.getInstance().GetApplicationDirectory(),
+                                            group.getId() + " " + groupName + File.separator + "Merged Files" + File.separator +fileName);
+                                    FileManager.getInstance().DeleteFile(file);
+
+                                    File chunk = new File(FileManager.getInstance().GetApplicationDirectory(),
+                                            group.getId() + " " + groupName + File.separator + "Stripped Files" + File.separator + fileName + " " + mCurrentUser.getUid());
+                                    FileManager.getInstance().DeleteFile(chunk);
+                                }
                             });
                 }
 
