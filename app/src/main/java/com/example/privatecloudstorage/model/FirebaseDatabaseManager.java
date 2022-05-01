@@ -405,4 +405,11 @@ public class FirebaseDatabaseManager {
         });
     }
 
+
+
+    /**
+     * TODO:
+     *  create functions to retrieve any needed information for file stripping
+     */
+
 }
