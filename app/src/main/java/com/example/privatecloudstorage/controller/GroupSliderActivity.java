@@ -1,32 +1,29 @@
 package com.example.privatecloudstorage.controller;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
-import com.example.privatecloudstorage.controller.GroupFragment;
-
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import android.os.Bundle;
-import android.app.ActionBar;
-import android.util.Log;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Switch;
 import android.widget.Toast;
-
 import com.example.privatecloudstorage.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
 
-public class GroupSliderActivity extends FragmentActivity {
+//replace fragment activity with AppCompatActivity
+
+/**
+ * mange tab layout
+ */
+public class GroupSliderActivity extends AppCompatActivity {
     public static final byte MEMBERS=0x01;
     public static final byte NORMAL_FILES=0x02;
     public static final byte STRIPPED_FILES=0x03;
@@ -63,6 +60,7 @@ public class GroupSliderActivity extends FragmentActivity {
             finish();
         mSelectedGroupName = bundle.getString("selectedGroupName");
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
+        getSupportActionBar().setTitle(mSelectedGroupName);
 
 
 
@@ -77,17 +75,6 @@ public class GroupSliderActivity extends FragmentActivity {
         new TabLayoutMediator(tabLayout, viewPager,
                 (tab, position) -> {
                     tab.setText(titels.get(position));
-                    /*tab.view.setClickable(true);
-                   tab.view.setOnClickListener(new View.OnClickListener() {
-                       @Override
-                       public void onClick(View v) {
-                           Log.d("+++++++++++++", "onClick: true ");
-                           v.setSelected(true);
-
-
-                       }
-                   });*/
-
                 }
         ).attach();
 
@@ -127,7 +114,7 @@ public class GroupSliderActivity extends FragmentActivity {
         }
     }
     /**
-     * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
+     * A simple pager adapter that represents 3 ScreenSlidePageFragment objects, in
      * sequence.
      */
     private class ScreenSlidePagerAdapter extends FragmentStateAdapter {

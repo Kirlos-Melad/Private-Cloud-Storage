@@ -37,6 +37,7 @@ public class FileManager implements IFileNotify {
     private final File mApplicationDirectory;
 
     private final String TEMPORARY_DIRECTORY = "Temporary";
+    private final String USER_DIRECTORY = "User";
 
     private final Vector<IFileEventListener> mObserver;
 
@@ -52,6 +53,7 @@ public class FileManager implements IFileNotify {
 
         // Create a directory to save file temporarily
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
+        CreateDirectory(new File(mApplicationDirectory.toString(), USER_DIRECTORY));
     }
 
     public static FileManager createInstance(File parentDirectory){

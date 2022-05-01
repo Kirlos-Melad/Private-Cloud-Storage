@@ -39,6 +39,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         setContentView(_ActivityCreateGroupBinding.getRoot());
         getSupportActionBar().setTitle("Create group");
 
+
         _ActivityCreateGroupBinding.CreateGroup.setOnClickListener(view -> {
             Group group = ReadInput();
 

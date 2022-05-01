@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?colorOnSecondary"
     tools:context=".controller.SignInActivity"
     android:orientation="horizontal">
     <ImageView
@@ -93,9 +94,10 @@
         android:layout_width="350dp"
         android:layout_height="50dp"
         android:background="@drawable/button"
+        android:backgroundTint="?colorPrimaryVariant"
         android:shadowColor="@color/black"
         android:text="Login"
-        android:textColor="#FFF"
+        android:textColor="?colorOnPrimary"
         android:textSize="18dp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -110,7 +112,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Don't have an account?"
-        android:textColor="@color/black"
+        android:textColor="?colorOnPrimary"
         android:textSize="18dp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
