@@ -335,7 +335,8 @@ public class ManagersMediator {
      */
     public void Download(Uri url, File downloadFile, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
-            DatabaseReference dbReference = DATABASE_MANAGER.getmDataBase().getReference("Users/" + GetCurrentUser().getUid() + "/Groups");
+            
+            /*DatabaseReference dbReference = DATABASE_MANAGER.getmDataBase().getReference("Users/" + GetCurrentUser().getUid() + "/Groups");
 
             dbReference.addValueEventListener(new ValueEventListener() {
                 @Override
@@ -349,7 +350,7 @@ public class ManagersMediator {
                 public void onCancelled(@NonNull DatabaseError error) {
 
                 }
-            });
+            });*/
         });
     }
 }

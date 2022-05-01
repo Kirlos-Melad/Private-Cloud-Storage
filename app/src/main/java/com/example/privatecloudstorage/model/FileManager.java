@@ -74,10 +74,8 @@ public class FileManager implements IFileNotify {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
-        // Create needed directories
+        // Create temp directory for downloads directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
-        //CreateDirectory(new File(mApplicationDirectory.toString(), NORMAL_FILES_DIRECTORY));
-        //CreateDirectory(new File(mApplicationDirectory.toString(), STRIPPED_FILES_DIRECTORY));
     }
 
     public static FileManager createInstance(File parentDirectory){
