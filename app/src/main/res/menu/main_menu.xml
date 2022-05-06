@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/creat"
+            android:icon="@drawable/group_add"
+            android:title="Create Group"
+
+            ></item>
+        <item
+            android:id="@+id/join"
+            android:icon="@drawable/ic_group"
+            android:title="Join Group" />
+        <item
+            android:id="@+id/profile"
+            android:icon="@drawable/person_24"
+            android:title="User Profile" />
+        <item
+            android:id="@+id/resently"
+            android:icon="@drawable/ic_baseline_access_time_24"
+            android:title="Recent" />
+        <item
+            android:id="@+id/fav"
+            android:icon="@drawable/ic_fav_24"
+            android:title="Favorits" />
+        <item
+            android:id="@+id/trash"
+            android:icon="@drawable/ic_delete_outline"
+            android:title="Trash" />
+        <item
+            android:id="@+id/buckup"
+            android:icon="@drawable/ic_cloud_upload_24"
+            android:title="Backup Data" />
+        <item
+            android:id="@+id/setting"
+            android:icon="@drawable/ic_settings_24"
+            android:title="Settings" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/logout"
+                android:icon="@drawable/arrow_back"
+                android:title="Log out" />
+            <item
+                android:id="@+id/share"
+                android:icon="@drawable/ic_group"
+                android:title="Shared with Me" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_send"
+                android:title="Send" />
+            <item
+                android:id="@+id/help_icon"
+                android:icon="@drawable/ic_help_outline_24"
+                android:title="Help" />
+        </menu>
+    </item>
+
+</menu>

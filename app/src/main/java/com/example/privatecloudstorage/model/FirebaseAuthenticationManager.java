@@ -3,6 +3,7 @@ package com.example.privatecloudstorage.model;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -11,6 +12,8 @@ import java.util.Observable;
 
 import androidx.annotation.NonNull;
 //3rd party libraries
+import com.example.privatecloudstorage.controller.GroupListActivity;
+import com.example.privatecloudstorage.controller.ProfileActivity;
 import com.example.privatecloudstorage.controller.SignInActivity;
 import com.example.privatecloudstorage.controller.SignUpActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -124,6 +127,12 @@ public class FirebaseAuthenticationManager extends Observable {
     public FirebaseUser getCurrentUser() {
         return mFirebaseAuth.getCurrentUser();
     }
+
+    @SuppressLint("LongLogTag")
+    public Uri getUserImage() {
+        return mFirebaseAuth.getCurrentUser().getPhotoUrl();
+    }
+
     /**
      * allow user to reset his password when been forgetten
      * @param email the user email
@@ -131,6 +140,7 @@ public class FirebaseAuthenticationManager extends Observable {
      * @param activity the sign in activity
      */
     public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity) {
+        //TODO: handel empty email/password in forget password request
         mFirebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
             @SuppressLint("LongLogTag")
             @Override
@@ -149,5 +159,38 @@ public class FirebaseAuthenticationManager extends Observable {
     }
     public void Logout(){
         mFirebaseAuth.getInstance().signOut();
+    }
+
+    public void UpdateUserProfileName(String userName){
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(userName)
+                        .build();
+
+        mFirebaseAuth.getCurrentUser().updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @SuppressLint("LongLogTag")
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User profile updated.");
+                        }
+                    }
+                });
+    }
+    public void UpdateUserProfileImage(Uri uri){
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setPhotoUri(uri)
+                .build();
+
+        mFirebaseAuth.getCurrentUser().updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @SuppressLint("LongLogTag")
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User profile updated.");
+                        }
+                    }
+                });
     }
 }

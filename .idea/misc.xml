@@ -8,13 +8,7 @@
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_home_page.xml" value="0.18854166666666666" />
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_sign_in.xml" value="0.25" />
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_sign_up.xml" value="0.25" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_create_group.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_file_manager_list.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_group_content.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_group_list.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_home_page.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_sign_in.xml" value="0.34479166666666666" />
-        <entry key="..\:/Users/KirlosMelad/MyFiles/Projects Working on/PrivateCloudStorage/app/src/main/res/layout/activity_sign_up.xml" value="0.34479166666666666" />
+        <entry key="..\:/Users/totat/AppData/Local/Android/Sdk/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.23777173913043478" />
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.128" />
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/drawable/add_check.xml" value="0.1815" />
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/drawable/back.xml" value="0.193" />
@@ -46,8 +40,50 @@
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/layout/activity_splash_screen.xml" value="0.264" />
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/layout/file_item.xml" value="0.22644927536231885" />
         <entry key="..\:/Users/totat/Desktop/Private-Cloud-Storage-main/app/src/main/res/layout/recycler_item.xml" value="0.22644927536231885" />
-        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_content.xml" value="0.24048913043478262" />
-        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_home_page.xml" value="0.24048913043478262" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.153" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/add_check.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/back.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/backshapecontengroub.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/camera_24.xml" value="0.1745" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/group_add.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_access_time_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_audiotrack_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_folder_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_image_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_insert_drive_file_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_picture_as_pdf_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_baseline_video_library_24.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_group.xml" value="0.1" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/ic_person.xml" value="0.145" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/drawable/info_24.xml" value="0.1765" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_create_group.xml" value="0.23177083333333334" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_file_manager_list.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_content.xml" value="0.16530797101449277" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_list.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_slider.xml" value="0.2265625" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_home.xml" value="0.264" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_home_page.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_join_group.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_main.xml" value="0.16530797101449277" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_profile.xml" value="0.264" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_sign_in.xml" value="0.264" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_sign_up.xml" value="0.176" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_splash_screen.xml" value="0.16530797101449277" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_1.xml" value="0.12360688956433637" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_2.xml" value="0.11676798378926039" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_3.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_group.xml" value="0.24682971014492755" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_main.xml" value="0.23333333333333334" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/layout_dialog.xml" value="0.15806159420289856" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/list_view_item.xml" value="0.21979166666666666" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/nav_header.xml" value="0.2" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/recycler_item.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/user_about_layout.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/user_custom_dialog.xml" value="0.21927083333333333" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/user_name_layout.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/menu/main_menu.xml" value="0.2212962962962963" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/menu/setting_menu.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/mipmap-anydpi-v26/userProfile.xml" value="0.2055" />
       </map>
     </option>
   </component>

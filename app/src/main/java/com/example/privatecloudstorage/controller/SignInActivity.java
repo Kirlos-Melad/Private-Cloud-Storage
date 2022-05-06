@@ -36,12 +36,14 @@ public class SignInActivity extends AppCompatActivity implements Observer {
         _ActivitySignInBinding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(_ActivitySignInBinding.getRoot());
 
+        _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.GONE);
+
 
         mFirebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
         mFirebaseAuthenticationManager.addObserver(this);
 
         if(mFirebaseAuthenticationManager.getCurrentUser() != null && mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()){
-            startActivity(new Intent(SignInActivity.this,HomePageActivity.class));
+            startActivity(new Intent(SignInActivity.this,GroupListActivity.class));
             finish();
         }
 
@@ -51,8 +53,22 @@ public class SignInActivity extends AppCompatActivity implements Observer {
         _ActivitySignInBinding.forgetPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.VISIBLE);
-                mFirebaseAuthenticationManager.ForgetPassword(_ActivitySignInBinding.Email.getText().toString().trim(), _ActivitySignInBinding.ProgressBarForgetPass, SignInActivity.this);
+                String email=_ActivitySignInBinding.Email.getText().toString().trim();
+                String password=_ActivitySignInBinding.SignInPassword.getText().toString().trim();
+
+                if (TextUtils.isEmpty(email)) {
+                    _ActivitySignInBinding.emailLayout.setError("Email is required");
+                    return;
+                }
+                if (TextUtils.isEmpty(password)) {
+                    _ActivitySignInBinding.passwordLayout.setError("Password is required");
+                    return;
+                }if(!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
+                    _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.VISIBLE);
+                    mFirebaseAuthenticationManager.ForgetPassword(_ActivitySignInBinding.Email.getText().toString().trim(), _ActivitySignInBinding.ProgressBarForgetPass, SignInActivity.this);
+
+                }
+
             }
         });
 
@@ -92,7 +108,7 @@ public class SignInActivity extends AppCompatActivity implements Observer {
                             Toast.makeText(SignInActivity.this, "Invalid Email or Password", Toast.LENGTH_LONG).show();
                         else {
                             if (mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()) {
-                                startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
+                                startActivity(new Intent(getApplicationContext(), GroupListActivity.class));
                                 finish();
                             } else {
                                 Toast.makeText(SignInActivity.this, "Please, Verify Your Email Address", Toast.LENGTH_LONG).show();
