@@ -40,7 +40,7 @@ public class GroupContentActivity extends AppCompatActivity {
     String mFilePath;
     FileExplorerAdapter mAdapter;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -78,7 +78,8 @@ public class GroupContentActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
+
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(View view) {
                 _ActivityGroupContentBinding.menu.setVisibility(View.INVISIBLE);
@@ -224,7 +225,8 @@ public class GroupContentActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void initAdapter(String path , String Action){
         File file = new File(path);
         File[] filesAndFolders = file.listFiles();

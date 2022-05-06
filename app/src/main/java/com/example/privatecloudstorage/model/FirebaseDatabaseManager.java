@@ -167,6 +167,27 @@ public class FirebaseDatabaseManager {
         return groupId;
     }
 
+    public void GroupMembersRetriever(String groupId,IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("Members").get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    ArrayList<String> users = new ArrayList<>();
+
+                    for(DataSnapshot user : dataSnapshot.getChildren()){
+                        users.add(user.getValue(String.class));
+                    }
+                    // Must run this on main thread to avoid problems
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        action.onSuccess(users);
+                    });
+                });
+            });
+        });
+
+    }
+
+
     /**
      * Make user join the group
      *
@@ -225,6 +246,13 @@ public class FirebaseDatabaseManager {
             });
         });
     }
+    /**
+     * Create an Observable that works on this class thread
+     * The observable emits Group Members as Pair<String, String>(ID, Name)
+     *
+     * @param action action to be executed on success
+     * @param executorService thread to run on
+     */
 
     public void GetMembersIDs(String groupId, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
@@ -241,7 +269,8 @@ public class FirebaseDatabaseManager {
 
                 });
             });
-    }
+        }
+
 
 
     /**
@@ -274,16 +303,17 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
+        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
         //String physicalLocation = group.getId() + " " + group.getName();
         // Download the file
         if(!fileSnapshot.child("Mode").hasChild("Striping")) {
-            Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/"
+            cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/"
                     + fileSnapshot.getKey() + " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
             ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
                     fileSnapshot.child("Name").getValue(String.class));
         }
         else {
-            Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
+            cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
 
             ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
                     fileSnapshot.child("Name").getValue(String.class));
@@ -455,6 +485,16 @@ public class FirebaseDatabaseManager {
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
 
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot sharedFileSnapshot) {
+                    mDataBase.getReference().child("Groups").child(group.getId()).child("Name")
+                            .get().addOnSuccessListener(dataSnapshot -> {
+                                String fileName = sharedFileSnapshot.child("Name").getValue(String.class);
+                                String groupName = dataSnapshot.getValue(String.class);
+                                File file = new File(FileManager.getInstance().GetApplicationDirectory(),
+                                        group.getId() + " " + groupName + File.separator + fileName);
+                        FileManager.getInstance().DeleteFile(file);
+                            });
                 }
             });*/
             // Listen to newly added files
