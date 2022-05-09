@@ -199,7 +199,7 @@ public class GroupContentActivity extends AppCompatActivity {
         }
         _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.INVISIBLE);
         FileExplorerAdapter adapter = new FileExplorerAdapter(GroupContentActivity.this,filesAndFolders,Action,mSelectedGroupName,mSelectedGroupKey);
-        _ActivityGroupContentBinding.recyclerView.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
-        _ActivityGroupContentBinding.recyclerView.setAdapter(adapter);
+        _ActivityGroupContentBinding.recyclerView2.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
+        _ActivityGroupContentBinding.recyclerView2.setAdapter(adapter);
     }
 }

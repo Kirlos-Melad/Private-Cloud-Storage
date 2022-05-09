@@ -1,38 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/content"
+    android:id="@+id/recycler_view"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.005"
     android:background="?colorOnSecondary">
-    <LinearLayout
-        android:id="@+id/fragment_id"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".controller.Fragment3"
-        android:orientation="horizontal"
-        android:background="?colorOnSecondary">
 
-        <!-- TODO: Update blank fragment layout -->
-        <TextView
-            android:id="@+id/fragment_text"
-            android:layout_width="match_parent"
-            android:layout_height="722dp"
-            android:textColor="?colorOnPrimary"
-            android:gravity="center"
-            android:textSize="32dp"
-            android:visibility="gone"
-            />
-
-        <ListView
-            android:id="@+id/fragment_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?colorOnSecondary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.recyclerview.widget.RecyclerView>

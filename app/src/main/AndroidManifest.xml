@@ -51,9 +51,6 @@
         </provider>
 
         <activity
-            android:name=".controller.FileExplorerListActivity"
-            android:exported="false" />
-        <activity
             android:name=".controller.GroupContentActivity"
             android:exported="true" />
         <activity

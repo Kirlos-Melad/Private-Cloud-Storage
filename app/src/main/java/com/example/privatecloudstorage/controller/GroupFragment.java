@@ -13,24 +13,25 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
-import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
+import com.example.privatecloudstorage.model.RecyclerViewItem;
 
 import java.io.File;
 import java.util.ArrayList;
 
 public class GroupFragment extends Fragment {
 
-    private TextView textView;
     private String mSelectedGroupKey;
     private String mSelectedGroupName;
     private View _View;
-    private ArrayAdapter<String> _Adapter;
-    private ListView _ListView;
-    private ArrayList<String> mItems;
+    private ArrayAdapterView mAdapter;
+    private ArrayList<RecyclerViewItem> mItems;
     private byte mTab;
+    //RecyclerView.LayoutManager _layoutManager;
 
     /**
      * initialize view
@@ -44,15 +45,10 @@ public class GroupFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         _View = inflater.inflate(R.layout.fragment_group, container, false);
-        mItems = new ArrayList<>();
-        _Adapter = new ArrayAdapter<>(getActivity().getApplicationContext(), android.R.layout.simple_list_item_1, mItems);
-        _ListView = _View.findViewById(R.id.fragment_list_view);
-        _ListView.setAdapter(_Adapter);
-        textView = _View.findViewById(R.id.fragment_text);
-        textView.setText("Empty");
-
+        
         return _View;
     }
+
 
     /**
      * display fragment
@@ -63,6 +59,7 @@ public class GroupFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mItems = new ArrayList<>();
         mSelectedGroupKey = getArguments().getString("selectedGroupKey");
         mSelectedGroupName = getArguments().getString("selectedGroupName");
         mTab = getArguments().getByte("tab");
@@ -92,11 +89,14 @@ public class GroupFragment extends Fragment {
     private void ShowGroupMembers(){
         ManagersMediator.getInstance().GroupMembersRetriever(mSelectedGroupKey, users -> {
             for(String member : (ArrayList<String>) users){
-                mItems.add(member);
+                mItems.add(new RecyclerViewItem(member,null,null));
             }
-            if(mItems.isEmpty())
+            mAdapter = new ArrayAdapterView(mItems);
+            //_ActivityGroupContentBinding.recyclerView.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
+           // _ActivityGroupContentBinding.recyclerView2.setAdapter(adapter);
+            /*if(mItems.isEmpty())
                   textView.setVisibility(View.VISIBLE);
-            _ListView.setAdapter(_Adapter);
+            _ListView.setAdapter(mAdapter);*/
         });
     }
     private void ShowFolderFiles(){
