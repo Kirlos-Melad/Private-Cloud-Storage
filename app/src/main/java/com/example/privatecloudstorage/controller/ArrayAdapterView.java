@@ -38,6 +38,7 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
         holder._ImageView.setImageURI(mItems.get(position).mImage);
 
         holder.itemView.setOnClickListener(mItems.get(position)._onClickListener);
+        holder.itemView.setOnLongClickListener(mItems.get(position)._onLongClickListener);
     }
 
     @Override

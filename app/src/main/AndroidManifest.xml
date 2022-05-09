@@ -18,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
+            android:name=".controller.FileExplorerActivity"
+            android:exported="false" />
+        <activity
             android:name=".controller.GroupSliderActivity"
             android:exported="false" />
         <activity

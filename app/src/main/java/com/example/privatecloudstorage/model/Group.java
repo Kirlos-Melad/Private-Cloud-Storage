@@ -18,6 +18,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.Normalizer;
 
 /**
  * Handles the group creation
@@ -114,8 +115,23 @@ public class Group {
 
         // Create group folder = GroupID GroupName
         File groupDirectory = new File(FileManager.getInstance().GetApplicationDirectory(), mId + " " + mName);
+        boolean isCreated = FileManager.getInstance().CreateDirectory(groupDirectory);
 
-        return FileManager.getInstance().CreateDirectory(groupDirectory);
+        // Create Stripped folder = GroupID GroupName/Stripped Files
+        File StrippedDirectory = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+ mId + " " + mName,"Stripped Files");
+        FileManager.getInstance().CreateDirectory(StrippedDirectory);
+
+        // Create Normal Files = GroupID GroupName/Normal Files
+        File NormaDirectory = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+ mId + " " +
+                mName , "Normal Files");
+        FileManager.getInstance().CreateDirectory(NormaDirectory);
+
+        // Create Merged Files = GroupID GroupName/Merged Files
+        File MergedDirectory = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+ mId + " " +
+                mName , "Merged Files");
+        FileManager.getInstance().CreateDirectory(MergedDirectory);
+
+        return isCreated;
     }
 
     /**

@@ -71,27 +71,6 @@
             app:fab_label="Create text File"
             app:fab_size="mini" />
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabCreateFolder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="148dp"
-            android:src="@drawable/ic_create_folder"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Create Folder"
-            app:fab_size="mini" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabRefresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_refresh"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Refresh"
-            app:fab_size="mini" />
-
     </com.github.clans.fab.FloatingActionMenu>
 
     <TextView
@@ -104,10 +83,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/recycler_view2" />
+        app:layout_constraintTop_toTopOf="@+id/recycler_view" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view2"
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

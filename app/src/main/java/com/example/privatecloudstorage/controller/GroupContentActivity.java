@@ -1,5 +1,6 @@
 package com.example.privatecloudstorage.controller;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -12,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
@@ -26,6 +28,7 @@ import com.example.privatecloudstorage.model.FileManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.attribute.FileTime;
 import java.util.Objects;
 
 public class GroupContentActivity extends AppCompatActivity {
@@ -34,7 +37,10 @@ public class GroupContentActivity extends AppCompatActivity {
     private String mSelectedGroupName;
     private String mSelectedGroupKey;
     private FileManager mFileManager;
+    String mFilePath;
+    FileExplorerAdapter mAdapter;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -47,21 +53,33 @@ public class GroupContentActivity extends AppCompatActivity {
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
         mFileManager = FileManager.getInstance();
 
+        mFilePath = getIntent().getStringExtra("path");
+        String action =  getIntent().getStringExtra("action");
+
         super.onCreate(savedInstanceState);
         _ActivityGroupContentBinding = ActivityGroupContentBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupContentBinding.getRoot());
 
-        String filePath = getIntent().getStringExtra("path");
-        String action =  getIntent().getStringExtra("action");
-
-        if(filePath != null && action != null) {
-            initAdapter(filePath, action);
+        if(mFilePath != null && action != null) {
+            initAdapter(mFilePath, action);
             return;
         }
 
+        if(checkPermission()) {
+            String path = getFilesDir()+ File.separator + mSelectedGroupKey + " "
+                    + mSelectedGroupName + File.separator +  "Normal Files";
+            initAdapter(path,Intent.ACTION_VIEW);
+            _ActivityGroupContentBinding.menu.close(true);
+        }
+        else requestPermission();
+
         _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
+
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(View view) {
+                _ActivityGroupContentBinding.menu.setVisibility(View.INVISIBLE);
+
                 if(checkPermission()){
                     String path = Environment.getExternalStorageDirectory().getPath();
                     _ActivityGroupContentBinding.menu.close(true);
@@ -88,34 +106,30 @@ public class GroupContentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 _ActivityGroupContentBinding.menu.close(true);
-                showDialog("Enter File Name :",false);
+                CreateTxtDialog("Enter File Name :");
             }
         });
 
-        _ActivityGroupContentBinding.fabCreateFolder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                _ActivityGroupContentBinding.menu.close(true);
-                showDialog("Enter Folder Name :",true);
-            }
-        });
-
-        _ActivityGroupContentBinding.fabRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                recreate();
-            }
-        });
-
-        if(checkPermission()) {
-            String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName;
-            initAdapter(path,Intent.ACTION_VIEW);
-            _ActivityGroupContentBinding.menu.close(true);
-        }
-        else requestPermission();
     }
 
-    private void showDialog(String msg , boolean isDir){
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        try {
+            File mSelectedFile = mAdapter.getOpenedFile();
+            System.out.println(mSelectedFile);
+            if(mSelectedFile != null){
+                FileTime lastModificationOnClose = mFileManager.getLastModificationDate(mSelectedFile);
+                System.out.println("On closing File : " + lastModificationOnClose.toString());
+                mAdapter.InvalidateOpenedFileValue();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void CreateTxtDialog(String msg){
         AlertDialog.Builder dialog = new AlertDialog.Builder(GroupContentActivity.this);
         dialog.setTitle(msg);
         final EditText editText = new EditText(GroupContentActivity.this);
@@ -129,22 +143,18 @@ public class GroupContentActivity extends AppCompatActivity {
                     Toast.makeText(GroupContentActivity.this,"Name Field cannot be empty",Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(isDir){
-                    //create dir
-                    File directory = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " +
-                            mSelectedGroupName+ File.separator ,name);
-                    mFileManager.CreateDirectory(directory);
+                File txtFile = new File(getFilesDir()+ File.separator + "Normal Files" ,name + ".txt");
+
+                if(txtFile.exists()){
+                    ReplaceMsgDialog("Do you want to replace the text file ?",txtFile);
                 }
-                else{
-                    //create txt file
-                    File txtFile = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " +
-                            mSelectedGroupName+ File.separator ,name + ".txt");
+                else
                     try {
                         mFileManager.CreateFile(txtFile);
+                        recreate();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
             }
         });
         dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -154,6 +164,28 @@ public class GroupContentActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+    }
+
+    private void ReplaceMsgDialog(String msg , File file){
+        AlertDialog.Builder replaceDialog = new AlertDialog.Builder(GroupContentActivity.this);
+        replaceDialog.setTitle(msg);
+        replaceDialog.setPositiveButton("Replace", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                try {
+                    mFileManager.CreateFile(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        replaceDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        replaceDialog.show();
     }
 
     /** Check if permission is granted or not
@@ -190,16 +222,17 @@ public class GroupContentActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void initAdapter(String path , String Action){
         File file = new File(path);
         File[] filesAndFolders = file.listFiles();
-        if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders == null ||filesAndFolders.length ==0){
+        if(_ActivityGroupContentBinding.nofilesTextview == null || filesAndFolders.length ==0){
             _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.VISIBLE);
             return;
         }
         _ActivityGroupContentBinding.nofilesTextview.setVisibility(View.INVISIBLE);
-        FileExplorerAdapter adapter = new FileExplorerAdapter(GroupContentActivity.this,filesAndFolders,Action,mSelectedGroupName,mSelectedGroupKey);
-        _ActivityGroupContentBinding.recyclerView2.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
-        _ActivityGroupContentBinding.recyclerView2.setAdapter(adapter);
+        mAdapter = new FileExplorerAdapter(GroupContentActivity.this,filesAndFolders,Action,mSelectedGroupName,mSelectedGroupKey);
+        _ActivityGroupContentBinding.recyclerView.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
+        _ActivityGroupContentBinding.recyclerView.setAdapter(mAdapter);
     }
 }

@@ -6,16 +6,27 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
+import android.text.InputType;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityGroupContentBinding;
+import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 //replace fragment activity with AppCompatActivity
@@ -29,6 +40,7 @@ public class GroupSliderActivity extends AppCompatActivity {
     public static final byte STRIPPED_FILES=0x03;
 
     ArrayList<String> titels=new ArrayList<>();
+    private ActivityGroupSliderBinding _ActivityGroupSliderBinding;
     //getSupportActionBar().setTitle(mSelectedGroupName);
 
     /**
@@ -52,7 +64,8 @@ public class GroupSliderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_group_slider);
+        _ActivityGroupSliderBinding = ActivityGroupSliderBinding.inflate(getLayoutInflater());
+        setContentView(_ActivityGroupSliderBinding.getRoot());
         TabLayout tabLayout;
 
         Bundle bundle = getIntent().getExtras();
@@ -131,7 +144,7 @@ public class GroupSliderActivity extends AppCompatActivity {
             GroupFragment groupFragment=new GroupFragment();
             switch (position){
                 case 0:
-                   bundle.putByte("tab", MEMBERS);
+                    bundle.putByte("tab", MEMBERS);
                     break;
                 case 1:
                     bundle.putByte("tab", NORMAL_FILES);
@@ -152,6 +165,9 @@ public class GroupSliderActivity extends AppCompatActivity {
         public int getItemCount() {
             return NUM_PAGES;
         }
+
+
+
 
     }
 }

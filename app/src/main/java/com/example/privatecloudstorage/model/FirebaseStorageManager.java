@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 // 3rd Party Libraries
@@ -13,16 +14,25 @@ import com.google.firebase.storage.StorageReference;
 
 // Java Libraries
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 
 public class FirebaseStorageManager {
     // Used for debugging
     public static final String TAG = "FirebaseStorageManager";
-
     private FirebaseStorage mStorage;
+    private ArrayList<String> mOnlineUsers = new ArrayList<>();
     private static FirebaseStorageManager mFirebaseStorageManager;
 
+    public ArrayList<String> getOnlineUsers() {
+        return mOnlineUsers;
+    }
+
+    public void setOnlineUsers(ArrayList<String> mOnlineUsers) {
+        this.mOnlineUsers = mOnlineUsers;
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private FirebaseStorageManager(){
