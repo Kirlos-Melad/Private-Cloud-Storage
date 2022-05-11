@@ -24,8 +24,11 @@ package com.example.privatecloudstorage.model;
 
 //Java Libraries
         import java.io.File;
+        import java.text.SimpleDateFormat;
         import java.util.ArrayList;
+        import java.util.Date;
         import java.util.HashMap;
+        import java.util.Locale;
         import java.util.concurrent.ExecutorService;
         import java.util.concurrent.Executors;
 
@@ -366,6 +369,7 @@ public class FirebaseDatabaseManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void RenameFile(String groupId, String oldName, String newName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             //get id to delete the file from physical storage
@@ -373,8 +377,44 @@ public class FirebaseDatabaseManager {
                 executorService.execute(() -> {
                     mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
                             .child((String)fileId).child("Name").setValue(newName);
+
+                    Versioning((String)fileId,groupId,"Renamed",action,executorService);
                 });
             }, executorService);
+        });
+    }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void Versioning (String fileId,String groupId,String change,IAction action,ExecutorService executorService){
+        //get current date and time
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd_HH:mm:ss", Locale.getDefault());
+        String currentDateandTime = sdf.format(new Date());
+
+        DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
+        DatabaseReference sharedFilesReference = mDataBase.getReference().child("Groups").child(groupId)
+                .child("SharedFiles").child(fileId);
+        //DatabaseReference newFileReference = FilesReference.child(fileId);
+
+        mDataBase.getReference().get().addOnSuccessListener(dataSnapshot -> {
+            executorService.execute(() -> {
+                int versionNumber= (int) dataSnapshot.child("Files").child(fileId).getChildrenCount();
+                versionNumber-=3;
+                DatabaseReference newVersionData= FilesReference.child(String.valueOf(versionNumber));
+
+                FilesReference.child("Mode").setValue(dataSnapshot.child("Mode").getValue());
+                FilesReference.child("URL").setValue(dataSnapshot.child("URL").getValue());
+
+                FilesReference.child(String.valueOf(versionNumber)).child("Name").setValue(dataSnapshot.child("Groups").child(groupId)
+                        .child("SharedFiles").child(fileId).child("Name").getValue());
+                FilesReference.child(String.valueOf(versionNumber)).child("Date").setValue(currentDateandTime);
+                // FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue(storageMetadata);
+                FilesReference.child(String.valueOf(versionNumber)).child("Change").setValue(change);
+
+                // Must run this on main thread to avoid problems
+                // action.onSuccess(   !!!   )
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    action.onSuccess(null);
+                });
+            });
         });
     }
     /*public void UpdateUserInfo(String name){

@@ -132,6 +132,7 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileRenamed(File file, String oldName) {
                 if(file.isDirectory())
@@ -241,6 +242,7 @@ public class ManagersMediator {
      * @param oldName file old name
      * @param newName file new name
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void FileRenameProcedure(String groupId, String oldName, String newName){
         DATABASE_MANAGER.RenameFile(groupId, oldName, newName, null, EXECUTOR_SERVICE);
     }
