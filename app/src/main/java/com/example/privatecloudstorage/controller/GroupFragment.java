@@ -30,6 +30,7 @@ import com.example.privatecloudstorage.model.RecyclerViewItem;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Stack;
 
 import me.dm7.barcodescanner.core.ViewFinderView;
 
@@ -43,6 +44,7 @@ public class GroupFragment extends Fragment {
     private byte mTab;
     private RecyclerView _Recyclerview;
     private TextView _TextView;
+    private Stack<File> mParentFolder;
     //RecyclerView.LayoutManager _layoutManager;
 
     /**
@@ -71,6 +73,7 @@ public class GroupFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mItems = new ArrayList<>();
+        mParentFolder = new Stack<>();
         mSelectedGroupKey = getArguments().getString("selectedGroupKey");
         mSelectedGroupName = getArguments().getString("selectedGroupName");
         mTab = getArguments().getByte("tab");
@@ -79,7 +82,6 @@ public class GroupFragment extends Fragment {
             case GroupSliderActivity.MEMBERS:
                 ShowGroupMembers();
                 break;
-            //TODO:show group content activity inside fragment
             case GroupSliderActivity.NORMAL_FILES:
                 ShowFolderFiles(new File(FileManager.getInstance().GetApplicationDirectory()+
                         File.separator+mSelectedGroupKey+" "+mSelectedGroupName+
@@ -112,7 +114,7 @@ public class GroupFragment extends Fragment {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void ShowGroupMembers() {
 
-        //TODO : Members doesn't work
+        //TODO : Show Members name instead of status
         ManagersMediator.getInstance().GroupMembersRetriever(mSelectedGroupKey, users -> {
             for (String member : (ArrayList<String>) users) {
                 mItems.add(new RecyclerViewItem(member, null, null, null));
@@ -130,8 +132,22 @@ public class GroupFragment extends Fragment {
     }
 
     private void ShowFolderFiles(File folder) {
-        if (folder.isFile()) {
-        } else if (folder.isDirectory()) {
+        if(!mParentFolder.isEmpty()){
+            RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+            item.mName="..";
+            item.mImage=GetResourceUri(R.drawable.ic_baseline_folder_24);
+            item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
+                @Override
+                public void onSuccess(Object object) {
+                    File file = mParentFolder.pop();
+                    mItems.clear();
+                    ShowFolderFiles(file);
+                }
+            });
+            mItems.add(item);
+        }
+
+        if (folder.isDirectory()) {
             File[] files = folder.listFiles();
             for (File file : files) {
                 RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
@@ -140,7 +156,7 @@ public class GroupFragment extends Fragment {
                     item._onClickListener = FileExplorerActivity.FolderOnClickListener(new IAction() {
                         @Override
                         public void onSuccess(Object object) {
-                            //TODO : use stack to do back
+                            mParentFolder.push(new File(file.getParent()));
                             mItems.clear();
                             ShowFolderFiles(file);
                         }
@@ -154,22 +170,7 @@ public class GroupFragment extends Fragment {
                     }else{
                         item._onLongClickListener = FileExplorerActivity.UserFileOnLongClickListener((Activity) getContext(),file);
                     }
-                    if (file.toString().contains(".pdf")) {
-                        //pdf Icon
-                        item.mImage=GetResourceUri(R.drawable.ic_baseline_picture_as_pdf_24);
-                    } else if (file.toString().contains(".jpg") || file.toString().contains(".png")) {
-                        //Image Icon
-                        item.mImage=GetResourceUri(R.drawable.ic_baseline_image_24);
-                    } else if (file.toString().contains(".mp3")) {
-                        //Audio Icon
-                        item.mImage=GetResourceUri(R.drawable.ic_baseline_audiotrack_24);
-                    } else if (file.toString().contains(".mp4")) {
-                        //Video Icon
-                        item.mImage=GetResourceUri(R.drawable.ic_baseline_video_library_24);
-                    } else {
-                        //File Icon
-                        item.mImage=GetResourceUri(R.drawable.ic_baseline_insert_drive_file_24);
-                    }
+                    item.mImage=GetFileItem(file);
                 }
                 mItems.add(item);
             }
@@ -181,6 +182,25 @@ public class GroupFragment extends Fragment {
                 _TextView.setText("NO FILES TO SHOW");
                 _TextView.setVisibility(View.VISIBLE);
             }
+        }
+    }
+
+    private Uri GetFileItem(File file){
+        if (file.toString().contains(".pdf")) {
+            //pdf Icon
+            return GetResourceUri(R.drawable.ic_baseline_picture_as_pdf_24);
+        } else if (file.toString().contains(".jpg") || file.toString().contains(".png")) {
+            //Image Icon
+            return GetResourceUri(R.drawable.ic_baseline_image_24);
+        } else if (file.toString().contains(".mp3")) {
+            //Audio Icon
+            return GetResourceUri(R.drawable.ic_baseline_audiotrack_24);
+        } else if (file.toString().contains(".mp4")) {
+            //Video Icon
+            return GetResourceUri(R.drawable.ic_baseline_video_library_24);
+        } else {
+            //File Icon
+            return GetResourceUri(R.drawable.ic_baseline_insert_drive_file_24);
         }
     }
 
