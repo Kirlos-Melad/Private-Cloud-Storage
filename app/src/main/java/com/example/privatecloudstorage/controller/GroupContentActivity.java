@@ -64,51 +64,51 @@ public class GroupContentActivity extends AppCompatActivity {
             initAdapter(mFilePath, action);
             return;
         }
-
-        if(checkPermission()) {
-            String path = getFilesDir()+ File.separator + mSelectedGroupKey + " "
-                    + mSelectedGroupName + File.separator +  "Normal Files";
-            initAdapter(path,Intent.ACTION_VIEW);
-            _ActivityGroupContentBinding.menu.close(true);
-        }
-        else requestPermission();
-
-        _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
-
-            @RequiresApi(api = Build.VERSION_CODES.Q)
-            @Override
-            public void onClick(View view) {
-                _ActivityGroupContentBinding.menu.setVisibility(View.INVISIBLE);
-
-                if(checkPermission()){
-                    String path = Environment.getExternalStorageDirectory().getPath();
-                    _ActivityGroupContentBinding.menu.close(true);
-                    initAdapter(path,Intent.ACTION_GET_CONTENT);
-                }
-                else requestPermission();
-            }
-        });
-
-        _ActivityGroupContentBinding.fabShowQR.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(checkPermission()){
-                    String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName
-                            + File.separator + mSelectedGroupName +" QR Code.png";
-                    ShowQrCode(path);
-                    _ActivityGroupContentBinding.menu.close(true);
-                }
-                else requestPermission();
-            }
-        });
-
-        _ActivityGroupContentBinding.fabCreateTextFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                _ActivityGroupContentBinding.menu.close(true);
-                CreateTxtDialog("Enter File Name :");
-            }
-        });
+//
+//        if(checkPermission()) {
+//            String path = getFilesDir()+ File.separator + mSelectedGroupKey + " "
+//                    + mSelectedGroupName + File.separator +  "Normal Files";
+//            initAdapter(path,Intent.ACTION_VIEW);
+//            _ActivityGroupContentBinding.menu.close(true);
+//        }
+//        else requestPermission();
+//
+//        _ActivityGroupContentBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
+//
+//            @RequiresApi(api = Build.VERSION_CODES.Q)
+//            @Override
+//            public void onClick(View view) {
+//                _ActivityGroupContentBinding.menu.setVisibility(View.INVISIBLE);
+//
+//                if(checkPermission()){
+//                    String path = Environment.getExternalStorageDirectory().getPath();
+//                    _ActivityGroupContentBinding.menu.close(true);
+//                    initAdapter(path,Intent.ACTION_GET_CONTENT);
+//                }
+//                else requestPermission();
+//            }
+//        });
+//
+//        _ActivityGroupContentBinding.fabShowQR.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if(checkPermission()){
+//                    String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName
+//                            + File.separator + mSelectedGroupName +" QR Code.png";
+//                    ShowQrCode(path);
+//                    _ActivityGroupContentBinding.menu.close(true);
+//                }
+//                else requestPermission();
+//            }
+//        });
+//
+//        _ActivityGroupContentBinding.fabCreateTextFile.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                _ActivityGroupContentBinding.menu.close(true);
+//                CreateTxtDialog("Enter File Name :");
+//            }
+//        });
 
     }
 

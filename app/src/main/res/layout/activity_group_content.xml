@@ -7,71 +7,71 @@
     android:background="?colorOnSecondary"
     tools:context=".controller.GroupContentActivity">
 
-    <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingRight="10dp"
-        android:paddingBottom="25dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu_animationDelayPerItem="55"
-        app:menu_buttonSpacing="0dp"
-        app:menu_colorNormal="#547CF6"
-        app:menu_colorPressed="#073A63"
-        app:menu_colorRipple="#99d4d4d4"
-        app:menu_fab_size="normal"
-        app:menu_icon="@drawable/fab_add"
-        app:menu_labels_colorNormal="#7D9EF1"
-        app:menu_labels_colorPressed="#ABE2FB"
-        app:menu_labels_colorRipple="#66efecec"
-        app:menu_labels_cornerRadius="3dp"
-        app:menu_labels_ellipsize="none"
-        app:menu_labels_hideAnimation="@anim/fab_slide_out_to_right"
-        app:menu_labels_margin="0dp"
-        app:menu_labels_padding="8dp"
-        app:menu_labels_position="left"
-        app:menu_labels_showAnimation="@anim/fab_slide_in_from_right"
-        app:menu_labels_singleLine="false"
-        app:menu_labels_textColor="#f2f1f1"
-        app:menu_labels_textSize="15dp"
-        app:menu_openDirection="up">
+<!--    <com.github.clans.fab.FloatingActionMenu-->
+<!--        android:id="@+id/menu"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:paddingRight="10dp"-->
+<!--        android:paddingBottom="25dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="1.0"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:menu_animationDelayPerItem="55"-->
+<!--        app:menu_buttonSpacing="0dp"-->
+<!--        app:menu_colorNormal="#547CF6"-->
+<!--        app:menu_colorPressed="#073A63"-->
+<!--        app:menu_colorRipple="#99d4d4d4"-->
+<!--        app:menu_fab_size="normal"-->
+<!--        app:menu_icon="@drawable/fab_add"-->
+<!--        app:menu_labels_colorNormal="#7D9EF1"-->
+<!--        app:menu_labels_colorPressed="#ABE2FB"-->
+<!--        app:menu_labels_colorRipple="#66efecec"-->
+<!--        app:menu_labels_cornerRadius="3dp"-->
+<!--        app:menu_labels_ellipsize="none"-->
+<!--        app:menu_labels_hideAnimation="@anim/fab_slide_out_to_right"-->
+<!--        app:menu_labels_margin="0dp"-->
+<!--        app:menu_labels_padding="8dp"-->
+<!--        app:menu_labels_position="left"-->
+<!--        app:menu_labels_showAnimation="@anim/fab_slide_in_from_right"-->
+<!--        app:menu_labels_singleLine="false"-->
+<!--        app:menu_labels_textColor="#f2f1f1"-->
+<!--        app:menu_labels_textSize="15dp"-->
+<!--        app:menu_openDirection="up">-->
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabShareFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_send"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Share File"
-            app:fab_size="mini" />
+<!--        <com.github.clans.fab.FloatingActionButton-->
+<!--            android:id="@+id/fabShareFile"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:src="@drawable/ic_send"-->
+<!--            app:fab_colorNormal="#547CF6"-->
+<!--            app:fab_colorPressed="#073A63"-->
+<!--            app:fab_label="Share File"-->
+<!--            app:fab_size="mini" />-->
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabShowQR"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="148dp"
-            android:src="@drawable/ic_qr_code"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Show QR"
-            app:fab_size="mini" />
+<!--        <com.github.clans.fab.FloatingActionButton-->
+<!--            android:id="@+id/fabShowQR"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginBottom="148dp"-->
+<!--            android:src="@drawable/ic_qr_code"-->
+<!--            app:fab_colorNormal="#547CF6"-->
+<!--            app:fab_colorPressed="#073A63"-->
+<!--            app:fab_label="Show QR"-->
+<!--            app:fab_size="mini" />-->
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fabCreateTextFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="148dp"
-            android:src="@drawable/ic_create_file"
-            app:fab_colorNormal="#547CF6"
-            app:fab_colorPressed="#073A63"
-            app:fab_label="Create text File"
-            app:fab_size="mini" />
+<!--        <com.github.clans.fab.FloatingActionButton-->
+<!--            android:id="@+id/fabCreateTextFile"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginBottom="148dp"-->
+<!--            android:src="@drawable/ic_create_file"-->
+<!--            app:fab_colorNormal="#547CF6"-->
+<!--            app:fab_colorPressed="#073A63"-->
+<!--            app:fab_label="Create text File"-->
+<!--            app:fab_size="mini" />-->
 
-    </com.github.clans.fab.FloatingActionMenu>
+<!--    </com.github.clans.fab.FloatingActionMenu>-->
 
     <TextView
         android:id="@+id/nofiles_textview"

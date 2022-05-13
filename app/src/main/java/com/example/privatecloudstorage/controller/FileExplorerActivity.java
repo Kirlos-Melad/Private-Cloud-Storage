@@ -112,6 +112,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                             activity.recreate();
                         }
                         if(item.getTitle().equals("Edit")){
+                            //TODO : sync with firebase ---------------------------------------
                             AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
                             final EditText editText = new EditText(activity);
                             editText.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);

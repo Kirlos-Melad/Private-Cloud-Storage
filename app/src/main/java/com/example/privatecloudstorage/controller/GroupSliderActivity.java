@@ -1,16 +1,13 @@
 package com.example.privatecloudstorage.controller;
 
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.widget.ViewPager2;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -19,15 +16,27 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.example.privatecloudstorage.BuildConfig;
 import com.example.privatecloudstorage.R;
-import com.example.privatecloudstorage.databinding.ActivityGroupContentBinding;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
+import com.example.privatecloudstorage.model.FileManager;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 //replace fragment activity with AppCompatActivity
 
@@ -38,6 +47,7 @@ public class GroupSliderActivity extends AppCompatActivity {
     public static final byte MEMBERS=0x01;
     public static final byte NORMAL_FILES=0x02;
     public static final byte STRIPPED_FILES=0x03;
+
 
     ArrayList<String> titels=new ArrayList<>();
     private ActivityGroupSliderBinding _ActivityGroupSliderBinding;
@@ -75,8 +85,6 @@ public class GroupSliderActivity extends AppCompatActivity {
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
-
-
         viewPager = findViewById(R.id.pager);
         pagerAdapter = new ScreenSlidePagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
@@ -90,6 +98,44 @@ public class GroupSliderActivity extends AppCompatActivity {
                     tab.setText(titels.get(position));
                 }
         ).attach();
+
+
+//        _ActivityGroupSliderBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
+//
+//            @RequiresApi(api = Build.VERSION_CODES.Q)
+//            @Override
+//            public void onClick(View view) {
+//                _ActivityGroupSliderBinding.menu.setVisibility(View.INVISIBLE);
+//
+//                if(checkPermission()){
+//                    String path = Environment.getExternalStorageDirectory().getPath();
+//                    _ActivityGroupSliderBinding.menu.close(true);
+//                    initAdapter(path,Intent.ACTION_GET_CONTENT);
+//                }
+//                else requestPermission();
+//            }
+//        });
+
+        _ActivityGroupSliderBinding.fabShowQR.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(checkPermission()){
+                    String path = getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName
+                            + File.separator + mSelectedGroupName +" QR Code.png";
+                    ShowQrCode(path);
+                    _ActivityGroupSliderBinding.menu.close(true);
+                }
+                else requestPermission();
+            }
+        });
+
+        _ActivityGroupSliderBinding.fabCreateTextFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                _ActivityGroupSliderBinding.menu.close(true);
+                CreateTxtDialog("Enter File Name :");
+            }
+        });
 
     }
 
@@ -167,7 +213,99 @@ public class GroupSliderActivity extends AppCompatActivity {
         }
 
 
+    }
 
+    private void CreateTxtDialog(String msg){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle(msg);
+        final EditText editText = new EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        dialog.setView(editText);
+        dialog.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String name = editText.getText().toString();
+                if(TextUtils.isEmpty(name)){
+                    Toast.makeText(GroupSliderActivity.this,"Name Field cannot be empty",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                File txtFile = new File(getFilesDir()+ File.separator + mSelectedGroupKey + " " + mSelectedGroupName +
+                        File.separator + "Normal Files" ,name + ".txt");
 
+                if(txtFile.exists()){
+                    ReplaceMsgDialog("Do you want to replace the text file ?",txtFile);
+                }
+                else
+                    try {
+                        FileManager.getInstance().CreateFile(txtFile);
+                        recreate();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            }
+        });
+        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        dialog.show();
+    }
+
+    private void ReplaceMsgDialog(String msg , File file){
+        AlertDialog.Builder replaceDialog = new AlertDialog.Builder(this);
+        replaceDialog.setTitle(msg);
+        replaceDialog.setPositiveButton("Replace", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                try {
+                    FileManager.getInstance().CreateFile(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        replaceDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        replaceDialog.show();
+    }
+
+    /** Check if permission is granted or not
+     * true : if granted
+     * false : if not
+     * @return true/false
+     */
+    private boolean checkPermission(){
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if(result == PackageManager.PERMISSION_GRANTED)
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * request permission if it's not granted
+     */
+    private void requestPermission(){
+        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+            Toast.makeText(this,"Storage Perimission is required, please allow from settings",Toast.LENGTH_SHORT);
+        else
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+    }
+
+    private void ShowQrCode(String filePath) {
+        File file = new File(filePath);
+        Uri uri =  FileProvider.getUriForFile(Objects.requireNonNull(this), BuildConfig.APPLICATION_ID + ".provider",file);
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, "image/png");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }
