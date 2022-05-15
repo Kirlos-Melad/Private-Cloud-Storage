@@ -169,6 +169,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                     intent.setAction(Intent.ACTION_VIEW);
                     intent.setDataAndType(uri, mime);
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
                 }catch (Exception e){
