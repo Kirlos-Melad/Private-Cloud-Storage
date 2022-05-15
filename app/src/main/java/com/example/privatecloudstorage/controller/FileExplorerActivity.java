@@ -3,15 +3,19 @@ package com.example.privatecloudstorage.controller;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.InputType;
 import android.util.Log;
 import android.view.MenuItem;
@@ -21,18 +25,135 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.example.privatecloudstorage.BuildConfig;
+import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityFileExplorerBinding;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
+import com.example.privatecloudstorage.model.RecyclerViewItem;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Stack;
 
 public class FileExplorerActivity extends AppCompatActivity {
+
+    private ActivityFileExplorerBinding _ActivityFileExplorerBinding;
+    private ArrayList<RecyclerViewItem> mItems;
+    private Stack<File> mParentFolder;
+    private ArrayAdapterView mAdapter;
+    private static String mSelectedGroupName;
+    private static String mSelectedGroupKey;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        _ActivityFileExplorerBinding = ActivityFileExplorerBinding.inflate(getLayoutInflater());
+        setContentView(_ActivityFileExplorerBinding.getRoot());
+
+        mItems = new ArrayList<>();
+        mParentFolder = new Stack<>();
+        _ActivityFileExplorerBinding.filesView.setLayoutManager(new LinearLayoutManager(this));
+
+        Bundle bundle = getIntent().getExtras();
+        if(bundle == null)
+            finish();
+        mSelectedGroupName = bundle.getString("selectedGroupName");
+        mSelectedGroupKey = bundle.getString("selectedGroupKey");
+
+        String path = Environment.getExternalStorageDirectory().getPath();
+        ShowFileExplorer(new File(path));
+
+    }
+
+    private Uri GetResourceUri(int resourceId){
+        Resources resources = getResources();
+        Uri uri = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(resources.getResourcePackageName(resourceId))
+                .appendPath(resources.getResourceTypeName(resourceId))
+                .appendPath(resources.getResourceEntryName(resourceId))
+                .build();
+
+        return uri;
+    }
+
+    private void ShowFileExplorer(File FileExplorerPath) {
+        if(!mParentFolder.isEmpty()){
+            RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+            item.mName="..";
+            item.mImage = GetResourceUri(R.drawable.ic_baseline_folder_24);
+            item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
+                @Override
+                public void onSuccess(Object object) {
+                    File file = mParentFolder.pop();
+                    mItems.clear();
+                    ShowFileExplorer(file);
+                }
+            });
+            mItems.add(item);
+        }
+
+        if (FileExplorerPath.isDirectory()) {
+            File[] files = FileExplorerPath.listFiles();
+            for (File file : files) {
+                RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+                item.mName = file.getName();
+                if (file.isDirectory()) {
+                    item._onClickListener = FileExplorerActivity.FolderOnClickListener(new IAction() {
+                        @Override
+                        public void onSuccess(Object object) {
+                            mParentFolder.push(new File(file.getParent()));
+                            mItems.clear();
+                            ShowFileExplorer(file);
+                        }
+                    });
+                    //Directory Icon
+                    item.mImage=GetResourceUri(R.drawable.ic_baseline_folder_24);
+                } else {
+                    item._onClickListener = FileExplorerActivity.FileOnClickListener(this,file);
+                    if(file.toString().contains(FileManager.getInstance().GetApplicationDirectory())){
+                        item._onLongClickListener = FileExplorerActivity.ApplicationFileOnLongClickListener(this,file);
+                    }else{
+                        item._onLongClickListener = FileExplorerActivity.UserFileOnLongClickListener(this,file);
+                    }
+                    item.mImage=GetFileItem(file);
+                }
+                mItems.add(item);
+            }
+
+            mAdapter = new ArrayAdapterView(mItems);
+            _ActivityFileExplorerBinding.filesView.setAdapter(mAdapter);
+
+            if (mItems.isEmpty()) {
+                _ActivityFileExplorerBinding.nofilesText.setText("NO FILES TO SHOW");
+                _ActivityFileExplorerBinding.nofilesText.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private Uri GetFileItem(File file){
+        if (file.toString().contains(".pdf")) {
+            //pdf Icon
+            return GetResourceUri(R.drawable.ic_baseline_picture_as_pdf_24);
+        } else if (file.toString().contains(".jpg") || file.toString().contains(".png")) {
+            //Image Icon
+            return GetResourceUri(R.drawable.ic_baseline_image_24);
+        } else if (file.toString().contains(".mp3")) {
+            //Audio Icon
+            return GetResourceUri(R.drawable.ic_baseline_audiotrack_24);
+        } else if (file.toString().contains(".mp4")) {
+            //Video Icon
+            return GetResourceUri(R.drawable.ic_baseline_video_library_24);
+        } else {
+            //File Icon
+            return GetResourceUri(R.drawable.ic_baseline_insert_drive_file_24);
+        }
+    }
 
     public static View.OnClickListener FileOnClickListener(Context context, File file){
 
@@ -202,11 +323,11 @@ public class FileExplorerActivity extends AppCompatActivity {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         //the destination that the file will be moved to
-                        File normalDst = new File(context.getFilesDir() + File.separator +
-                                "Normal Files" + File.separator + Uri.fromFile(file).getLastPathSegment());
+                        File normalDst = new File(context.getFilesDir() + File.separator + mSelectedGroupKey + " "
+                                +mSelectedGroupName + File.separator + "Normal Files" + File.separator + Uri.fromFile(file).getLastPathSegment() );
 
-                        File stripDst = new File(context.getFilesDir() + File.separator +
-                                "Stripped Files" + File.separator + Uri.fromFile(file).getLastPathSegment());
+                        File stripDst = new File(context.getFilesDir() + File.separator + mSelectedGroupKey + " "
+                                +mSelectedGroupName + File.separator + "Stripped Files" + File.separator + Uri.fromFile(file).getLastPathSegment());
 
                         SelectMode((Activity) context,new IAction()  {
                             //copy the file from original directory to group directory

@@ -2,12 +2,17 @@ package com.example.privatecloudstorage.controller;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -15,21 +20,27 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.privatecloudstorage.BuildConfig;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
+import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -37,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Stack;
 
 //replace fragment activity with AppCompatActivity
 
@@ -47,7 +59,6 @@ public class GroupSliderActivity extends AppCompatActivity {
     public static final byte MEMBERS=0x01;
     public static final byte NORMAL_FILES=0x02;
     public static final byte STRIPPED_FILES=0x03;
-
 
     ArrayList<String> titels=new ArrayList<>();
     private ActivityGroupSliderBinding _ActivityGroupSliderBinding;
@@ -78,6 +89,8 @@ public class GroupSliderActivity extends AppCompatActivity {
         setContentView(_ActivityGroupSliderBinding.getRoot());
         TabLayout tabLayout;
 
+        _ActivityGroupSliderBinding.menu.setVisibility(View.VISIBLE);
+
         Bundle bundle = getIntent().getExtras();
         if(bundle == null)
             finish();
@@ -99,22 +112,23 @@ public class GroupSliderActivity extends AppCompatActivity {
                 }
         ).attach();
 
-
-//        _ActivityGroupSliderBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
-//
-//            @RequiresApi(api = Build.VERSION_CODES.Q)
-//            @Override
-//            public void onClick(View view) {
-//                _ActivityGroupSliderBinding.menu.setVisibility(View.INVISIBLE);
-//
-//                if(checkPermission()){
-//                    String path = Environment.getExternalStorageDirectory().getPath();
-//                    _ActivityGroupSliderBinding.menu.close(true);
-//                    initAdapter(path,Intent.ACTION_GET_CONTENT);
-//                }
-//                else requestPermission();
-//            }
-//        });
+        _ActivityGroupSliderBinding.fabShareFile.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void onClick(View view) {
+                _ActivityGroupSliderBinding.menu.setVisibility(View.INVISIBLE);
+                if(checkPermission()){
+                    _ActivityGroupSliderBinding.menu.close(true);
+                    Intent intent = new Intent(GroupSliderActivity.this, FileExplorerActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("selectedGroupName", mSelectedGroupName);
+                    bundle.putString("selectedGroupKey", mSelectedGroupKey);
+                    intent.putExtras(bundle);//Put Group number to your next Intent
+                    startActivity(intent);
+                }
+                else requestPermission();
+            }
+        });
 
         _ActivityGroupSliderBinding.fabShowQR.setOnClickListener(new View.OnClickListener() {
             @Override

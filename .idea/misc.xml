@@ -84,10 +84,12 @@
         <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/menu/main_menu.xml" value="0.2212962962962963" />
         <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/menu/setting_menu.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/totat/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/mipmap-anydpi-v26/userProfile.xml" value="0.2055" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_file_explorer.xml" value="0.24048913043478262" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_file_explorer_view.xml" value="0.24048913043478262" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_content.xml" value="0.20108695652173914" />
-        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_slider.xml" value="0.264" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/activity_group_slider.xml" value="0.1" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/floating_action_button.xml" value="0.24048913043478262" />
-        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_group.xml" value="0.24048913043478262" />
+        <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/fragment_group.xml" value="0.1" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/list_view_item.xml" value="0.24048913043478262" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/nav_header.xml" value="0.24048913043478262" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/recycler_item.xml" value="0.24048913043478262" />
