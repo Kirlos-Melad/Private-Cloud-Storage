@@ -43,7 +43,7 @@
         tools:ignore="MissingConstraints"></de.hdodenhof.circleimageview.CircleImageView>
 
     <ImageView
-        android:id="@+id/edet_image"
+        android:id="@+id/edit_image"
         android:layout_width="64dp"
         android:layout_height="60dp"
         android:layout_alignEnd="@+id/profile_image"
@@ -133,7 +133,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginStart="75dp"
         android:layout_marginBottom="160dp"
-        android:text="Write some thing"
+        android:text="Write something"
         android:textColor="?colorOnPrimary"
         android:textSize="13dp"
         app:layout_constraintBottom_toBottomOf="parent"

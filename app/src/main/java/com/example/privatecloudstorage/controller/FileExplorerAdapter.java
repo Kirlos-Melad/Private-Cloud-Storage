@@ -191,7 +191,6 @@ public class FileExplorerAdapter extends RecyclerView.Adapter<FileExplorerAdapte
                                 //copy the file from original directory to group directory
                                 @Override
                                 public void onSuccess(Object object) {
-                                    mFirebaseDatabaseManager.setMode((byte) object);
                                     mMode = (byte) object;
                                     if(mMode == mFileManager.NORMAL) {
                                         try {

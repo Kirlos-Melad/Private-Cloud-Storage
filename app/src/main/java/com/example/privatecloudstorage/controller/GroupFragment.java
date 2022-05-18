@@ -166,7 +166,14 @@ public class GroupFragment extends Fragment {
                 } else {
                     item._onClickListener = FileExplorerActivity.FileOnClickListener((Activity) getContext(),file);
                     if(file.toString().contains(FileManager.getInstance().GetApplicationDirectory())){
-                        item._onLongClickListener = FileExplorerActivity.ApplicationFileOnLongClickListener((Activity) getContext(),file);
+                        item._onLongClickListener = FileExplorerActivity.ApplicationFileOnLongClickListener((Activity) getContext(), file,
+                                new IAction() {
+                                    @Override
+                                    public void onSuccess(Object object) {
+                                        mItems.clear();
+                                        ShowFolderFiles(folder);
+                                    }
+                                });
                     }else{
                         item._onLongClickListener = FileExplorerActivity.UserFileOnLongClickListener((Activity) getContext(),file);
                     }

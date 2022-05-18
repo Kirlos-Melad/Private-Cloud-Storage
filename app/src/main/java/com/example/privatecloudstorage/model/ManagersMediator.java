@@ -3,24 +3,16 @@ package com.example.privatecloudstorage.model;
 import android.net.Uri;
 import android.os.Build;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import com.example.privatecloudstorage.controller.FileExplorerAdapter;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageMetadata;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,12 +40,13 @@ public class ManagersMediator {
 
         STORAGE_MANAGER = FirebaseStorageManager.getInstance();
         AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
+
         FILE_MANAGER = FileManager.getInstance();
 
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
         // Listen to directory changes
-        AddFileEventListener();
+        //AddFileEventListener();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -87,6 +80,41 @@ public class ManagersMediator {
         return AUTHENTICATION_MANAGER.getCurrentUser();
     }
 
+    public void SignUp(String userName, String email, String password, IAction action){
+        boolean signedUp = AUTHENTICATION_MANAGER.SignUp(email, password, userName);
+        if (signedUp) {
+            // log out and wait for the user to verify his email to login again
+            DATABASE_MANAGER.AddUser(AUTHENTICATION_MANAGER.getCurrentUser().getUid(), userName, email);
+            AUTHENTICATION_MANAGER.Logout();
+            action.onSuccess(null);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void SetUserProfilePicture(Uri phyicalPath){
+        AUTHENTICATION_MANAGER.UpdateUserProfileImage(phyicalPath, object ->
+                STORAGE_MANAGER.UploadUserFile(phyicalPath, url ->{
+                    DATABASE_MANAGER.SetUserProfilePicture((String) url);
+                }, EXECUTOR_SERVICE)
+        );
+    }
+
+    public void SetUserName(String name){
+        AUTHENTICATION_MANAGER.UpdateUserProfileName(name);
+        DATABASE_MANAGER.SetUserName(name);
+    }
+
+    public void SetUserAbout(String about){
+        DATABASE_MANAGER.SetUserAbout(about);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void StartMonitoring(){
+        DATABASE_MANAGER.MonitorUserConnection();
+        DATABASE_MANAGER.MonitorGroups();
+        AddFileEventListener();
+    }
+
     /* =============================================== File Functions ===============================================*/
 
     /**
@@ -94,6 +122,7 @@ public class ManagersMediator {
      */
     private void AddFileEventListener(){
         FILE_MANAGER.AddEventListener(new IFileEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileAdded(File file,byte mode) {
                 if(file.isDirectory())
@@ -111,6 +140,7 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileRemoved(File file) {
                 if(file.isDirectory())
@@ -128,6 +158,7 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileChanged(File file) {
                 if(file.isDirectory())
@@ -145,6 +176,7 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileRenamed(File file, String oldName) {
                 if(file.isDirectory())
@@ -207,7 +239,7 @@ public class ManagersMediator {
 
                 if (mode == FILE_MANAGER.NORMAL){
                     // Upload the file to cloud Storage
-                    STORAGE_MANAGER.Upload(group.getId(), fileUri, object -> EXECUTOR_SERVICE.execute(() -> {
+                    STORAGE_MANAGER.UploadGroupFile(group.getId(), fileUri, object -> EXECUTOR_SERVICE.execute(() -> {
                         // Extract information
                         StorageMetadata storageMetadata = (StorageMetadata) object;
                         String groupId = group.getId();
@@ -236,7 +268,7 @@ public class ManagersMediator {
                                 for(int i=0;i<splitedFiles.size();i++){
                                     Uri chunkUri = Uri.fromFile(splitedFiles.get(i));
                                     if(i==0){
-                                        STORAGE_MANAGER.Upload(group.getId(), chunkUri, object -> EXECUTOR_SERVICE.execute(() -> {
+                                        STORAGE_MANAGER.UploadGroupFile(group.getId(), chunkUri, object -> EXECUTOR_SERVICE.execute(() -> {
                                             // Extract information
                                             StorageMetadata storageMetadata = (StorageMetadata) object;
                                             String groupId = group.getId();
@@ -250,7 +282,7 @@ public class ManagersMediator {
                                     else{
 
                                         int finalI = i;
-                                        STORAGE_MANAGER.Upload(group.getId(),chunkUri, object ->
+                                        STORAGE_MANAGER.UploadGroupFile(group.getId(),chunkUri, object ->
                                                 // Clear temp directory
                                         {FILE_MANAGER.DeleteFile(splitedFiles.get(finalI));},EXECUTOR_SERVICE);
                                     }
@@ -282,18 +314,19 @@ public class ManagersMediator {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void FileDownloadProcedure(Group group, Uri url, String fileName) {
         EXECUTOR_SERVICE.execute(() -> {
-            byte mode = DATABASE_MANAGER.getMode();
             String path;
-            if(mode == FILE_MANAGER.NORMAL){
+            path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
+            // TODO: implemented in file stripping
+            /*if(mode == FILE_MANAGER.NORMAL){
                 path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
             }
             else{
                 path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
                         group.getId() + " " + group.getName();
-            }
+            }*/
 
             File file = new File(path, fileName);
-            STORAGE_MANAGER.Download(url, file,
+            STORAGE_MANAGER.DownloadGroupFile(url, file,
                     object -> {
                         try {
                             FileManager.getInstance().EncryptDecryptFile(file, fileName, group, Cipher.DECRYPT_MODE);
@@ -323,7 +356,7 @@ public class ManagersMediator {
      */
     private void FileRemoveProcedure(String groupId, String fileName){
         DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
-            STORAGE_MANAGER.Delete(groupId, (String)fileId, object -> {
+            STORAGE_MANAGER.DeleteGroupFile(groupId, (String)fileId, object -> {
                 DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
             }, EXECUTOR_SERVICE);
         }, EXECUTOR_SERVICE);

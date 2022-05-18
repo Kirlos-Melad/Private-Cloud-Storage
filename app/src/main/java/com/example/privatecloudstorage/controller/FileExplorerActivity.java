@@ -117,7 +117,14 @@ public class FileExplorerActivity extends AppCompatActivity {
                 } else {
                     item._onClickListener = FileExplorerActivity.FileOnClickListener(this,file);
                     if(file.toString().contains(FileManager.getInstance().GetApplicationDirectory())){
-                        item._onLongClickListener = FileExplorerActivity.ApplicationFileOnLongClickListener(this,file);
+                        item._onLongClickListener = FileExplorerActivity.ApplicationFileOnLongClickListener(this, file,
+                                new IAction() {
+                                    @Override
+                                    public void onSuccess(Object object) {
+                                        mItems.clear();
+                                        ShowFileExplorer(FileExplorerPath);
+                                    }
+                                });
                     }else{
                         item._onLongClickListener = FileExplorerActivity.UserFileOnLongClickListener(this,file);
                     }
@@ -189,7 +196,7 @@ public class FileExplorerActivity extends AppCompatActivity {
         };
     }
 
-    public static View.OnLongClickListener ApplicationFileOnLongClickListener(Activity activity, File file){
+    public static View.OnLongClickListener ApplicationFileOnLongClickListener(Activity activity, File file, IAction action){
         Log.d("=======================", activity.getLocalClassName().toString());
         return new View.OnLongClickListener() {
             @Override
@@ -218,7 +225,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     String newName = fileNameEditText.getText().toString();
                                     FileManager.getInstance().RenameFile(file ,newName);
-                                    activity.recreate();
+                                    action.onSuccess(null);
                                 }
                             });
                             renameDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -231,7 +238,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                         }
                         if(item.getTitle().equals("Delete")){
                             FileManager.getInstance().DeleteFile(file);
-                            activity.recreate();
+                            action.onSuccess(null);
                         }
                         if(item.getTitle().equals("Edit")){
                             //TODO : sync with firebase ---------------------------------------
@@ -335,7 +342,6 @@ public class FileExplorerActivity extends AppCompatActivity {
                             @RequiresApi(api = Build.VERSION_CODES.Q)
                             @Override
                             public void onSuccess(Object object) {
-                                FirebaseDatabaseManager.getInstance().setMode((byte) object);
                                 byte mode = (byte) object;
                                 if (mode == FileManager.NORMAL) {
                                     try {

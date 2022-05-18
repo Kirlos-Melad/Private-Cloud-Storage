@@ -2,6 +2,7 @@ package com.example.privatecloudstorage.controller;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -10,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.text.TextUtils;
@@ -25,6 +27,7 @@ import android.widget.TextView;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityProfileBinding;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.github.dhaval2404.imagepicker.ImagePicker;
 /**
  * show user profile allow him editing user name and user about
@@ -63,7 +66,7 @@ public class ProfileActivity extends AppCompatActivity {
         /**
          * handle change user profile image
          */
-        _ActivityProfileBinding.edetImage.setOnClickListener(new View.OnClickListener() {
+        _ActivityProfileBinding.editImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ImagePicker.Companion.with(ProfileActivity.this)
@@ -85,7 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.userName.setText(editUserName);
-                mFirebaseAuthenticationManager.getInstance().UpdateUserProfileName(editUserName);
+                ManagersMediator.getInstance().SetUserName(editUserName);
             }
         }));
         /**
@@ -101,6 +104,7 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.aboutText.setText(editUserAbout);
+                ManagersMediator.getInstance().SetUserAbout(editUserAbout);
             }
         }));
     }
@@ -110,13 +114,14 @@ public class ProfileActivity extends AppCompatActivity {
      * @param resultCode
      * @param data image data
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            mFirebaseAuthenticationManager.getInstance().UpdateUserProfileImage(uri);
+            ManagersMediator.getInstance().SetUserProfilePicture(uri);
 
         }
     }
@@ -153,8 +158,6 @@ public class ProfileActivity extends AppCompatActivity {
             }
         };
     }
-
-
 }
 
 
