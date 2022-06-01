@@ -326,22 +326,23 @@ public class FirebaseDatabaseManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void AddFile(String groupId, String fileId, String fileName, StorageMetadata metadata, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             HashMap<String,String>children=new HashMap<String,String>(){{
-                put("Name",fileName);
-                put("URL",metadata.getPath());
-                put("Md5Hash",metadata.getMd5Hash());
+                put("URL",fileId +"/"+ groupId);
+                //TODO:change value of Mode
+                put("Mode","Normal");
+                put("Group",groupId);
             }};
-            mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
+            mDataBase.getReference().child("Files").child(fileId)
                     .updateChildren(new HashMap<String,Object>() {{
                         put(fileId, children);
                     }});
-            // Add user in seen
-            mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
-                    .child(fileId).child("SeenBy").child(mCurrentUser.getUid())
-                    .setValue(mCurrentUser.getDisplayName());
+
+            Versioning(fileName,fileId,groupId,"New",metadata,action,executorService);
         });
+
     }
 
     /**
@@ -357,81 +358,67 @@ public class FirebaseDatabaseManager {
             mDataBase.getReference().child("Groups")
                     .child(groupId).child("SharedFiles").child(fileId).removeValue()
                     .addOnFailureListener(e -> e.printStackTrace());
-        });
-    }
-
-    /**
-     * Rename file on real-time database
-     *
-     * @param groupId group id
-     * @param oldName old name
-     * @param newName new name
-     * @param action action to be executed on success
-     * @param executorService thread to run on
-     */
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    public void RenameFile(String groupId, String oldName, String newName, IAction action, ExecutorService executorService){
-        executorService.execute(() -> {
-            //get id to delete the file from physical storage
-            mFirebaseDatabaseManager.FindFileId(groupId, oldName, fileId -> {
+            DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
+            FilesReference.get().addOnSuccessListener(dataSnapshot -> {
                 executorService.execute(() -> {
-                    mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
-                            .child((String)fileId).child("Name").setValue(newName);
-
-                    Versioning((String)fileId,groupId,"Renamed",action,executorService);
+                    int versionNumber= (int) dataSnapshot.getChildrenCount();
+                    versionNumber-=3;
+                    //get info from Files and update SharedFiles
+                    mDataBase.getReference().child("Groups")
+                            .child(groupId).child("RecycledFiles").child(fileId).setValue(versionNumber);
                 });
-            }, executorService);
+            });
+
         });
     }
+
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public void Versioning (String fileId,String groupId,String change,IAction action,ExecutorService executorService){
+    public void Versioning (String fileName,String fileId,String groupId,String change,StorageMetadata metadata,IAction action,ExecutorService executorService){
+
         //get current date and time
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd_HH:mm:ss", Locale.getDefault());
         String currentDateandTime = sdf.format(new Date());
 
         DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
-        DatabaseReference sharedFilesReference = mDataBase.getReference().child("Groups").child(groupId)
-                .child("SharedFiles").child(fileId);
-        //DatabaseReference newFileReference = FilesReference.child(fileId);
-
-        mDataBase.getReference().get().addOnSuccessListener(dataSnapshot -> {
+        FilesReference.get().addOnSuccessListener(dataSnapshot -> {
             executorService.execute(() -> {
-                int versionNumber= (int) dataSnapshot.child("Files").child(fileId).getChildrenCount();
+                int versionNumber= (int) dataSnapshot.getChildrenCount();
                 versionNumber-=3;
-                DatabaseReference newVersionData= FilesReference.child(String.valueOf(versionNumber));
+                //get info from Files and update SharedFiles
 
-                FilesReference.child("Mode").setValue(dataSnapshot.child("Mode").getValue());
-                FilesReference.child("URL").setValue(dataSnapshot.child("URL").getValue());
-
-                FilesReference.child(String.valueOf(versionNumber)).child("Name").setValue(dataSnapshot.child("Groups").child(groupId)
-                        .child("SharedFiles").child(fileId).child("Name").getValue());
+                FilesReference.child(String.valueOf(versionNumber)).child("Name").setValue(fileName);
                 FilesReference.child(String.valueOf(versionNumber)).child("Date").setValue(currentDateandTime);
-                // FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue(storageMetadata);
                 FilesReference.child(String.valueOf(versionNumber)).child("Change").setValue(change);
+                FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue(metadata);
 
-                // Must run this on main thread to avoid problems
-                // action.onSuccess(   !!!   )
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    action.onSuccess(null);
-                });
+                DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
+                        .child(fileId);
+
+                SharedFileReference.child("Mode").setValue(dataSnapshot.child("Mode").getValue());
+                if(!change.equals("New")){
+                    SharedFileReference.child("PreviousName").setValue(dataSnapshot.child(String.valueOf(versionNumber-1)).child("Name").getValue());
+                }
+                SharedFileReference.child("URL").setValue(dataSnapshot.child("URL").getValue() +"/"+ String.valueOf(versionNumber) );
+                SharedFileReference.child("SeenBy").removeValue();
+                SharedFileReference.child("SeenBy").child(ManagersMediator.getInstance().GetCurrentUser().getUid())
+                        .setValue(ManagersMediator.getInstance().GetCurrentUser().getDisplayName());
+
             });
         });
     }
-    /*public void UpdateUserInfo(String name){
-        UserGroupsRetriever(new IAction() {
-            @Override
-            public void onSuccess(Object object) {
-                ArrayList<Group> groups = (ArrayList<Group>) object;
-                for(Group group : groups){
-                    mDataBase.getReference().child("Groups").child( group.getId()).child("Members")
-                            .child(mCurrentUser.getUid()).setValue(name);
-                    mDataBase.getReference().child("Groups").child( group.getId()).child("SharedFiles").child().child("SeenBy")
-                            .child(mCurrentUser.getUid()).setValue(name);
-                }
-
-            }
+    public void VersionNumberRetriever(String fileId,IAction action,ExecutorService executorService){
+        executorService.execute(()->{
+            DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
+            FilesReference.get().addOnSuccessListener(dataSnapshot -> {
+                executorService.execute(() -> {
+                    int versionNumber= (int) dataSnapshot.getChildrenCount();
+                    versionNumber-=3;
+                    action.onSuccess(versionNumber);
+                });
+            });
         });
 
-    }*/
+}
 
 }

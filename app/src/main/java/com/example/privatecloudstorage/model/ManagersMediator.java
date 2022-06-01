@@ -81,6 +81,7 @@ public class ManagersMediator {
      */
     private void AddFileEventListener(){
         FILE_MANAGER.AddEventListener(new IFileEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileAdded(File file) {
                 if(file.isDirectory())
@@ -91,7 +92,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file, true);
+                            FileUploadProcedure(group, file, "New");
                             break;
                         }
                     }
@@ -115,6 +116,7 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE);
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onFileChanged(File file) {
                 if(file.isDirectory())
@@ -125,7 +127,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file, false);
+                            FileUploadProcedure(group, file, "Modified");
                             break;
                         }
                     }
@@ -143,7 +145,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileRenameProcedure(group.getId(), file.getName(), oldName);
+                            FileUploadProcedure(group,file,"Renamed");
                             break;
                         }
                     }
@@ -157,15 +159,16 @@ public class ManagersMediator {
      *
      * @param group associated group to the file
      * @param file the file being uploaded
-     * @param isNew true if new file else the file is modified
+     * @param change true if new file else the file is modified
      */
-    private void FileUploadProcedure(Group group, File file, boolean isNew){
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void FileUploadProcedure(Group group, File file, String change){
         EXECUTOR_SERVICE.execute(() -> {
-            if(isNew){
-                DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, true), EXECUTOR_SERVICE);
+            if(change.equals("New")){
+                DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, change), EXECUTOR_SERVICE);
             }
             else{
-                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, false), EXECUTOR_SERVICE);
+                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, change), EXECUTOR_SERVICE);
             }
         });
     }
@@ -175,11 +178,12 @@ public class ManagersMediator {
      *
      * @param group associated group to the file
      * @param file the file being uploaded
-     * @param isNew true if new file else the file is modified
+     * @param change true if new file else the file is modified
      *
      * @return  the action to be done upon uploading the file
      */
-    private IAction UploadAction(Group group, File file, boolean isNew){
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private IAction UploadAction(Group group, File file, String change){
         return fileId -> {
             EXECUTOR_SERVICE.execute(() -> {
                 File encryptedFile;
@@ -189,23 +193,47 @@ public class ManagersMediator {
                     e.printStackTrace();
                     return;
                 }
+                if(change.equals("New")){
+                    // Get encrypted file location in physical storage
+                    Uri fileUri = Uri.fromFile(encryptedFile);
+                    // Upload the file to cloud Storage
+                    STORAGE_MANAGER.Upload(group.getId(), fileUri,0, object -> EXECUTOR_SERVICE.execute(() -> {
+                        // Extract information
+                        StorageMetadata storageMetadata = (StorageMetadata) object;
+                        String groupId = group.getId();
+                        String fileName = file.getName();
 
-                // Get encrypted file location in physical storage
-                Uri fileUri = Uri.fromFile(encryptedFile);
+                        // Add the file to Database
+                        DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName, storageMetadata, null, EXECUTOR_SERVICE);
 
-                // Upload the file to cloud Storage
-                STORAGE_MANAGER.Upload(group.getId(), fileUri, object -> EXECUTOR_SERVICE.execute(() -> {
-                    // Extract information
-                    StorageMetadata storageMetadata = (StorageMetadata) object;
-                    String groupId = group.getId();
-                    String fileName = file.getName();
+                        // Clear temp directory
+                        FILE_MANAGER.DeleteFile(encryptedFile);
+                    }), EXECUTOR_SERVICE);
+                }else{
 
-                    // Add the file to Database
-                    DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName, storageMetadata, null, EXECUTOR_SERVICE);
+                    // Get encrypted file location in physical storage
+                    Uri fileUri = Uri.fromFile(encryptedFile);
+                    DATABASE_MANAGER.VersionNumberRetriever((String) fileId,versionNumber->{
+                        // Upload the file to cloud Storage
+                        STORAGE_MANAGER.Upload(group.getId(), fileUri,(int)versionNumber, object -> EXECUTOR_SERVICE.execute(() -> {
+                            // Extract information
+                            StorageMetadata storageMetadata = (StorageMetadata) object;
+                            String groupId = group.getId();
+                            String fileName = file.getName();
 
-                    // Clear temp directory
-                    FILE_MANAGER.DeleteFile(encryptedFile);
-                }), EXECUTOR_SERVICE);
+                            // Add the file to Database
+                            DATABASE_MANAGER.Versioning(fileName,(String) fileId,groupId,change,storageMetadata,null,EXECUTOR_SERVICE);
+
+                            // Clear temp directory
+                            FILE_MANAGER.DeleteFile(encryptedFile);
+                        }), EXECUTOR_SERVICE);
+                    },EXECUTOR_SERVICE);
+
+                }
+
+
+
+
             });
         };
     }
@@ -235,17 +263,6 @@ public class ManagersMediator {
         });
     }
 
-    /**
-     * Rename the file
-     *
-     * @param groupId associated group id to the file
-     * @param oldName file old name
-     * @param newName file new name
-     */
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void FileRenameProcedure(String groupId, String oldName, String newName){
-        DATABASE_MANAGER.RenameFile(groupId, oldName, newName, null, EXECUTOR_SERVICE);
-    }
 
     /**
      * Remove file from storage
