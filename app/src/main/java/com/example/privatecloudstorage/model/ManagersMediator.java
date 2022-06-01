@@ -1,13 +1,19 @@
 package com.example.privatecloudstorage.model;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.example.privatecloudstorage.controller.GroupSliderActivity;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
+import com.example.privatecloudstorage.interfaces.IMediatorEventListener;
+import com.example.privatecloudstorage.interfaces.IMediatorNotify;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.StorageMetadata;
 
@@ -15,13 +21,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.crypto.Cipher;
 
 
-public class ManagersMediator {
+public class ManagersMediator implements IMediatorNotify {
     // Used for debugging
     public static final String TAG = "ManagersMediator";
 
@@ -29,11 +36,17 @@ public class ManagersMediator {
 
     private final ExecutorService EXECUTOR_SERVICE;
 
+    private final Vector<IMediatorEventListener> mObserver;
+
     // All the managers
     private final FirebaseDatabaseManager DATABASE_MANAGER;
     private final FirebaseStorageManager STORAGE_MANAGER;
     private final FirebaseAuthenticationManager AUTHENTICATION_MANAGER;
     private final FileManager FILE_MANAGER;
+
+
+    public static final byte MEMBERS_UPDATED = 0X01;
+    public static final byte FOLDER_UPDATED = 0X02;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private ManagersMediator(){
@@ -42,6 +55,8 @@ public class ManagersMediator {
         STORAGE_MANAGER = FirebaseStorageManager.getInstance();
         AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
 
+        mObserver = new Vector<>();
+
         FILE_MANAGER = FileManager.getInstance();
 
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
@@ -49,6 +64,38 @@ public class ManagersMediator {
         // Listen to directory changes
         //AddFileEventListener();
     }
+
+    public boolean AddEventListener(IMediatorEventListener mediatorEventListener){
+        if(mObserver.contains(mediatorEventListener))
+            return false;
+
+        mObserver.add(mediatorEventListener);
+        return true;
+    }
+
+    /**
+     * Remove an event listener
+     *
+     * @return true if an object exists and got removed
+     */
+    public boolean RemoveEventListener(IMediatorEventListener mediatorEventListener){
+        return mObserver.remove(mediatorEventListener);
+    }
+
+    @Override
+    public void Notify(byte event, Object object) {
+        for(IMediatorEventListener observer : mObserver){
+            switch (event){
+                case MEMBERS_UPDATED:
+                    observer.onGroupMembersUpdated((String)object);
+                    break;
+                case FOLDER_UPDATED:
+                    observer.onFolderUpdated((File)object);
+                    break;
+            }
+        }
+    }
+
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public static ManagersMediator getInstance(){
@@ -237,7 +284,8 @@ public class ManagersMediator {
      * @param file the file being uploaded
      * @param isNew true if new file else the file is modified
      */
-    private void FileUploadProcedure(Group group, File file, boolean isNew,byte mode){
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void FileUploadProcedure(Group group, File file, boolean isNew, byte mode){
         EXECUTOR_SERVICE.execute(() -> {
             if(isNew){
                 DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, true,mode), EXECUTOR_SERVICE);
@@ -257,7 +305,8 @@ public class ManagersMediator {
      *
      * @return  the action to be done upon uploading the file
      */
-    private IAction UploadAction(Group group,File file, boolean isNew, byte mode){
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private IAction UploadAction(Group group, File file, boolean isNew, byte mode){
         return fileId -> {
             EXECUTOR_SERVICE.execute(() -> {
                 File encryptedFile;
@@ -366,6 +415,10 @@ public class ManagersMediator {
                     object -> {
                         try {
                             FileManager.getInstance().EncryptDecryptFile(file, fileName, group, Cipher.DECRYPT_MODE);
+                            // Must run this on main thread to avoid problems
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                Notify(FOLDER_UPDATED, new File(path));});
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

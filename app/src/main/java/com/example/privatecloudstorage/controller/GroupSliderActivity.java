@@ -186,6 +186,7 @@ public class GroupSliderActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
     /**
      * A simple pager adapter that represents 3 ScreenSlidePageFragment objects, in
      * sequence.

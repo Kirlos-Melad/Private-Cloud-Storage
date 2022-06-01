@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment;
 
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
@@ -24,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.interfaces.IAction;
+import com.example.privatecloudstorage.interfaces.IMediatorEventListener;
 import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
@@ -46,11 +48,12 @@ public class GroupFragment extends Fragment {
     private ArrayAdapterView mAdapter;
     private ArrayList<RecyclerViewItem> mItems;
     private  ManagersMediator MANAGER_MEDIATOR;
-    private  FirebaseAuthenticationManager AUTHENTICATION_MANAGER;
     private byte mTab;
     private RecyclerView _Recyclerview;
     private TextView _TextView;
     private Stack<File> mParentFolder;
+    private File mOpenedFolder;
+
     //RecyclerView.LayoutManager _layoutManager;
 
     /**
@@ -80,42 +83,54 @@ public class GroupFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         MANAGER_MEDIATOR = ManagersMediator.getInstance();
-        AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
+
+        Refresh();
 
         mItems = new ArrayList<>();
         mParentFolder = new Stack<>();
         mSelectedGroupKey = getArguments().getString("selectedGroupKey");
         mSelectedGroupName = getArguments().getString("selectedGroupName");
         mTab = getArguments().getByte("tab");
-        File path;
+        String path = FileManager.getInstance().GetApplicationDirectory() +
+                File.separator+mSelectedGroupKey + " "+ mSelectedGroupName;
+
+        mOpenedFolder = new File(path);
+
         switch (mTab) {
             case GroupSliderActivity.MEMBERS:
                 ShowGroupMembers();
                 break;
             case GroupSliderActivity.NORMAL_FILES:
-                ShowFolderFiles(new File(FileManager.getInstance().GetApplicationDirectory()+
-                        File.separator+mSelectedGroupKey+" "+mSelectedGroupName+
-                        File.separator+"Normal Files"));
+                ShowFolderFiles(new File(path, "Normal Files"));
                 break;
             case GroupSliderActivity.STRIPPED_FILES:
-                ShowFolderFiles(new File(FileManager.getInstance().GetApplicationDirectory()+
-                        File.separator+mSelectedGroupKey+" "+mSelectedGroupName+
-                        File.separator+"Merged Files"));
+                ShowFolderFiles(new File(path, "Merged Files"));
                 break;
         }
     }
 
-    /**
-     * display fragment
-     *
-     * @param savedInstanceState
-     */
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void Refresh(){
+        MANAGER_MEDIATOR.AddEventListener(new IMediatorEventListener() {
+            @Override
+            public void onGroupMembersUpdated(String groupId) {
+                // TODO: refresh the members
+            }
 
-
+            @Override
+            public void onFolderUpdated(File folder) {
+                // check if same group is opened
+                if(folder.toString().contains(mOpenedFolder.toString())){
+                    // check if same tab is opened
+                    if((folder.toString().contains("Normal Files") && mTab == GroupSliderActivity.NORMAL_FILES)
+                    || (folder.toString().contains("Merged Files") && mTab == GroupSliderActivity.STRIPPED_FILES)){
+                        if(!mParentFolder.isEmpty())
+                            mParentFolder.pop();
+                        mItems.clear();
+                        ShowFolderFiles(folder);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -124,7 +139,6 @@ public class GroupFragment extends Fragment {
     //
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void ShowGroupMembers() {
-        //TODO : Show Members name instead of status
         ManagersMediator.getInstance().GroupMembersInformationRetriever(mSelectedGroupKey, membersInfo -> {
             for (User member : (User[]) membersInfo) {
                 RecyclerViewItem item = new RecyclerViewItem(member.mName, member.mAbout,null, null, null);
@@ -135,15 +149,11 @@ public class GroupFragment extends Fragment {
             mAdapter = new ArrayAdapterView(mItems);
             _Recyclerview.setAdapter(mAdapter);
 
-            //_ActivityGroupContentBinding.recyclerView.setLayoutManager(new LinearLayoutManager(GroupContentActivity.this));
-            // _ActivityGroupContentBinding.recyclerView2.setAdapter(adapter);
             if (mItems.isEmpty()) {
                 _TextView.setText("NO MEMBERS TO SHOW");
                 _TextView.setVisibility(View.VISIBLE);
             }
         });
-
-
     }
 
     private void ShowFolderFiles(File folder) {
