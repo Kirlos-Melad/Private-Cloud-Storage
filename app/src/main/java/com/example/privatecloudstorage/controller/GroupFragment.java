@@ -6,17 +6,13 @@ import androidx.fragment.app.Fragment;
 
 import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -25,22 +21,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.interfaces.IAction;
-import com.example.privatecloudstorage.interfaces.IMediatorEventListener;
 import com.example.privatecloudstorage.model.FileManager;
-import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.example.privatecloudstorage.model.User;
-import com.google.android.material.tabs.TabLayout;
 
 import java.io.File;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import me.dm7.barcodescanner.core.ViewFinderView;
-
 public class GroupFragment extends Fragment {
+    public static String TAG = "GroupFragment";
 
     private String mSelectedGroupKey;
     private String mSelectedGroupName;
@@ -110,27 +101,8 @@ public class GroupFragment extends Fragment {
     }
 
     public void Refresh(){
-        MANAGER_MEDIATOR.AddEventListener(new IMediatorEventListener() {
-            @Override
-            public void onGroupMembersUpdated(String groupId) {
-                // TODO: refresh the members
-            }
-
-            @Override
-            public void onFolderUpdated(File folder) {
-                // check if same group is opened
-                if(folder.toString().contains(mOpenedFolder.toString())){
-                    // check if same tab is opened
-                    if((folder.toString().contains("Normal Files") && mTab == GroupSliderActivity.NORMAL_FILES)
-                    || (folder.toString().contains("Merged Files") && mTab == GroupSliderActivity.STRIPPED_FILES)){
-                        if(!mParentFolder.isEmpty())
-                            mParentFolder.pop();
-                        mItems.clear();
-                        ShowFolderFiles(folder);
-                    }
-                }
-            }
-        });
+        // TODO: Listen to changes to refresh
+        //  Groups / Members / Files
     }
 
     /**

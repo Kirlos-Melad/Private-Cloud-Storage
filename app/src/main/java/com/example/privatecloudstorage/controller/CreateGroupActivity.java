@@ -62,7 +62,11 @@ public class CreateGroupActivity extends AppCompatActivity {
             Toast.makeText(this, "Group Created Successfully", Toast.LENGTH_LONG).show();
 
             // Go to the group activity
-            startActivity(new Intent(CreateGroupActivity.this,GroupListActivity.class));
+            Intent intent = new Intent(this, GroupSliderActivity.class);
+            intent.putExtra("selectedGroupKey", group.getId());
+            intent.putExtra("selectedGroupName", group.getName());
+
+            startActivity(intent);
             //Intent intent = new Intent(this, HomeActivity.class);
             //intent.putExtra("GroupDescription",group.getDescription());
             //startActivity(intent);

@@ -1,19 +1,14 @@
 package com.example.privatecloudstorage.model;
 
-import android.app.Activity;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import com.example.privatecloudstorage.controller.GroupSliderActivity;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
-import com.example.privatecloudstorage.interfaces.IMediatorEventListener;
-import com.example.privatecloudstorage.interfaces.IMediatorNotify;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.StorageMetadata;
 
@@ -28,15 +23,13 @@ import java.util.concurrent.Executors;
 import javax.crypto.Cipher;
 
 
-public class ManagersMediator implements IMediatorNotify {
+public class ManagersMediator {
     // Used for debugging
     public static final String TAG = "ManagersMediator";
 
     private static ManagersMediator mManagersMediator;
 
     private final ExecutorService EXECUTOR_SERVICE;
-
-    private final Vector<IMediatorEventListener> mObserver;
 
     // All the managers
     private final FirebaseDatabaseManager DATABASE_MANAGER;
@@ -55,8 +48,6 @@ public class ManagersMediator implements IMediatorNotify {
         STORAGE_MANAGER = FirebaseStorageManager.getInstance();
         AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
 
-        mObserver = new Vector<>();
-
         FILE_MANAGER = FileManager.getInstance();
 
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
@@ -64,38 +55,6 @@ public class ManagersMediator implements IMediatorNotify {
         // Listen to directory changes
         //AddFileEventListener();
     }
-
-    public boolean AddEventListener(IMediatorEventListener mediatorEventListener){
-        if(mObserver.contains(mediatorEventListener))
-            return false;
-
-        mObserver.add(mediatorEventListener);
-        return true;
-    }
-
-    /**
-     * Remove an event listener
-     *
-     * @return true if an object exists and got removed
-     */
-    public boolean RemoveEventListener(IMediatorEventListener mediatorEventListener){
-        return mObserver.remove(mediatorEventListener);
-    }
-
-    @Override
-    public void Notify(byte event, Object object) {
-        for(IMediatorEventListener observer : mObserver){
-            switch (event){
-                case MEMBERS_UPDATED:
-                    observer.onGroupMembersUpdated((String)object);
-                    break;
-                case FOLDER_UPDATED:
-                    observer.onFolderUpdated((File)object);
-                    break;
-            }
-        }
-    }
-
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public static ManagersMediator getInstance(){
@@ -106,6 +65,19 @@ public class ManagersMediator implements IMediatorNotify {
     }
 
     /* =============================================== User Functions ===============================================*/
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public boolean JoinGroup(Group group){
+        if (DATABASE_MANAGER.JoinGroup(group)) {
+            boolean isCreated = group.CreateGroup(true);
+            if(!isCreated)
+                return false;
+
+            return true;
+        }
+
+        return false;
+    }
 
     /**
      * Retrieve all groups associated with the current user
@@ -415,9 +387,6 @@ public class ManagersMediator implements IMediatorNotify {
                     object -> {
                         try {
                             FileManager.getInstance().EncryptDecryptFile(file, fileName, group, Cipher.DECRYPT_MODE);
-                            // Must run this on main thread to avoid problems
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                Notify(FOLDER_UPDATED, new File(path));});
 
                         } catch (IOException e) {
                             e.printStackTrace();
