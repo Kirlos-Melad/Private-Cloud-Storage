@@ -44,7 +44,7 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void Upload(String groupId, Uri file,int versionNumber, IAction action, ExecutorService executorService) {
+    public void Upload(String groupId, Uri file, int versionNumber, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             //TODO:change file name according file mode
             String fileName = file.getLastPathSegment();

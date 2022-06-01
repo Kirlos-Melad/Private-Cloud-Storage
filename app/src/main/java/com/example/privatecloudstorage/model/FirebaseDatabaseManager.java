@@ -192,7 +192,8 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
-        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
+        // $url + $file_id
+        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/" + fileSnapshot.getKey());
         //String physicalLocation = group.getId() + " " + group.getName();
 
         // Download the file
@@ -335,7 +336,7 @@ public class FirebaseDatabaseManager {
                 put("Mode","Normal");
                 put("Group",groupId);
             }};
-            mDataBase.getReference().child("Files").child(fileId)
+            mDataBase.getReference().child("Files")
                     .updateChildren(new HashMap<String,Object>() {{
                         put(fileId, children);
                     }});
@@ -384,13 +385,13 @@ public class FirebaseDatabaseManager {
         FilesReference.get().addOnSuccessListener(dataSnapshot -> {
             executorService.execute(() -> {
                 int versionNumber= (int) dataSnapshot.getChildrenCount();
-                versionNumber-=3;
+                versionNumber -= 3;
                 //get info from Files and update SharedFiles
 
                 FilesReference.child(String.valueOf(versionNumber)).child("Name").setValue(fileName);
                 FilesReference.child(String.valueOf(versionNumber)).child("Date").setValue(currentDateandTime);
                 FilesReference.child(String.valueOf(versionNumber)).child("Change").setValue(change);
-                FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue(metadata);
+                //FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue((Object)metadata);
 
                 DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
                         .child(fileId);
