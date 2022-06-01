@@ -72,7 +72,7 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
             Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();
 
             // Go to the group activity
-            Intent intent = new Intent(this, GroupContentActivity.class);
+            Intent intent = new Intent(this, GroupSliderActivity.class);
             intent.putExtra("selectedGroupKey", group.getId());
             intent.putExtra("selectedGroupName", group.getName());
 
