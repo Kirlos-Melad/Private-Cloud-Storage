@@ -122,6 +122,23 @@ public class FirebaseStorageManager {
                     });
         });
     }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void DownloadUserFile(File downloadFile, IAction action, ExecutorService executorService) {
+        executorService.execute(() -> {
+            StorageReference storageReference = mStorage.getReference().child(ManagersMediator.getInstance().GetCurrentUser().getUid())
+                    .child(downloadFile.getName());
+            storageReference.getFile(downloadFile)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        executorService.execute(() -> {
+                            action.onSuccess(null);
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.d(TAG, "Download: line 203");
+                        e.printStackTrace();
+                    });
+        });
+    }
 
     /**
      * Delete file from storage cloud

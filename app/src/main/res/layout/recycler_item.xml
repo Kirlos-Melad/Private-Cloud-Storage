@@ -3,29 +3,41 @@
     android:layout_width="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
-    android:padding="10dp"
+    android:padding="30dp"
     android:layout_height="wrap_content">
 
     <ImageView
+        android:id="@+id/icon_view"
         android:layout_width="36dp"
         android:layout_height="36dp"
-        tools:src="@drawable/ic_baseline_folder_24"
-        android:id="@+id/icon_view"/>
+        tools:src="@drawable/ic_baseline_folder_24" />
 
     <TextView
+        android:id="@+id/file_name_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/file_name_text_view"
         android:layout_toEndOf="@id/icon_view"
         android:padding="10dp"
         android:textColor="@color/black"
-        tools:text="Documents"/>
+        tools:text="Documents" />
+
+    <TextView
+        android:id="@+id/sub_text"
+        android:layout_width="300dp"
+        android:layout_height="20dp"
+        android:layout_below="@+id/file_name_text_view"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="1dp"
+        android:layout_toEndOf="@id/icon_view"
+        android:padding="10dp"
+        android:textColor="@color/black"
+        tools:text="Documents" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:layout_below="@id/file_name_text_view"
         android:layout_marginTop="2dp"
-        android:background="@color/cardview_shadow_start_color"
-        android:layout_below="@id/file_name_text_view"/>
+        android:background="@color/cardview_shadow_start_color" />
 
 </RelativeLayout>

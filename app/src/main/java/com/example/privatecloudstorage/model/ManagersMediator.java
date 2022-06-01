@@ -2,6 +2,7 @@ package com.example.privatecloudstorage.model;
 
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -64,11 +65,12 @@ public class ManagersMediator {
      *
      * @param action do something upon retrieval
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void UserGroupsRetriever(IAction action){
         DATABASE_MANAGER.UserGroupsRetriever(action, EXECUTOR_SERVICE);
     }
-    public void GroupMembersRetriever(String groupId , IAction action){
-        DATABASE_MANAGER.GroupMembersRetriever(groupId,action, EXECUTOR_SERVICE);
+    public void GroupMembersInformationRetriever(String groupId , IAction action){
+        DATABASE_MANAGER.GroupMembersInformationRetriever(groupId,action, EXECUTOR_SERVICE);
     }
 
     /**
@@ -89,24 +91,56 @@ public class ManagersMediator {
             action.onSuccess(null);
         }
     }
-
+//take uri from profile activity and update in (authantication,update storage,update
+    //real time with no picture for now)
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public void SetUserProfilePicture(Uri phyicalPath){
-        AUTHENTICATION_MANAGER.UpdateUserProfileImage(phyicalPath, object ->
-                STORAGE_MANAGER.UploadUserFile(phyicalPath, url ->{
-                    DATABASE_MANAGER.SetUserProfilePicture((String) url);
+    public void SetUserProfilePicture(Uri physicalPath){
+        AUTHENTICATION_MANAGER.UpdateUserProfileImage(physicalPath, object ->
+                STORAGE_MANAGER.UploadUserFile(physicalPath, cloudPath ->{
+                    DATABASE_MANAGER.SetUserProfilePicture((String) cloudPath);
                 }, EXECUTOR_SERVICE)
         );
     }
 
+
+    /*@RequiresApi(api = Build.VERSION_CODES.Q)
+    //phyicalpath = childuserid child name maugod fe el uploud
+    //path eli py5do el Filw file hwa elli elsors ptnzl feh
+
+    public void GetUserProfilePicture(Uri phyicalPath , String fileName ){
+        String path;
+        path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
+        File file = new File(path, fileName);
+        STORAGE_MANAGER.DownloadUserFile(phyicalPath, file,
+                object -> {
+                }, EXECUTOR_SERVICE);
+
+    }*/
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserName(String name){
         AUTHENTICATION_MANAGER.UpdateUserProfileName(name);
         DATABASE_MANAGER.SetUserName(name);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserAbout(String about){
         DATABASE_MANAGER.SetUserAbout(about);
     }
+
+
+
+    //+==================================================================================
+    /*@RequiresApi(api = Build.VERSION_CODES.Q)
+    public String GetUserAbout(String userId){
+       String subTitle= DATABASE_MANAGER.GetUserAbout(userId);
+       return subTitle;
+    }*/
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void StartMonitoring(){
@@ -315,7 +349,9 @@ public class ManagersMediator {
     public void FileDownloadProcedure(Group group, Uri url, String fileName) {
         EXECUTOR_SERVICE.execute(() -> {
             String path;
-            path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
+            path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
+                    group.getId() + " " + group.getName() + File.separator + "Normal Files";
+
             // TODO: implemented in file stripping
             /*if(mode == FILE_MANAGER.NORMAL){
                 path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";

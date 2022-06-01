@@ -84,7 +84,7 @@ public class FileExplorerActivity extends AppCompatActivity {
 
     private void ShowFileExplorer(File FileExplorerPath) {
         if(!mParentFolder.isEmpty()){
-            RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+            RecyclerViewItem item = new RecyclerViewItem(null,null, null, null, null);
             item.mName="..";
             item.mImage = GetResourceUri(R.drawable.ic_baseline_folder_24);
             item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
@@ -101,7 +101,7 @@ public class FileExplorerActivity extends AppCompatActivity {
         if (FileExplorerPath.isDirectory()) {
             File[] files = FileExplorerPath.listFiles();
             for (File file : files) {
-                RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+                RecyclerViewItem item = new RecyclerViewItem(null,null, null, null, null);
                 item.mName = file.getName();
                 if (file.isDirectory()) {
                     item._onClickListener = FileExplorerActivity.FolderOnClickListener(new IAction() {

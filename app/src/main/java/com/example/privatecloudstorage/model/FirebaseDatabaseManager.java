@@ -1,13 +1,11 @@
 package com.example.privatecloudstorage.model;
 
 //Android Libraries
-import android.hardware.biometrics.BiometricPrompt;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.util.Pair;
 
 //3rd Party Libraries
 import androidx.annotation.NonNull;
@@ -16,8 +14,6 @@ import androidx.annotation.RequiresApi;
 
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,18 +26,11 @@ import com.google.firebase.storage.StorageMetadata;
 
 //Java Libraries
 import java.io.File;
-import java.lang.reflect.Array;
+import java.sql.DataTruncation;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -91,10 +80,12 @@ public class FirebaseDatabaseManager {
         mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Name").setValue(name);
     }
 
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserAbout(String about){
         mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("About").setValue(about);
     }
+
 
     /**
      * Monitor user connection and show it in Real-Time DB
@@ -161,6 +152,7 @@ public class FirebaseDatabaseManager {
         // Add the User as a member
         newGroupReference.child("Members").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).setValue(ManagersMediator.getInstance().GetCurrentUser().getDisplayName());
         newGroupReference.child("SharedFiles").setValue("NoFile");
+        newGroupReference.child("OnlineUsersCounter").setValue(0);
 
         // Add the group to the user
         mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid())
@@ -171,25 +163,36 @@ public class FirebaseDatabaseManager {
 
         return groupId;
     }
-
-    public void GroupMembersRetriever(String groupId,IAction action, ExecutorService executorService){
+    /**
+     get users name frome "Users" based on group id
+     **/
+    //=====================================================NEW=================================================
+    public void GroupMembersInformationRetriever(String groupId, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             mDataBase.getReference().child("Groups").child(groupId)
-                    .child("Members").get().addOnSuccessListener(dataSnapshot -> {
-                executorService.execute(() -> {
-                    ArrayList<String> users = new ArrayList<>();
-
-                    for(DataSnapshot user : dataSnapshot.getChildren()){
-                        users.add(user.getValue(String.class));
-                    }
-                    // Must run this on main thread to avoid problems
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        action.onSuccess(users);
+                    .child("Members").get()
+                    .addOnSuccessListener(membersEntity -> {
+                        executorService.execute(() -> {
+                            mDataBase.getReference().child("Users").get()
+                                    .addOnSuccessListener(usersEntity -> {
+                                        User membersInformation[] = new User[(int)membersEntity.getChildrenCount()];
+                                        int index = 0;
+                                        DataSnapshot firebaseUser;
+                                        for (DataSnapshot member : membersEntity.getChildren())
+                                        {
+                                            firebaseUser = usersEntity.child(member.getKey());
+                                            User user = new User();
+                                            user.mId = firebaseUser.getKey();
+                                            user.mName = firebaseUser.child("Name").getValue(String.class);
+                                            user.mAbout = firebaseUser.child("About").getValue(String.class);
+                                            user.mProfilePictureUrl = firebaseUser.child("ProfilePicture").getValue(String.class);
+                                            membersInformation[index++] = user;
+                                        }
+                                        action.onSuccess(membersInformation);
+                                    });
+                        });
                     });
-                });
-            });
         });
-
     }
 
 
@@ -279,6 +282,7 @@ public class FirebaseDatabaseManager {
 
 
 
+
     /**
      * Monitor all user groups changes in cloud
      */
@@ -310,20 +314,12 @@ public class FirebaseDatabaseManager {
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
         Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
+
+        ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
+                fileSnapshot.child("Name").getValue(String.class));
         //String physicalLocation = group.getId() + " " + group.getName();
         // Download the file
-        if(!fileSnapshot.child("Mode").hasChild("Striping")) {
-            cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/"
-                    + fileSnapshot.getKey() + " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
-            ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
-                    fileSnapshot.child("Name").getValue(String.class));
-        }
-        else {
-            cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
-
-            ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
-                    fileSnapshot.child("Name").getValue(String.class));
-        }//FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
+        //FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
 
         // Add user to SeenBy
         fileSnapshot.child("SeenBy").getRef().updateChildren(new HashMap<String, Object>() {{

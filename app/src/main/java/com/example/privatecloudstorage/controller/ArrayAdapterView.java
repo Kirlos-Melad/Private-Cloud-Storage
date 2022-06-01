@@ -34,6 +34,8 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         // name
         holder._TextView.setText(mItems.get(position).mName);
+        //subtext
+        holder._SubTextView.setText(mItems.get(position).mSubTitle);
         // image
         holder._ImageView.setImageURI(mItems.get(position).mImage);
 
@@ -51,12 +53,14 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
      */
     public class ViewHolder extends RecyclerView.ViewHolder{
         TextView _TextView;
+        TextView _SubTextView;
         ImageView _ImageView;
 
         public ViewHolder(View itemView) {
             super(itemView);
             _TextView = itemView.findViewById(R.id.item_name);
             _ImageView = itemView.findViewById(R.id.item_image);
+            _SubTextView = itemView.findViewById(R.id.sub_text);
         }
     }
 }

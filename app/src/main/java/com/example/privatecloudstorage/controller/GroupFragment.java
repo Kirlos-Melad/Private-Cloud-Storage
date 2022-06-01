@@ -25,10 +25,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
+import com.example.privatecloudstorage.model.User;
+import com.google.android.material.tabs.TabLayout;
 
 import java.io.File;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -41,6 +45,8 @@ public class GroupFragment extends Fragment {
     private View _Fragment;
     private ArrayAdapterView mAdapter;
     private ArrayList<RecyclerViewItem> mItems;
+    private  ManagersMediator MANAGER_MEDIATOR;
+    private  FirebaseAuthenticationManager AUTHENTICATION_MANAGER;
     private byte mTab;
     private RecyclerView _Recyclerview;
     private TextView _TextView;
@@ -72,6 +78,10 @@ public class GroupFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        MANAGER_MEDIATOR = ManagersMediator.getInstance();
+        AUTHENTICATION_MANAGER = FirebaseAuthenticationManager.getInstance();
+
         mItems = new ArrayList<>();
         mParentFolder = new Stack<>();
         mSelectedGroupKey = getArguments().getString("selectedGroupKey");
@@ -111,13 +121,16 @@ public class GroupFragment extends Fragment {
     /**
      * get user groups and display them on list view
      */
+    //
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void ShowGroupMembers() {
-
         //TODO : Show Members name instead of status
-        ManagersMediator.getInstance().GroupMembersRetriever(mSelectedGroupKey, users -> {
-            for (String member : (ArrayList<String>) users) {
-                mItems.add(new RecyclerViewItem(member, null, null, null));
+        ManagersMediator.getInstance().GroupMembersInformationRetriever(mSelectedGroupKey, membersInfo -> {
+            for (User member : (User[]) membersInfo) {
+                RecyclerViewItem item = new RecyclerViewItem(member.mName, member.mAbout,null, null, null);
+                item.mImage=GetResourceUri(R.drawable.ic_person);
+
+                mItems.add(item);
             }
             mAdapter = new ArrayAdapterView(mItems);
             _Recyclerview.setAdapter(mAdapter);
@@ -129,11 +142,13 @@ public class GroupFragment extends Fragment {
                 _TextView.setVisibility(View.VISIBLE);
             }
         });
+
+
     }
 
     private void ShowFolderFiles(File folder) {
         if(!mParentFolder.isEmpty()){
-            RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+            RecyclerViewItem item = new RecyclerViewItem(null,null, null, null, null);
             item.mName="..";
             item.mImage=GetResourceUri(R.drawable.ic_baseline_folder_24);
             item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
@@ -150,7 +165,7 @@ public class GroupFragment extends Fragment {
         if (folder.isDirectory()) {
             File[] files = folder.listFiles();
             for (File file : files) {
-                RecyclerViewItem item = new RecyclerViewItem(null, null, null, null);
+                RecyclerViewItem item = new RecyclerViewItem(null,null, null, null, null);
                 item.mName = file.getName();
                 if (file.isDirectory()) {
                     item._onClickListener = FileExplorerActivity.FolderOnClickListener(new IAction() {

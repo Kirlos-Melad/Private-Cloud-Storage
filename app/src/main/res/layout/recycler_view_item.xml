@@ -7,19 +7,34 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        tools:src="@drawable/ic_baseline_folder_24"
-        android:id="@+id/item_image"/>
+        android:id="@+id/item_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="17dp"
+        tools:src="@drawable/ic_baseline_folder_24" />
+
 
     <TextView
+        android:id="@+id/item_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/item_name"
+        android:layout_marginStart="2dp"
         android:layout_toEndOf="@id/item_image"
-        android:padding="10dp"
+        android:padding="20dp"
         android:textColor="@color/black"
-        tools:text="Documents"/>
+        android:textSize="20dp"
+        tools:text="Documents" />
+
+    <TextView
+        android:id="@+id/sub_text"
+        android:layout_width="300dp"
+        android:layout_height="20dp"
+        android:layout_below="@+id/item_name"
+        android:layout_marginStart="37dp"
+        android:layout_marginTop="-23dp"
+        android:layout_toEndOf="@id/item_image"
+        android:textColor="@color/black"
+        tools:text="hello" />
 
     <LinearLayout
         android:layout_width="match_parent"
