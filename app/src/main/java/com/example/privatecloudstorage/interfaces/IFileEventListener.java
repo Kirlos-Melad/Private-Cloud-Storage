@@ -6,8 +6,8 @@ import java.io.File;
  * Event listener for files
  */
 public interface IFileEventListener extends IEventListener {
-    void onFileAdded(File file);
-    void onFileRemoved(File file);
-    void onFileChanged(File file);
-    void onFileRenamed(File file, String oldName);
+    void onFileAdded(File file, byte mode);
+    void onFileRemoved(File file, byte mode);
+    void onFileChanged(File file, byte mode);
+    void onFileRenamed(File file, String oldName, byte mode);
 }

@@ -16,6 +16,7 @@ import com.example.privatecloudstorage.controller.GroupListActivity;
 import com.example.privatecloudstorage.controller.ProfileActivity;
 import com.example.privatecloudstorage.controller.SignInActivity;
 import com.example.privatecloudstorage.controller.SignUpActivity;
+import com.example.privatecloudstorage.interfaces.IAction;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -51,12 +52,11 @@ public class FirebaseAuthenticationManager extends Observable {
     /**
      * validte Sign Up
      * @param email    the user email
-     * @param pass1    the user password
+     * @param password    the user password
      * @param userName the user name
-     * @param isOnline the user statuse
      */
-    public boolean SignUp(final String email, String pass1, final String userName, final boolean isOnline, final Activity activity) {
-        mFirebaseAuth.createUserWithEmailAndPassword(email, pass1).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+    public boolean SignUp(final String email, String password, final String userName) {
+        mFirebaseAuth.createUserWithEmailAndPassword(email, password).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
             @Override
             public void onSuccess(AuthResult authResult) {
                 if (authResult.getAdditionalUserInfo().isNewUser()) {
@@ -140,6 +140,7 @@ public class FirebaseAuthenticationManager extends Observable {
      * @param activity the sign in activity
      */
     public void ForgetPassword(String email, final ProgressBar _ProgressBar, final Activity activity) {
+        //TODO: handel empty email/password in forget password request
         mFirebaseAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
             @SuppressLint("LongLogTag")
             @Override
@@ -176,17 +177,17 @@ public class FirebaseAuthenticationManager extends Observable {
                     }
                 });
     }
-    public void UpdateUserProfileImage(Uri uri){
+    public void UpdateUserProfileImage(Uri uri, IAction action){
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setPhotoUri(uri)
                 .build();
-
         mFirebaseAuth.getCurrentUser().updateProfile(profileUpdates)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @SuppressLint("LongLogTag")
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
+                            action.onSuccess(null);
                             Log.d(TAG, "User profile updated.");
                         }
                     }

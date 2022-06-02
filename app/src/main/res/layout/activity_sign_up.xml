@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?colorOnSecondary"
     tools:context=".controller.SignUpActivity">
 
     <ImageView
@@ -25,7 +26,7 @@
         android:letterSpacing="0.03"
         android:text="Register"
         android:textAlignment="center"
-        android:textColor="@color/black"
+        android:textColor="?colorOnPrimary"
         android:textSize="35dp"
         android:textStyle="bold"
         app:autoSizeMaxTextSize="@android:dimen/app_icon_size"
@@ -42,10 +43,10 @@
         android:layout_marginTop="25dp"
         android:background="@drawable/button"
         android:text="Register"
-        android:textColor="#FFF"
+        android:textColor="?colorOnPrimary"
         android:textSize="18dp"
         android:textStyle="bold"
-        android:backgroundTint="@color/bottoncolor"
+        android:backgroundTint="?colorPrimaryVariant"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.491"
@@ -77,7 +78,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="User Name" />
+            android:hint="User Name"
+           />
 
     </com.google.android.material.textfield.TextInputLayout>
     <com.google.android.material.textfield.TextInputLayout
@@ -104,7 +106,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
-            android:ems="10" />
+            android:ems="10"
+            />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -139,7 +142,8 @@
             android:maxLength="16"
             android:ems="10"
             android:hint="Password"
-            android:inputType="textPassword"/>
+            android:inputType="textPassword"
+            />
 
     </com.google.android.material.textfield.TextInputLayout>
     <com.google.android.material.textfield.TextInputLayout
@@ -153,6 +157,8 @@
         android:textSize="18dp"
         android:textStyle="bold"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        app:counterEnabled="true"
+        app:counterMaxLength="16"
         app:errorEnabled="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -169,7 +175,8 @@
             android:id="@+id/RePassword_SignUp"
             android:hint="Confirm Password"
             android:ems="10"
-            android:inputType="textPassword"/>
+            android:inputType="textPassword"
+            />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -178,7 +185,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Already have an account?"
-        android:textColor="@color/black"
+        android:textColor="?colorOnPrimary"
         android:textSize="18dp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -5,6 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?colorOnSecondary"
     tools:context=".controller.GroupListActivity">
 
 
@@ -12,7 +13,7 @@
         android:id="@+id/Listview"
         android:layout_width="407dp"
         android:layout_height="724dp"
-        android:background="@drawable/back"
+        android:background="?colorOnSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />

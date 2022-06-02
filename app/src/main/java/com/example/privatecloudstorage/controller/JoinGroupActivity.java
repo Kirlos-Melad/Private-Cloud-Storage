@@ -4,8 +4,11 @@ package com.example.privatecloudstorage.controller;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -15,6 +18,7 @@ import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.Group;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.google.zxing.Result;
 import com.google.zxing.WriterException;
 
@@ -53,31 +57,29 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
      *
      * @param result camera readings
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public void handleResult(Result result) {
         super.onBackPressed();
 
         // groupInformation array holds [Group ID, Group Name]
         String[] groupInformation = result.getText().split(",");
-
         Group group = new Group(groupInformation[0], groupInformation[1], "", "");
-        // If joined successfully Create a folder for the group
-        if (FirebaseDatabaseManager.getInstance().JoinGroup(group)) {
-            // skip if group wasn't created
-            if (!group.CreateGroup(true)) {
-                Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();
-            }
 
-            // Tell user it was a success
-            Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();
-
-            // Go to the group activity
-            Intent intent = new Intent(this, GroupContentActivity.class);
-            intent.putExtra("selectedGroupKey", group.getId());
-            intent.putExtra("selectedGroupName", group.getName());
-
-            startActivity(intent);
+        if(!ManagersMediator.getInstance().JoinGroup(group)){
+            Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();
+            return;
         }
+
+        // Tell user it was a success
+        Toast.makeText(this, "Joined Group Successfully", Toast.LENGTH_LONG).show();
+
+        // Go to the group activity
+        Intent intent = new Intent(this, GroupSliderActivity.class);
+        intent.putExtra("selectedGroupKey", group.getId());
+        intent.putExtra("selectedGroupName", group.getName());
+
+        startActivity(intent);
     }
 
     /**

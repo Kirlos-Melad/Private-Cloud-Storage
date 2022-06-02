@@ -3,25 +3,24 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:padding="16dp"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?colorOnSecondary">
+
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/text_view_about"
-        android:text="About"
-        android:textColor="@color/black"
+        android:id="@+id/text_view"
+        android:textColor="?colorOnPrimary"
         android:textSize="20dp"></TextView>
 
     <EditText
-        android:id="@+id/about_layout"
+        android:id="@+id/edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_view_about"
-        android:hint="About"></EditText>
-
-
-
+        android:layout_below="@+id/text_view"
+        android:textColorHint="#B1B1B1"
+        ></EditText>
 
 
 </RelativeLayout>

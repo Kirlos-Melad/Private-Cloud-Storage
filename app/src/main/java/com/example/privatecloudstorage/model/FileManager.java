@@ -8,6 +8,8 @@ import androidx.annotation.RequiresApi;
 import com.example.privatecloudstorage.interfaces.IFileEventListener;
 import com.example.privatecloudstorage.interfaces.IFileNotify;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,10 +18,14 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.crypto.BadPaddingException;
@@ -35,22 +41,40 @@ public class FileManager implements IFileNotify {
     private static FileManager mFileManager;
 
     private final File mApplicationDirectory;
-
     private final String TEMPORARY_DIRECTORY = "Temporary";
+    private final String STRIPPED_FILES_DIRECTORY = "Stripped Files";
+    private final String NORMAL_FILES_DIRECTORY = "Normal Files";
 
     private final Vector<IFileEventListener> mObserver;
 
     // Events
-    public static final int CREATE = 1;
-    public static final int DELETE = 2;
-    public static final int RENAME = 3;
-    public static final int CHANGE = 4;
+    public static final byte CREATE = 0x01;
+    public static final byte DELETE = 0x02;
+    public static final byte RENAME = 0x03;
+    public static final byte CHANGE = 0x04;
+
+    /*
+     * TODO:
+     *  add these modes as parameters to the functions
+     *  has a default value = NORMAL
+     *  Depending on the mode choose a directory [STRIPPED_FILES_DIRECTORY, NORMAL_FILES_DIRECTORY]
+     *  and weather to perform stripping or not
+     *  then perform the action
+     */
+
+    /**
+     * TODO:
+     *  modes should be sent with the event as a parameter in event listeners
+     */
+    // Modes
+    public static final byte NORMAL = 0x00;
+    public static final byte STRIP = (byte) 0xff; // -1
 
     private FileManager(File managedDirectory) {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
-        // Create a directory to save file temporarily
+        // Create temp directory for downloads directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
     }
 
@@ -90,7 +114,7 @@ public class FileManager implements IFileNotify {
 
     /**
      * Remove an event listener
-     * 
+     *
      * @return true if an object exists and got removed
      */
     public boolean RemoveEventListener(IFileEventListener fileEventListener){
@@ -105,21 +129,21 @@ public class FileManager implements IFileNotify {
      * @param newFile file after event - can be null
      */
     @Override
-    public void Notify(int event, File oldFile, File newFile){
+    public void Notify(byte event,byte mode, File oldFile, File newFile){
         if(!oldFile.toString().contains(TEMPORARY_DIRECTORY)){
             for(IFileEventListener fileEventListener : mObserver){
                 switch (event){
                     case CREATE:
-                        fileEventListener.onFileAdded(oldFile);
+                        fileEventListener.onFileAdded(oldFile,mode);
                         break;
                     case CHANGE:
-                        fileEventListener.onFileChanged(oldFile);
+                        fileEventListener.onFileChanged(oldFile, mode);
                         break;
                     case RENAME:
-                        fileEventListener.onFileRenamed(oldFile, newFile.getName());
+                        fileEventListener.onFileRenamed(oldFile, newFile.getName(), mode);
                         break;
                     case DELETE:
-                        fileEventListener.onFileRemoved(oldFile);
+                        fileEventListener.onFileRemoved(oldFile, mode);
                         break;
                 }
             }
@@ -138,7 +162,7 @@ public class FileManager implements IFileNotify {
         boolean isRenamed = oldFile.renameTo(newFile);
 
         if(isRenamed){
-            Notify(RENAME, oldFile ,newFile);
+            Notify(RENAME,NORMAL, oldFile ,newFile);
             return true;
         }
 
@@ -158,11 +182,18 @@ public class FileManager implements IFileNotify {
         boolean success = file.createNewFile();
 
         if(success){
-            Notify(CREATE, file, null);
+            Notify(CREATE,NORMAL, file, null);
             return true;
         }
 
         return false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public FileTime getLastModificationDate(File file) throws IOException {
+        BasicFileAttributes attributes = Files.readAttributes(file.toPath(),BasicFileAttributes.class);
+        FileTime lastModified = attributes.lastModifiedTime();
+        return lastModified;
     }
 
     /**
@@ -176,10 +207,11 @@ public class FileManager implements IFileNotify {
      * @throws IOException
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public boolean CopyFile(Path src, Path dst) throws IOException {
+    public boolean CopyFile(Path src, Path dst,byte mode) throws IOException {
+
         Files.copy(src, dst);
 
-        Notify(CREATE, new File(dst.toString()),null);
+        Notify(CREATE, mode, new File(dst.toString()),null);
 
         return true;
     }
@@ -196,8 +228,8 @@ public class FileManager implements IFileNotify {
      * @throws IOException
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public boolean MoveFile(Path src, Path dst) throws IOException {
-        return (CopyFile(src, dst) && DeleteFile(src.toFile()));
+    public boolean MoveFile(Path src, Path dst, byte mode) throws IOException {
+        return (CopyFile(src, dst, mode) && DeleteFile(src.toFile()));
     }
 
     /**
@@ -212,7 +244,7 @@ public class FileManager implements IFileNotify {
             boolean success = directory.mkdir();
 
             if(success){
-                Notify(CREATE, directory, null);
+                Notify(CREATE, NORMAL, directory, null);
             }
 
             return success;
@@ -233,7 +265,7 @@ public class FileManager implements IFileNotify {
             boolean success = directory.mkdirs();
 
             if(success){
-                Notify(CREATE, directory, null);
+                Notify(CREATE, NORMAL, directory, null);
             }
 
             return success;
@@ -252,7 +284,7 @@ public class FileManager implements IFileNotify {
     public boolean DeleteFile(File file) {
         boolean success = file.delete();
         if(success){
-            Notify(DELETE, file,null);
+            Notify(DELETE, NORMAL, file,null);
             return true;
         }
 
@@ -275,7 +307,7 @@ public class FileManager implements IFileNotify {
         fileOutputStream.flush();
         fileOutputStream.close();
 
-        Notify(CREATE, path,null);
+        Notify(CREATE, NORMAL, path,null);
 
         return true;
     }
@@ -341,6 +373,46 @@ public class FileManager implements IFileNotify {
                 | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /*
+     * TODO:
+     *  2 public functions for stripping and merging the files
+     */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public ArrayList<File> SplitFile(File f, ArrayList<String> fileNames) throws IOException {
+        long originalFileSize = Files.size(f.toPath());
+        int partSize =(int) Math.ceil((double)(originalFileSize)/fileNames.size());
+        byte[] buffer = new byte[partSize];
+        String fileName = f.getName();
+        ArrayList<File> Files = new ArrayList<File>();
+
+        try (FileInputStream fis = new FileInputStream(f);
+             BufferedInputStream bis = new BufferedInputStream(fis)) {
+
+            int bytesAmount = 0;
+            int i=0;
+            while ((bytesAmount = bis.read(buffer)) > 0) {
+                //write each chunk of data into separate file with different number in name
+                String filePartName = fileName + " " + fileNames.get(i);
+                File newFile = new File(f.getParent(), filePartName);
+                try (FileOutputStream out = new FileOutputStream(newFile)) {
+                    Files.add(newFile);
+                    i++;
+                    out.write(buffer, 0, bytesAmount);
+                }
+            }
+        }
+        return Files;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void MergeFiles(List<File> files, File into) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(into);
+             BufferedOutputStream mergingStream = new BufferedOutputStream(fos)) {
+            for (File f : files)
+                Files.copy(f.toPath(), mergingStream);
         }
     }
 }

@@ -36,6 +36,8 @@ public class SignInActivity extends AppCompatActivity implements Observer {
         _ActivitySignInBinding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(_ActivitySignInBinding.getRoot());
 
+        _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.GONE);
+
 
         mFirebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
         mFirebaseAuthenticationManager.addObserver(this);
@@ -51,8 +53,22 @@ public class SignInActivity extends AppCompatActivity implements Observer {
         _ActivitySignInBinding.forgetPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.VISIBLE);
-                mFirebaseAuthenticationManager.ForgetPassword(_ActivitySignInBinding.Email.getText().toString().trim(), _ActivitySignInBinding.ProgressBarForgetPass, SignInActivity.this);
+                String email=_ActivitySignInBinding.Email.getText().toString().trim();
+                String password=_ActivitySignInBinding.SignInPassword.getText().toString().trim();
+
+                if (TextUtils.isEmpty(email)) {
+                    _ActivitySignInBinding.emailLayout.setError("Email is required");
+                    return;
+                }
+                if (TextUtils.isEmpty(password)) {
+                    _ActivitySignInBinding.passwordLayout.setError("Password is required");
+                    return;
+                }if(!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
+                    _ActivitySignInBinding.ProgressBarForgetPass.setVisibility(View.VISIBLE);
+                    mFirebaseAuthenticationManager.ForgetPassword(_ActivitySignInBinding.Email.getText().toString().trim(), _ActivitySignInBinding.ProgressBarForgetPass, SignInActivity.this);
+
+                }
+
             }
         });
 

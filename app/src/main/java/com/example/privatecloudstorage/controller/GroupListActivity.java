@@ -1,49 +1,40 @@
 package com.example.privatecloudstorage.controller;
 
 import android.content.Intent;
-import android.net.Uri;
 
 
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.os.Build;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.Toolbar;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupListBinding;
-import com.example.privatecloudstorage.databinding.ActivitySignInBinding;
 import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.FirebaseStorageManager;
 import com.example.privatecloudstorage.model.Group;
-import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
 /**
  * GroupListActivity class is to make a dynamic List to view user's Group(s)
@@ -52,16 +43,18 @@ public class GroupListActivity extends AppCompatActivity {
     private static final String TAG = "GroupListActivity";
     ArrayList<String> mItems;
     ArrayAdapter<String> _Adapter;
-    ActionBarDrawerToggle actionBarDrawerToggle;
-    FirebaseAuthenticationManager firebaseAuthenticationManager;
-    TextView HeaderName ;
-    TextView HeaderEmail ;
-    CircleImageView profile;
+    ActionBarDrawerToggle _ActionBarDrawerToggle;
+    FirebaseAuthenticationManager mFirebaseAuthenticationManager;
+    TextView _HeaderName;
+    TextView _HeaderEmail;
+    CircleImageView _Profile;
 
     private @NonNull
     ActivityGroupListBinding _ActivityGroupListBinding;
-    private FirebaseDatabaseManager mFirebaseDatabaseManager;
-
+    /**
+     * handle  user groups
+     * @param savedInstanceState
+     */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,23 +62,31 @@ public class GroupListActivity extends AppCompatActivity {
         _ActivityGroupListBinding = ActivityGroupListBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupListBinding.getRoot());
 
-        mFirebaseDatabaseManager = FirebaseDatabaseManager.getInstance();
-        firebaseAuthenticationManager=FirebaseAuthenticationManager.getInstance();
+        mFirebaseAuthenticationManager =FirebaseAuthenticationManager.getInstance();
 
         // Start monitoring Cloud and Physical storage
         // MUST CALL THIS HERE
         FileManager.createInstance(getFilesDir());
         FirebaseStorageManager.getInstance();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ManagersMediator.getInstance().StartMonitoring();
 
         //To access navigation header
-        View view=_ActivityGroupListBinding.navgetion.getHeaderView(0);
-        HeaderName = (TextView) view.findViewById(R.id.nav_hedear_user_name);
-        HeaderEmail = (TextView) view.findViewById(R.id.nav_hedear_user_email);
-        profile= (CircleImageView)view.findViewById(R.id.img_second);
+        View view =_ActivityGroupListBinding.navgetion.getHeaderView(0);
+        _HeaderName = (TextView) view.findViewById(R.id.nav_hedear_user_name);
+        _HeaderEmail = (TextView) view.findViewById(R.id.nav_hedear_user_email);
+        /* TODO: retrive user info
+         *  if there is no photo url == NoPhoto
+         */
+        _Profile = (CircleImageView)view.findViewById(R.id.img_second);
 
-        profile.setImageURI(firebaseAuthenticationManager.getUserImage());
-        HeaderName.setText(firebaseAuthenticationManager.getCurrentUser().getDisplayName());
-        HeaderEmail.setText(firebaseAuthenticationManager.getCurrentUser().getEmail());
+        _Profile.setImageURI(mFirebaseAuthenticationManager.getUserImage());
+        _HeaderName.setText(mFirebaseAuthenticationManager.getCurrentUser().getDisplayName());
+        _HeaderEmail.setText(mFirebaseAuthenticationManager.getCurrentUser().getEmail());
 
 
         mItems = new ArrayList<>();
@@ -95,42 +96,42 @@ public class GroupListActivity extends AppCompatActivity {
         _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
 
         //getting user's group(s)
-
-        
-
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
                 mItems.add(group.getName());
             }
             _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
         });
-
-
+        /**
+         * retrieve group key and name and move to GroupSliderActivity
+         */
         _ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                  @Override //on any click (choosing a group) to enter and view group contents
                  public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                      ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
                          Group group = ((ArrayList<Group>) groups).get(position);
                          //before go to new activity send group name and id as a parameter
-                         Intent intent = new Intent(GroupListActivity.this, HomeActivity.class);
+                         Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
                          Bundle bundle = new Bundle();
                          bundle.putString("selectedGroupName", group.getName());
                          bundle.putString("selectedGroupKey", group.getId());
 
-                         intent.putExtras(bundle); //Put Group number to your next Intent
+                         intent.putExtras(bundle);//Put Group number to your next Intent
                          startActivity(intent);
                      });
                  }
         });
 
         //Manage navigation bar----------------------------------------------------------
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
-        _ActivityGroupListBinding.drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        _ActionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
+        _ActivityGroupListBinding.drawerLayout.addDrawerListener(_ActionBarDrawerToggle);
 
         //whether the drawerlayout is in open or closed state
-        actionBarDrawerToggle.syncState();
+        _ActionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+        /**
+         * handle user selection from navigation bar to move to another activity
+         */
         _ActivityGroupListBinding.navgetion.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -147,9 +148,13 @@ public class GroupListActivity extends AppCompatActivity {
                         break;
                     case R.id.profile:
                         startActivity(new Intent(GroupListActivity.this,ProfileActivity.class));
+                        recreate();
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
-
+                    case R.id.logout:
+                        mFirebaseAuthenticationManager.Logout();
+                        startActivity(new Intent(GroupListActivity.this,SignInActivity.class));
+                        _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                 }
                 return true;
             }
@@ -158,7 +163,7 @@ public class GroupListActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(actionBarDrawerToggle.onOptionsItemSelected(item))
+        if(_ActionBarDrawerToggle.onOptionsItemSelected(item))
             return true;
         return super.onOptionsItemSelected(item);
     }

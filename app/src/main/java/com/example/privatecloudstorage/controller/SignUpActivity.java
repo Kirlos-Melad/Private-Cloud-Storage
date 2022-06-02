@@ -1,8 +1,10 @@
 package com.example.privatecloudstorage.controller;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -10,7 +12,9 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.privatecloudstorage.databinding.ActivitySignUpBinding;
+import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
+import com.example.privatecloudstorage.model.ManagersMediator;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -20,9 +24,11 @@ import java.util.regex.Pattern;
 /**
  * allow users to sign up to make new firebase accounts
  */
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class SignUpActivity extends AppCompatActivity implements Observer {
     private static final String TAG = "SignUpActivity";
     private @NonNull ActivitySignUpBinding _ActivitySignUpBinding;
+    private final ManagersMediator MANAGERS_MEDIATOR = ManagersMediator.getInstance();
     private FirebaseAuthenticationManager mFirebaseAuthenticationManager;
 
     @Override
@@ -94,18 +100,11 @@ public class SignUpActivity extends AppCompatActivity implements Observer {
 
                 //make object from FirebaseAuthenticationManager
                 FirebaseAuthenticationManager mFirebaseAuthenticationManager = FirebaseAuthenticationManager.getInstance();
-                //call ValidateSignUp to validate sign up
-                boolean signedUp = mFirebaseAuthenticationManager.SignUp(email, password1, userName, false, SignUpActivity.this);
-                if (signedUp) {
-                    mFirebaseAuthenticationManager.Logout();
+
+                MANAGERS_MEDIATOR.SignUp(userName, email, password1, object -> {
                     startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                     finish();
-//                    if (mFirebaseAuthenticationManager.getCurrentUser().isEmailVerified()) {
-//                        Toast.makeText(SignUpActivity.this, "Your Email Is Verified :)", Toast.LENGTH_LONG).show();
-//                        startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
-//                        finish();
-//                    }
-                }
+                });
             }
         });
     }
