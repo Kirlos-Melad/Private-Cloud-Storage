@@ -140,7 +140,7 @@ public class FileManager implements IFileNotify {
                         fileEventListener.onFileChanged(oldFile, mode);
                         break;
                     case RENAME:
-                        fileEventListener.onFileRenamed(oldFile, newFile.getName(), mode);
+                        fileEventListener.onFileRenamed(newFile, oldFile.getName(), mode);
                         break;
                     case DELETE:
                         fileEventListener.onFileRemoved(oldFile, mode);

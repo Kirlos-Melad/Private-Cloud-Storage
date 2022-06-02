@@ -14,7 +14,6 @@ package com.example.privatecloudstorage.model;
 
         import com.example.privatecloudstorage.interfaces.IAction;
         import com.google.android.gms.tasks.OnSuccessListener;
-        import com.google.firebase.auth.FirebaseUser;
         import com.google.firebase.database.ChildEventListener;
         import com.google.firebase.database.DataSnapshot;
         import com.google.firebase.database.DatabaseError;
@@ -27,6 +26,8 @@ package com.example.privatecloudstorage.model;
 
 //Java Libraries
         import java.io.File;
+        import java.io.IOException;
+        import java.nio.file.Files;
         import java.text.SimpleDateFormat;
         import java.util.ArrayList;
         import java.util.Date;
@@ -315,13 +316,36 @@ public class FirebaseDatabaseManager {
      * @param group group from which the snapshot was taken
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void TakeAction(DataSnapshot fileSnapshot, Group group){
+    private void TakeAction(DataSnapshot fileSnapshot, boolean isRename, Group group){
+        if(fileSnapshot.getValue() instanceof String)
+            return;
+
+        if(isRename){
+            File oldFile = new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + group.getId() + " " + group.getName() +
+                    File.separator + "Normal Files", fileSnapshot.child("PreviousName").getValue(String.class));
+            File newFile = new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + group.getId() + " " + group.getName() +
+                    File.separator + "Normal Files", fileSnapshot.child("Name").getValue(String.class));
+
+            try {
+                Files.copy(oldFile.toPath(), newFile.toPath());
+                oldFile.delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return;
+        }
+
+        Log.d(TAG, "TakeAction: Group ID: " + group.getId() + "==============================");
+        Log.d(TAG, "TakeAction: File ID: " + fileSnapshot.getKey() + "==============================");
         // Get Location on Cloud and Physical Storage
-        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
+        // TODO: Change this according to mode
+        Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/" + fileSnapshot.getKey());
+        String fileName = fileSnapshot.child("Name").getValue(String.class);;
         //String physicalLocation = group.getId() + " " + group.getName();
 
         // Download the file
-        ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation, fileSnapshot.child("Name").getValue(String.class));
+        ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation, fileName);
         //FirebaseStorageManager.getInstance().Download(group,cloudLocation, fileSnapshot.child("Name").getValue().toString());
 
         // Add user to SeenBy
@@ -358,44 +382,37 @@ public class FirebaseDatabaseManager {
         });
     }
 
-    private ValueEventListener SharedFileNameEventListener(Group group, DataSnapshot sharedFileSnapshot){
-        return new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot fileNameSnapshot) {
-                try{
-                    String previousName = sharedFileSnapshot.child("Name").getValue(String.class);
-                    //String mode = sharedFileSnapshot.child("Mode").getValue(String.class);
-                    String groupFolder = group.getId() + " " + group.getName();
-                    File file;
-                    file= new File(FileManager.getInstance().GetApplicationDirectory() + File.separator + groupFolder + File.separator + "Normal Files",
-                            previousName);
-
-                    File newFile = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)), fileNameSnapshot.getValue(String.class));
-                    file.renameTo(newFile);
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        };
-    }
-
     private ChildEventListener SharedFilesEventListener(Group group){
         return new ChildEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onChildAdded(@NonNull DataSnapshot sharedFileSnapshot, @Nullable String previousChildName) {
                 mExecutorService.execute(() -> {
-                    if(!sharedFileSnapshot.child("SeenBy").hasChild(ManagersMediator.getInstance().GetCurrentUser().getUid()))
-                        TakeAction(sharedFileSnapshot, group);
+                    if (!sharedFileSnapshot.child("SeenBy").hasChild(ManagersMediator.getInstance().GetCurrentUser().getUid()))
+                        TakeAction(sharedFileSnapshot, false, group);
 
 
-                    sharedFileSnapshot.child("Name").getRef().addValueEventListener(SharedFileNameEventListener(group, sharedFileSnapshot));
+                    sharedFileSnapshot.getRef().addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot fileSnapshot) {
+                            mDataBase.getReference().child("Groups").child(group.getId())
+                                    .child("SharedFiles").child(sharedFileSnapshot.getKey())
+                                    .child("Change").get()
+                                    .addOnSuccessListener(changeSnapshot ->{
+                                                try {
+                                                    TakeAction(fileSnapshot, changeSnapshot.getValue(String.class).equals("Renamed"), group);
+                                                } catch (Exception e){
+                                                    Log.e(TAG, "onDataChange: ", e);
+                                                }
+                                            }
+                                    );
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
                 });
             }
 
@@ -413,7 +430,8 @@ public class FirebaseDatabaseManager {
                     File file;
                     file = new File(FileManager.getInstance().GetApplicationDirectory(),
                             group.getId() + " " + groupName + File.separator + "Normal Files" + File.separator +fileName);
-                    FileManager.getInstance().DeleteFile(file);
+                    file.delete();
+                    //FileManager.getInstance().DeleteFile(file);
                 });
             }
 
@@ -513,7 +531,7 @@ public class FirebaseDatabaseManager {
     public void AddFile(String groupId, String fileId, String fileName, StorageMetadata metadata, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             HashMap<String,String>children=new HashMap<String,String>(){{
-                put("URL",fileId +"/"+ groupId);
+                put("URL",groupId +"/"+ fileId);
                 //TODO:change value of Mode
                 put("Mode","Normal");
                 put("Group",groupId);
@@ -538,20 +556,13 @@ public class FirebaseDatabaseManager {
      */
     public void DeleteFile(String groupId, String fileId, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
-            mDataBase.getReference().child("Groups")
-                    .child(groupId).child("SharedFiles").child(fileId).removeValue()
-                    .addOnFailureListener(e -> e.printStackTrace());
-            DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
-            FilesReference.get().addOnSuccessListener(dataSnapshot -> {
-                executorService.execute(() -> {
-                    int versionNumber= (int) dataSnapshot.getChildrenCount();
-                    versionNumber-=3;
-                    //get info from Files and update SharedFiles
-                    mDataBase.getReference().child("Groups")
-                            .child(groupId).child("RecycledFiles").child(fileId).setValue(versionNumber);
-                });
-            });
+            VersionNumberRetriever(fileId, versionNumber -> {
+                mDataBase.getReference().child("Groups").child(groupId)
+                        .child("RecycledFiles").child(fileId).setValue((int)versionNumber - 1);
 
+                mDataBase.getReference().child("Groups").child(groupId)
+                        .child("SharedFiles").child(fileId).removeValue();
+            }, executorService);
         });
     }
 
@@ -561,7 +572,7 @@ public class FirebaseDatabaseManager {
 
         //get current date and time
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd_HH:mm:ss", Locale.getDefault());
-        String currentDateandTime = sdf.format(new Date());
+        String currentDateTime = sdf.format(new Date());
 
         DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
         FilesReference.get().addOnSuccessListener(dataSnapshot -> {
@@ -571,19 +582,31 @@ public class FirebaseDatabaseManager {
                 //get info from Files and update SharedFiles
 
                 FilesReference.child(String.valueOf(versionNumber)).child("Name").setValue(fileName);
-                FilesReference.child(String.valueOf(versionNumber)).child("Date").setValue(currentDateandTime);
+                FilesReference.child(String.valueOf(versionNumber)).child("Date").setValue(currentDateTime);
                 FilesReference.child(String.valueOf(versionNumber)).child("Change").setValue(change);
                 //FilesReference.child(String.valueOf(versionNumber)).child("StorageMetadata").setValue((Object)metadata);
 
                 DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
                         .child(fileId);
 
-                SharedFileReference.child("Mode").setValue(dataSnapshot.child("Mode").getValue());
-                if(!change.equals("New")){
-                    SharedFileReference.child("PreviousName").setValue(dataSnapshot.child(String.valueOf(versionNumber-1)).child("Name").getValue());
-                }
-                SharedFileReference.child("URL").setValue(dataSnapshot.child("URL").getValue() +"/"+ String.valueOf(versionNumber) );
+                int finalVersionNumber = versionNumber;
                 SharedFileReference.child("SeenBy").removeValue();
+                HashMap<String,Object> sharedFileChildren = new HashMap<String,Object>(){{
+                    put("URL", dataSnapshot.child("URL").getValue() +"/"+ finalVersionNumber);
+                    put("Name", fileName);
+                    //TODO:change value of Mode
+                    put("Mode", dataSnapshot.child("Mode").getValue(String.class));
+                    put("Change", change);
+                }};
+
+                //SharedFileReference.child("Mode").setValue(dataSnapshot.child("Mode").getValue());
+                if(!change.equals("New")){
+                    sharedFileChildren.put("PreviousName", dataSnapshot.child(String.valueOf(versionNumber-1)).child("Name").getValue());
+                    //SharedFileReference.child("PreviousName").setValue(dataSnapshot.child(String.valueOf(versionNumber-1)).child("Name").getValue());
+                }
+                //SharedFileReference.child("URL").setValue(dataSnapshot.child("URL").getValue() +"/"+ String.valueOf(versionNumber));
+
+                SharedFileReference.updateChildren(sharedFileChildren);
                 SharedFileReference.child("SeenBy").child(ManagersMediator.getInstance().GetCurrentUser().getUid())
                         .setValue(ManagersMediator.getInstance().GetCurrentUser().getDisplayName());
 

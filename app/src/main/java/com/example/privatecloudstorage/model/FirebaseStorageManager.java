@@ -139,9 +139,10 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void DeleteGroupFile(String groupId, String fileName, IAction action, ExecutorService executorService){
+    public void DeleteGroupFile(Uri url, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
+            Log.d(TAG, "DeleteGroupFile: URL: " + url.toString() + "-----------------------------------------------");
+            StorageReference fileReference = mStorage.getReference().child(url.toString());
             fileReference.delete().addOnSuccessListener(unused -> {
                 executorService.execute(() -> {
                     action.onSuccess(null);
