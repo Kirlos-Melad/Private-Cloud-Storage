@@ -57,7 +57,7 @@ public class Group {
     }
 
     /**
-     * Recieves the password from the user and hash it using SHA-256 Hashing function
+     * Receives the password from the user and hash it using SHA-256 Hashing function
      *
      * @param password sent Password from user
      * @return true when the password is hashed and save, false when there's an exception

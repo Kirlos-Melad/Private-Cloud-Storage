@@ -19,7 +19,8 @@
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
             android:name=".controller.GroupSliderActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".controller.GroupListActivity"/>
         <activity
             android:name=".controller.ProfileActivity"
             android:exported="false"
@@ -51,13 +52,10 @@
         </provider>
 
         <activity
-            android:name=".controller.FileExplorerListActivity"
-            android:exported="false" />
-        <activity
-            android:name=".controller.GroupContentActivity"
+            android:name=".controller.GroupListActivity"
             android:exported="true" />
         <activity
-            android:name=".controller.GroupListActivity"
+            android:name=".controller.FileExplorerActivity"
             android:exported="true" />
         <activity
             android:name=".controller.CreateGroupActivity"

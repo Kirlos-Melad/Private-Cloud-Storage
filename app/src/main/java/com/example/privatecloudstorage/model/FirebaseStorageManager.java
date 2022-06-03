@@ -54,10 +54,10 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void Upload(String groupId, Uri file, IAction action, ExecutorService executorService) {
+    public void UploadGroupFile(String groupId, Uri file, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             String fileName = file.getLastPathSegment();
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
+            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName.split(" ")[0]).child(fileName);
 
             //Start uploading file
             fileReference.putFile(file)
@@ -75,6 +75,29 @@ public class FirebaseStorageManager {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void UploadUserFile(Uri file, IAction action, ExecutorService executorService){
+        executorService.execute(() -> {
+            String fileName = file.getLastPathSegment();
+            StorageReference fileReference = mStorage.getReference().child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child(fileName);
+
+            //Start uploading file
+            fileReference.putFile(file)
+                    .addOnSuccessListener(uploadTask -> {
+                        executorService.execute(() -> {
+                            uploadTask.getTask().addOnSuccessListener(finishedUploadTask -> {
+                                // send url
+                                action.onSuccess(finishedUploadTask.getMetadata().getPath());
+                            });
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.d(TAG, "Upload: failed");
+                        e.printStackTrace();
+                    });
+        });
+    }
+
     /**
      * Download new file from storage cloud
      *
@@ -84,7 +107,7 @@ public class FirebaseStorageManager {
      * @param executorService thread to run on
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void Download(Uri url, File downloadFile, IAction action, ExecutorService executorService) {
+    public void DownloadGroupFile(Uri url, File downloadFile, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             StorageReference storageReference = mStorage.getReference().child(url.toString());
             storageReference.getFile(downloadFile)
@@ -94,7 +117,24 @@ public class FirebaseStorageManager {
                         });
                     })
                     .addOnFailureListener(e -> {
-                        Log.d(TAG, "Download: line 203");
+                        Log.d(TAG, "Download: line 120");
+                        e.printStackTrace();
+                    });
+        });
+    }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void DownloadUserFile(File downloadFile, IAction action, ExecutorService executorService) {
+        executorService.execute(() -> {
+            StorageReference storageReference = mStorage.getReference().child(ManagersMediator.getInstance().GetCurrentUser().getUid())
+                    .child(downloadFile.getName());
+            storageReference.getFile(downloadFile)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        executorService.execute(() -> {
+                            action.onSuccess(null);
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.d(TAG, "Download: line 137");
                         e.printStackTrace();
                     });
         });
@@ -108,7 +148,7 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void Delete(String groupId, String fileName, IAction action, ExecutorService executorService){
+    public void DeleteGroupFile(String groupId, String fileName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
             StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
             fileReference.delete().addOnSuccessListener(unused -> {

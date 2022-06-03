@@ -68,11 +68,20 @@ public class GroupListActivity extends AppCompatActivity {
         // MUST CALL THIS HERE
         FileManager.createInstance(getFilesDir());
         FirebaseStorageManager.getInstance();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ManagersMediator.getInstance().StartMonitoring();
 
         //To access navigation header
         View view =_ActivityGroupListBinding.navgetion.getHeaderView(0);
         _HeaderName = (TextView) view.findViewById(R.id.nav_hedear_user_name);
         _HeaderEmail = (TextView) view.findViewById(R.id.nav_hedear_user_email);
+        /* TODO: retrive user info
+         *  if there is no photo url == NoPhoto
+         */
         _Profile = (CircleImageView)view.findViewById(R.id.img_second);
 
         _Profile.setImageURI(mFirebaseAuthenticationManager.getUserImage());
@@ -139,6 +148,7 @@ public class GroupListActivity extends AppCompatActivity {
                         break;
                     case R.id.profile:
                         startActivity(new Intent(GroupListActivity.this,ProfileActivity.class));
+                        recreate();
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
                     case R.id.logout:

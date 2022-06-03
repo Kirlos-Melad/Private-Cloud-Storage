@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/item_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="17dp"
+        tools:src="@drawable/ic_baseline_folder_24" />
+
+
+    <TextView
+        android:id="@+id/item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_toEndOf="@id/item_image"
+        android:padding="20dp"
+        android:textColor="@color/black"
+        android:textSize="20dp"
+        tools:text="Documents" />
+
+    <TextView
+        android:id="@+id/sub_text"
+        android:layout_width="300dp"
+        android:layout_height="20dp"
+        android:layout_below="@+id/item_name"
+        android:layout_marginStart="37dp"
+        android:layout_marginTop="-23dp"
+        android:layout_toEndOf="@id/item_image"
+        android:textColor="@color/black"
+        tools:text="hello" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/item_name"
+        android:layout_marginTop="2dp"
+        android:background="@color/cardview_shadow_start_color" />
+
+</RelativeLayout>

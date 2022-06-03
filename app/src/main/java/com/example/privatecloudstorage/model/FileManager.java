@@ -2,6 +2,7 @@ package com.example.privatecloudstorage.model;
 
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -44,6 +45,10 @@ public class FileManager implements IFileNotify {
     private final String TEMPORARY_DIRECTORY = "Temporary";
     private final String STRIPPED_FILES_DIRECTORY = "Stripped Files";
     private final String NORMAL_FILES_DIRECTORY = "Normal Files";
+    private final String USER_DIRECTORY = "User";
+
+    
+
 
     private final Vector<IFileEventListener> mObserver;
 
@@ -70,12 +75,17 @@ public class FileManager implements IFileNotify {
     public static final byte NORMAL = 0x00;
     public static final byte STRIP = (byte) 0xff; // -1
 
+
     private FileManager(File managedDirectory) {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
         // Create temp directory for downloads directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
+
+        CreateDirectory(new File(mApplicationDirectory.toString(), USER_DIRECTORY));
+
+       
     }
 
     public static FileManager createInstance(File parentDirectory){
@@ -180,7 +190,6 @@ public class FileManager implements IFileNotify {
      */
     public boolean CreateFile(File file) throws IOException {
         boolean success = file.createNewFile();
-
         if(success){
             Notify(CREATE,NORMAL, file, null);
             return true;
@@ -208,7 +217,7 @@ public class FileManager implements IFileNotify {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean CopyFile(Path src, Path dst,byte mode) throws IOException {
-
+        Log.d(TAG, "CopyFile: =========================================================================");
         Files.copy(src, dst);
 
         Notify(CREATE, mode, new File(dst.toString()),null);
@@ -377,9 +386,9 @@ public class FileManager implements IFileNotify {
     }
 
     /*
-    * TODO:
-    *  2 public functions for stripping and merging the files
-    */
+     * TODO:
+     *  2 public functions for stripping and merging the files
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public ArrayList<File> SplitFile(File f, ArrayList<String> fileNames) throws IOException {
         long originalFileSize = Files.size(f.toPath());
@@ -395,11 +404,10 @@ public class FileManager implements IFileNotify {
             int i=0;
             while ((bytesAmount = bis.read(buffer)) > 0) {
                 //write each chunk of data into separate file with different number in name
-                String filePartName = fileName + " " + fileNames.get(i);
+                String filePartName = fileName + " " + fileNames.get(i++);
                 File newFile = new File(f.getParent(), filePartName);
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
                     Files.add(newFile);
-                    i++;
                     out.write(buffer, 0, bytesAmount);
                 }
             }
