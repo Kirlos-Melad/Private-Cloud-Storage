@@ -40,6 +40,7 @@ import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -80,7 +81,9 @@ public class GroupSliderActivity extends AppCompatActivity {
      */
     private FragmentStateAdapter pagerAdapter;
     private String mSelectedGroupName;
+    private String mName;
     private String mSelectedGroupKey;
+    private String mSelectedGroupDescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +99,7 @@ public class GroupSliderActivity extends AppCompatActivity {
             finish();
         mSelectedGroupName = bundle.getString("selectedGroupName");
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
+        mSelectedGroupDescription=bundle.getString("selectedGroupDescription");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
         viewPager = findViewById(R.id.pager);
@@ -164,23 +168,35 @@ public class GroupSliderActivity extends AppCompatActivity {
             viewPager.setCurrentItem(viewPager.getCurrentItem() - 1);
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.setting_menu, menu);
         return true;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.item1:
-                Toast.makeText(this, "Item 1 selected", Toast.LENGTH_SHORT).show();
-                return true;
             case R.id.item2:
-                Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("Name", mName);
+                bundle.putString("Description", mSelectedGroupDescription);
+                bundle.putString("Uri", "NoPicture");
+                bundle.putString("Caller", "Group");
+
+                intent.putExtras(bundle);//Put Group number to your next Intent
+                startActivity(intent);
+                //Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.item3:
-                Toast.makeText(this, "Item 3 selected", Toast.LENGTH_SHORT).show();
+                ManagersMediator.getInstance().ExitGroup(mSelectedGroupKey, mSelectedGroupName);
+                Toast.makeText(this, "Exit group is done :( ", Toast.LENGTH_SHORT).show();
+                Intent intent2=new Intent(GroupSliderActivity.this,GroupListActivity.class);
+                startActivity(intent2);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

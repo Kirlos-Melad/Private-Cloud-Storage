@@ -44,6 +44,10 @@ public class FileManager implements IFileNotify {
     private final String TEMPORARY_DIRECTORY = "Temporary";
     private final String STRIPPED_FILES_DIRECTORY = "Stripped Files";
     private final String NORMAL_FILES_DIRECTORY = "Normal Files";
+    private final String USER_DIRECTORY = "User";
+
+    
+
 
     private final Vector<IFileEventListener> mObserver;
 
@@ -54,13 +58,13 @@ public class FileManager implements IFileNotify {
     public static final byte CHANGE = 0x04;
 
     /*
-     * TODO:
-     *  add these modes as parameters to the functions
-     *  has a default value = NORMAL
-     *  Depending on the mode choose a directory [STRIPPED_FILES_DIRECTORY, NORMAL_FILES_DIRECTORY]
-     *  and weather to perform stripping or not
-     *  then perform the action
-     */
+    * TODO:
+    *  add these modes as parameters to the functions
+    *  has a default value = NORMAL
+    *  Depending on the mode choose a directory [STRIPPED_FILES_DIRECTORY, NORMAL_FILES_DIRECTORY]
+    *  and weather to perform stripping or not
+    *  then perform the action
+    */
 
     /**
      * TODO:
@@ -70,12 +74,17 @@ public class FileManager implements IFileNotify {
     public static final byte NORMAL = 0x00;
     public static final byte STRIP = (byte) 0xff; // -1
 
+
     private FileManager(File managedDirectory) {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
         // Create temp directory for downloads directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
+
+        CreateDirectory(new File(mApplicationDirectory.toString(), USER_DIRECTORY));
+
+       
     }
 
     public static FileManager createInstance(File parentDirectory){
@@ -114,7 +123,7 @@ public class FileManager implements IFileNotify {
 
     /**
      * Remove an event listener
-     *
+     * 
      * @return true if an object exists and got removed
      */
     public boolean RemoveEventListener(IFileEventListener fileEventListener){

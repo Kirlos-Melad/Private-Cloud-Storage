@@ -4,6 +4,7 @@ import android.content.Intent;
 
 
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,7 +33,9 @@ import com.example.privatecloudstorage.model.ManagersMediator;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -106,20 +109,21 @@ public class GroupListActivity extends AppCompatActivity {
          * retrieve group key and name and move to GroupSliderActivity
          */
         _ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                 @Override //on any click (choosing a group) to enter and view group contents
-                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                     ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
-                         Group group = ((ArrayList<Group>) groups).get(position);
-                         //before go to new activity send group name and id as a parameter
-                         Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
-                         Bundle bundle = new Bundle();
-                         bundle.putString("selectedGroupName", group.getName());
-                         bundle.putString("selectedGroupKey", group.getId());
+            @Override //on any click (choosing a group) to enter and view group contents
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
+                    Group group = ((ArrayList<Group>) groups).get(position);
+                    //before go to new activity send group name and id as a parameter
+                    Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("selectedGroupName", group.getName());
+                    bundle.putString("selectedGroupKey", group.getId());
+                    bundle.putString("selectedGroupDescription",group.getDescription());
 
-                         intent.putExtras(bundle);//Put Group number to your next Intent
-                         startActivity(intent);
-                     });
-                 }
+                    intent.putExtras(bundle);//Put Group number to your next Intent
+                    startActivity(intent);
+                });
+            }
         });
 
         //Manage navigation bar----------------------------------------------------------
@@ -147,7 +151,21 @@ public class GroupListActivity extends AppCompatActivity {
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
                     case R.id.profile:
-                        startActivity(new Intent(GroupListActivity.this,ProfileActivity.class));
+                        ManagersMediator.getInstance().GetUserProfileData(userData->{
+                            HashMap<String, String> user_data = (HashMap<String, String>) userData;
+
+                            Intent intent = new Intent(GroupListActivity.this, ProfileActivity.class);
+                            Bundle bundle = new Bundle();
+
+                            bundle.putString("Uri", user_data.get("ProfilePicture"));
+                            bundle.putString("Description", user_data.get("About"));
+                            bundle.putString("Name", user_data.get("Name"));
+                            Log.d(TAG, "onNavigationItemSelected: ------------------------- " + user_data.get("Name"));
+                            bundle.putString("Caller", "User");
+
+                            intent.putExtras(bundle);//Put Group number to your next Intent
+                            startActivity(intent);
+                        });
                         recreate();
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);
                         break;
@@ -168,4 +186,3 @@ public class GroupListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
-

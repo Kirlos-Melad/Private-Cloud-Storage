@@ -7,15 +7,18 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
 import android.text.TextUtils;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -29,6 +32,12 @@ import com.example.privatecloudstorage.databinding.ActivityProfileBinding;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 /**
  * show user profile allow him editing user name and user about
  */
@@ -36,6 +45,11 @@ public class ProfileActivity extends AppCompatActivity {
 
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     Uri uri;
+    private String mName;
+    private String mDescription;
+    private String mUri;
+    private  Bundle bundle;
+    private String mCaller;
 
     private @NonNull ActivityProfileBinding _ActivityProfileBinding;
     /**
@@ -52,8 +66,22 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(_ActivityProfileBinding.getRoot());
         getSupportActionBar().setTitle("Profile");
 
-        String userName = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getDisplayName();
-        Uri imageUri = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getPhotoUrl();
+        bundle = getIntent().getExtras();
+        if(bundle == null)
+            finish();
+        mName = bundle.getString("Name");
+        mDescription = bundle.getString("Description");
+        mUri = bundle.getString("Uri");
+        mCaller = bundle.getString("Caller");
+
+        if(mUri.equals("NoPicture")){
+            _ActivityProfileBinding.profileImage.setImageURI( mFirebaseAuthenticationManager.getInstance()
+                    .getCurrentUser().getPhotoUrl());
+        }else{
+            _ActivityProfileBinding.profileImage.setImageURI(Uri.parse(mUri));
+        }
+        _ActivityProfileBinding.aboutText.setText(mDescription);
+        _ActivityProfileBinding.userName.setText(mName);
 
         View _UserNameView = inflater.inflate(R.layout.user_custom_dialog,null);
         View _UserAboutView= inflater.inflate(R.layout.user_custom_dialog,null);
@@ -61,8 +89,6 @@ public class ProfileActivity extends AppCompatActivity {
         EditText _UserAboutEditText = _UserAboutView.findViewById(R.id.edit_text);
 
 
-        _ActivityProfileBinding.userName.setText(userName);
-        _ActivityProfileBinding.profileImage.setImageURI(imageUri);
         /**
          * handle change user profile image
          */
@@ -80,6 +106,7 @@ public class ProfileActivity extends AppCompatActivity {
          * handle change user profile name
          */
         _ActivityProfileBinding.edetName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String editUserName = _UserNameEditText.getText().toString();
@@ -88,13 +115,17 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.userName.setText(editUserName);
-                ManagersMediator.getInstance().SetUserName(editUserName);
+                if(mCaller.equals("User")){
+                    ManagersMediator.getInstance().SetUserName(editUserName);
+                }
+
             }
         }));
         /**
          * handle change user profile about
          */
         _ActivityProfileBinding.edetAbout.setOnClickListener(EditUserButtonClickListener("User About",_UserAboutView,new DialogInterface.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -104,7 +135,10 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.aboutText.setText(editUserAbout);
-                ManagersMediator.getInstance().SetUserAbout(editUserAbout);
+                if(mCaller.equals("User")){
+                    ManagersMediator.getInstance().SetUserAbout(editUserAbout);
+                }
+
             }
         }));
     }
@@ -121,7 +155,10 @@ public class ProfileActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            ManagersMediator.getInstance().SetUserProfilePicture(uri);
+            if(mCaller.equals("User")){
+                ManagersMediator.getInstance().SetUserProfilePicture(uri);
+            }
+
 
         }
     }
@@ -158,6 +195,5 @@ public class ProfileActivity extends AppCompatActivity {
             }
         };
     }
+
 }
-
-
