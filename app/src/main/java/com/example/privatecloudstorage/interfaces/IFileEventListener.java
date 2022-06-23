@@ -8,6 +8,6 @@ import java.io.File;
 public interface IFileEventListener extends IEventListener {
     void onFileAdded(File file, byte mode);
     void onFileRemoved(File file);
-    void onFileChanged(File file);
-    void onFileRenamed(File file, String oldName);
+    void onFileChanged(File file,byte mode);
+    void onFileRenamed(File file, String oldName,byte mode);
 }

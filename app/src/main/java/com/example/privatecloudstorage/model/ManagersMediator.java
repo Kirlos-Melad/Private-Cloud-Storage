@@ -56,6 +56,8 @@ public class ManagersMediator {
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
         mMonitoringStarted=false;
 
+        // Listen to directory changes
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -139,19 +141,7 @@ public class ManagersMediator {
     }
 
 
-    /*@RequiresApi(api = Build.VERSION_CODES.Q)
-    //phyicalpath = childuserid child name maugod fe el uploud
-    //path eli py5do el Filw file hwa elli elsors ptnzl feh
 
-    public void GetUserProfilePicture(Uri phyicalPath , String fileName ){
-        String path;
-        path = FILE_MANAGER.GetApplicationDirectory() + File.separator + "Normal Files";
-        File file = new File(path, fileName);
-        STORAGE_MANAGER.DownloadUserFile(phyicalPath, file,
-                object -> {
-                }, EXECUTOR_SERVICE);
-
-    }*/
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserName(String name){
@@ -175,6 +165,11 @@ public class ManagersMediator {
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+    public void FileInformationRetriever(String groupId, String fileName, IAction action){
+        DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
+            DATABASE_MANAGER.GetSharedFileVersions((String)fileId, action, EXECUTOR_SERVICE);
+        }, EXECUTOR_SERVICE);
+    }
 
 
 
@@ -199,13 +194,13 @@ public class ManagersMediator {
             public void onFileAdded(File file, byte mode) {
                 if(file.isDirectory())
                     return;
-                Log.d(TAG, "===========================Im in FileUploadProcedure ONFILEADDED=========================");
+
                 DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group,file,true,mode);
+                            FileUploadProcedure(group, file, "New", mode);
                             break;
                         }
                     }
@@ -232,16 +227,16 @@ public class ManagersMediator {
 
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
-            public void onFileChanged(File file) {
+            public void onFileChanged(File file,byte mode) {
                 if(file.isDirectory())
                     return;
-                Log.d(TAG, "===========================Im in FileUploadProcedure ONFILECHANGED=========================");
+
                 DATABASE_MANAGER.UserGroupsRetriever(object -> {
                     ArrayList<Group> groups = (ArrayList<Group>) object;
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group,file,false,FILE_MANAGER.NORMAL);
+                            FileUploadProcedure(group, file, "Modified", mode);
                             break;
                         }
                     }
@@ -250,7 +245,7 @@ public class ManagersMediator {
 
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
-            public void onFileRenamed(File file, String oldName) {
+            public void onFileRenamed(File file, String oldName, byte mode) {
                 if(file.isDirectory())
                     return;
 
@@ -259,7 +254,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileRenameProcedure(group.getId(), file.getName(), oldName);
+                            FileUploadProcedure(group,file,"Renamed", mode);
                             break;
                         }
                     }
@@ -273,17 +268,15 @@ public class ManagersMediator {
      *
      * @param group associated group to the file
      * @param file the file being uploaded
-     * @param isNew true if new file else the file is modified
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void FileUploadProcedure(Group group, File file, boolean isNew, byte mode){
+    private void FileUploadProcedure(Group group, File file, String change, byte mode){
         EXECUTOR_SERVICE.execute(() -> {
-            if(isNew){
-                DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, true,mode), EXECUTOR_SERVICE);
-                Log.d(TAG, "===========================Im in FileUploadProcedure isNew=========================");
+            if(change.equals("New")){
+                DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, change,mode), EXECUTOR_SERVICE);
             }
             else{
-                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, false,mode), EXECUTOR_SERVICE);
+                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, change,mode), EXECUTOR_SERVICE);
             }
         });
     }
@@ -293,66 +286,90 @@ public class ManagersMediator {
      *
      * @param group associated group to the file
      * @param file the file being uploaded
-     * @param isNew true if new file else the file is modified
      *
      * @return  the action to be done upon uploading the file
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private IAction UploadAction(Group group, File file, boolean isNew, byte mode){
+    private IAction UploadAction(Group group, File file, String change, byte mode){
         return fileId -> {
             EXECUTOR_SERVICE.execute(() -> {
                 File encryptedFile;
                 try {
-                    encryptedFile = FILE_MANAGER.EncryptDecryptFile(file, (String) fileId, group, Cipher.ENCRYPT_MODE);
+                    encryptedFile = FILE_MANAGER.EncryptDecryptFile(file, (String)fileId, group, Cipher.ENCRYPT_MODE);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return;
                 }
 
                 // Get encrypted file location in physical storage
-                Uri fileUri = Uri.fromFile(encryptedFile);
+                //Uri fileUri = Uri.fromFile(encryptedFile);
 
                 if (mode == FILE_MANAGER.NORMAL){
+                    if(change.equals("New")){
+                        // Get encrypted file location in physical storage
+                        Uri fileUri = Uri.fromFile(encryptedFile);
                         // Upload the file to cloud Storage
-                        STORAGE_MANAGER.UploadGroupFile(group.getId(), fileUri, object -> EXECUTOR_SERVICE.execute(() -> {
-                        // Extract information
-                        StorageMetadata storageMetadata = (StorageMetadata) object;
-                        String groupId = group.getId();
-                        String fileName = file.getName();
+                        STORAGE_MANAGER.UploadGroupFile(group.getId(), fileUri,0, object -> EXECUTOR_SERVICE.execute(() -> {
+                            // Extract information
+                            StorageMetadata storageMetadata = (StorageMetadata) object;
+                            String groupId = group.getId();
+                            String fileName = file.getName();
 
-                        // Add the file to Database
-                        DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName,mode, storageMetadata, null, EXECUTOR_SERVICE);
+                            // Add the file to Database
+                            DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName,mode,storageMetadata, null, EXECUTOR_SERVICE);
 
-                        // Clear temp directory
-                        FILE_MANAGER.DeleteFile(encryptedFile);
-                    }), EXECUTOR_SERVICE);
+                            // Clear temp directory
+                            FILE_MANAGER.DeleteFile(encryptedFile);
+                        }), EXECUTOR_SERVICE);
+                    }
+                    else{
+                        Log.d(TAG, "UploadAction: YES =======================================");
+                        // Get encrypted file location in physical storage
+                        Uri fileUri = Uri.fromFile(encryptedFile);
+                        DATABASE_MANAGER.VersionNumberRetriever((String) fileId,versionNumber->{
+                            // Upload the file to cloud Storage
+                            STORAGE_MANAGER.UploadGroupFile(group.getId(), fileUri,(int)versionNumber, object -> EXECUTOR_SERVICE.execute(() -> {
+                                // Extract information
+                                StorageMetadata storageMetadata = (StorageMetadata) object;
+                                String groupId = group.getId();
+                                String fileName = file.getName();
+
+                                // Add the file to Database
+                                DATABASE_MANAGER.Versioning(fileName,(String) fileId,groupId,change,storageMetadata,null,EXECUTOR_SERVICE);
+
+                                // Clear temp directory
+                                FILE_MANAGER.DeleteFile(encryptedFile);
+                            }), EXECUTOR_SERVICE);
+                        },EXECUTOR_SERVICE);
+                    }
                 }
                 else{
                     DATABASE_MANAGER.GetMembersIDs(group.getId(), new IAction() {
                         @Override
                         public void onSuccess(Object memIds) {
-                            try {
-                                ArrayList<String> membersIds = (ArrayList<String>)memIds;
-                                int myIndex = membersIds.indexOf(GetCurrentUser().getUid());
-                                Log.d(TAG, "membersID ===================="+membersIds.size()+"=============================");
-                                ArrayList<File> splitFiles = FILE_MANAGER.SplitFile(encryptedFile, membersIds);
-                                Collections.swap(splitFiles,0,myIndex);
-                                // Delete encrypted file
-                                FILE_MANAGER.DeleteFile(encryptedFile);
+                            DATABASE_MANAGER.VersionNumberRetriever((String)fileId, versionNumber ->{
+                                try {
+                                    ArrayList<String> membersIds = (ArrayList<String>)memIds;
+                                    int myIndex = membersIds.indexOf(GetCurrentUser().getUid());
 
-                                boolean isFirst=true;
-                                for(File chunk:splitFiles){
-                                    Log.d(TAG, "Iteration:::::::::::::::::: "+chunk.toString()+"========================================");
-                                    Uri chunkUri = Uri.fromFile(chunk);
-                                    if(isFirst){
-                                            STORAGE_MANAGER.UploadGroupFile(group.getId(), chunkUri, object -> EXECUTOR_SERVICE.execute(() -> {
-                                            // Extract information
-                                            StorageMetadata storageMetadata = (StorageMetadata) object;
-                                            String groupId = group.getId();
-                                            String fileName = file.getName();
+                                    ArrayList<File> splitFiles = FILE_MANAGER.SplitFile(encryptedFile, membersIds);
+                                    Collections.swap(splitFiles,0,myIndex);
+                                    // Delete encrypted file
+                                    FILE_MANAGER.DeleteFile(encryptedFile);
 
-                                            // Add the file to Database
-                                            DATABASE_MANAGER.AddFile(groupId, (String) fileId, fileName, mode, storageMetadata, null, EXECUTOR_SERVICE);
+                                    boolean isFirst=true;
+                                    for(File chunk:splitFiles){
+
+                                        Uri chunkUri = Uri.fromFile(chunk);
+                                        if(isFirst){
+                                            STORAGE_MANAGER.UploadGroupFile(group.getId(), chunkUri,(int)versionNumber, object -> EXECUTOR_SERVICE.execute(() -> {
+                                                // Extract information
+                                                StorageMetadata storageMetadata = (StorageMetadata) object;
+                                                String groupId = group.getId();
+                                                String fileName = file.getName();
+
+                                                // Add the file to Database
+                                                DATABASE_MANAGER.AddFile(groupId, (String) fileId, fileName, mode, storageMetadata, null, EXECUTOR_SERVICE);
 
                                                 try {
                                                     File path = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)),
@@ -365,30 +382,26 @@ public class ManagersMediator {
                                                 }
                                             }), EXECUTOR_SERVICE);
                                             isFirst=false;
-                                    }
-                                    else{
+                                        }
+                                        else{
 
 
-                                        STORAGE_MANAGER.UploadGroupFile(group.getId(),chunkUri, object -> {
-                                            chunk.delete();
+                                            STORAGE_MANAGER.UploadGroupFile(group.getId(),chunkUri, (int)versionNumber, object -> {
+                                                chunk.delete();
                                             }, EXECUTOR_SERVICE);
+                                        }
                                     }
-                                }
 
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            },EXECUTOR_SERVICE);
                         }
                     }, EXECUTOR_SERVICE);
                 }
             });
         };
     }
-
-    /**
-     * TODO
-     *  normal files in a separate directory from the striped files
-     */
 
     /**
      * Download file from storage
@@ -402,7 +415,7 @@ public class ManagersMediator {
         EXECUTOR_SERVICE.execute(() -> {
             String path;
 
-            // TODO: implemented in file stripping
+
             if(mode == FILE_MANAGER.NORMAL){
                 path = FILE_MANAGER.GetApplicationDirectory() + File.separator +
                         group.getId() + " " + group.getName() + File.separator + "Normal Files";
@@ -424,16 +437,7 @@ public class ManagersMediator {
         });
     }
 
-    /**
-     * Rename the file
-     *
-     * @param groupId associated group id to the file
-     * @param oldName file old name
-     * @param newName file new name
-     */
-    private void FileRenameProcedure(String groupId, String oldName, String newName){
-        DATABASE_MANAGER.RenameFile(groupId, oldName, newName, null, EXECUTOR_SERVICE);
-    }
+
 
     /**
      * Remove file from storage
@@ -443,12 +447,18 @@ public class ManagersMediator {
      */
     private void FileRemoveProcedure(String groupId, String fileName){
         DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
-            STORAGE_MANAGER.DeleteGroupFile(groupId, (String)fileId, object -> {
-                DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
-            }, EXECUTOR_SERVICE);
+            DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
+
+            // DON'T DELETE THE FILE
+                /*DATABASE_MANAGER.VersionNumberRetriever((String)fileId, versionNumber -> {
+                    //TODO: change according to mode
+                    Uri cloudPath = Uri.parse(groupId + "/" + (String)fileId + "/" + ((int)versionNumber - 1) + "/" + fileId);
+                    STORAGE_MANAGER.DeleteGroupFile(cloudPath, object -> {
+                        DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
+                }, EXECUTOR_SERVICE);
+            }, EXECUTOR_SERVICE);*/
         }, EXECUTOR_SERVICE);
     }
-
 
     /**
      * Download all chunks and merge them into Merged Files folder
@@ -530,6 +540,20 @@ public class ManagersMediator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        });
+    }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void CustomDownload(Group group, String cloudPath, File physicalPath, IAction action) {
+        EXECUTOR_SERVICE.execute(() -> {
+            STORAGE_MANAGER.DownloadGroupFile(Uri.parse(cloudPath), physicalPath,
+                    object -> {
+                        try {
+                            FileManager.getInstance().EncryptDecryptFile(physicalPath, physicalPath.getName(), group, Cipher.DECRYPT_MODE);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }, EXECUTOR_SERVICE);
+
         });
     }
 }

@@ -8,7 +8,7 @@
     tools:context=".controller.ProfileActivity">
 
     <ImageView
-        android:id="@+id/edet_about"
+        android:id="@+id/edit_about"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -181,7 +181,7 @@
         app:srcCompat="@drawable/info_24" />
 
     <ImageView
-        android:id="@+id/edet_name"
+        android:id="@+id/edit_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"

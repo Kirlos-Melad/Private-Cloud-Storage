@@ -116,6 +116,7 @@ public class GroupSliderActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(View view) {
+                _ActivityGroupSliderBinding.menu.setVisibility(View.INVISIBLE);
                 if(checkPermission()){
                     _ActivityGroupSliderBinding.menu.close(true);
                     Intent intent = new Intent(GroupSliderActivity.this, FileExplorerActivity.class);
