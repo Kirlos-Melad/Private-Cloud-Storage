@@ -71,7 +71,7 @@ public class ManagersMediator {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public boolean JoinGroup(Group group){
         if (DATABASE_MANAGER.JoinGroup(group)) {
-            boolean isCreated = group.CreateGroup(true);
+            boolean isCreated = group.CreateGroup();
             if(!isCreated)
                 return false;
 
@@ -80,6 +80,21 @@ public class ManagersMediator {
 
         return false;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public boolean CreateGroup(Group group){
+        String groupId = DATABASE_MANAGER.AddGroup(group);
+        if (groupId != null) {
+            boolean isCreated = group.CreateGroup(groupId);
+            if(!isCreated)
+                return false;
+
+            return true;
+        }
+
+        return false;
+    }
+
 
     /**
      * Retrieve all groups associated with the current user
@@ -454,13 +469,18 @@ public class ManagersMediator {
                     File stripedFilesArr = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
                             group.getId() + " " + group.getName(),"Stripped Files");
 
-                    File[] filesArray = stripedFilesArr.listFiles();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-
+            File[] filesArray = stripedFilesArr.listFiles();
 
                     File mergedFile = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
                             group.getId() + " " + group.getName(),"Merged Files"+File.separator+toMergeFileName);
                     ArrayList<File> chunks = new ArrayList<>();
+
                     String fileId=filesUri.get(0).toString().substring(filesUri.get(0).toString().lastIndexOf(File.separator)+1,
                                                                         filesUri.get(0).toString().lastIndexOf(" "));
 
@@ -469,6 +489,21 @@ public class ManagersMediator {
                             chunks.add(checkingFile);
                         }
                     }
+                    //sorting the chunks according to members IDs
+                    DATABASE_MANAGER.GetMembersIDs(group.getId(), new IAction() {
+                        @Override
+                        public void onSuccess(Object memIds) {
+                            ArrayList<String> membersIds = (ArrayList<String>)memIds;
+                            for(int i=0;i<membersIds.size();i++){
+                                for (int j=0;j<chunks.size();j++){
+                                    if (chunks.get(j).getName().contains(membersIds.get(i))) {
+                                        Collections.swap(chunks,i,j);
+                                    }
+                                }
+                            }
+                        }
+                    },EXECUTOR_SERVICE);
+
                     try {
                         Log.d(TAG, "MergeProcedure: ============================"+String.valueOf(chunks.size())+ "=========================================");
                         FileManager.getInstance().MergeFiles(chunks,mergedFile);

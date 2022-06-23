@@ -12,6 +12,7 @@ import android.widget.Toast;
 // 3rd Party Libraries
 import com.example.privatecloudstorage.databinding.ActivityCreateGroupBinding;
 import com.example.privatecloudstorage.model.Group;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.google.zxing.WriterException;
 
 // Java Libraries
@@ -46,7 +47,7 @@ public class CreateGroupActivity extends AppCompatActivity {
             // skip if user input wasn't a success
             if(group == null) return;
             // skip if group wasn't created
-            if(!group.CreateGroup(false)) return;
+            if(!ManagersMediator.getInstance().CreateGroup(group)) return;
             // Try Generating & Saving the QR Code
             try {
                 group.GenerateGroupQRCode(getFilesDir().toString());
