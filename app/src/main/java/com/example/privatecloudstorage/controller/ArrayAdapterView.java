@@ -20,8 +20,8 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
     // member / group / file name
     ArrayList<RecyclerViewItem> mItems;
 
-    public ArrayAdapterView(ArrayList names){
-        this.mItems = names;
+    public ArrayAdapterView(ArrayList items){
+        this.mItems = items;
     }
 
     @Override

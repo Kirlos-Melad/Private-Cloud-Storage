@@ -136,6 +136,11 @@ public class ManagersMediator {
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+    public void FileInformationRetriever(String groupId, String fileName, IAction action){
+        DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
+            DATABASE_MANAGER.GetSharedFileVersions((String)fileId, action, EXECUTOR_SERVICE);
+        }, EXECUTOR_SERVICE);
+    }
 
 
 
@@ -363,30 +368,18 @@ public class ManagersMediator {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void CustomDownload(Group group, String cloudPath, File physicalPath, IAction action) {
+        EXECUTOR_SERVICE.execute(() -> {
+            STORAGE_MANAGER.DownloadGroupFile(Uri.parse(cloudPath), physicalPath,
+                    object -> {
+                        try {
+                            FileManager.getInstance().EncryptDecryptFile(physicalPath, physicalPath.getName(), group, Cipher.DECRYPT_MODE);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }, EXECUTOR_SERVICE);
 
-    /**
-     * TODO:
-     *  create private functions to extend other procedures
-     *  as the behaviour should change depending on the mode
-     */
-    public void Download(Uri url, File downloadFile, IAction action, ExecutorService executorService) {
-        executorService.execute(() -> {
-
-            /*DatabaseReference dbReference = DATABASE_MANAGER.getmDataBase().getReference("Users/" + GetCurrentUser().getUid() + "/Groups");
-
-            dbReference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Group group = dataSnapshot.getValue(Group.class);
-                    String groupid = group.getId();
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });*/
         });
     }
 }

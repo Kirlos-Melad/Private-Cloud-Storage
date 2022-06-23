@@ -152,6 +152,7 @@ public class FirebaseDatabaseManager {
 
         // Add group information
         newGroupReference.child("Name").setValue(group.getName());
+        newGroupReference.child("Owner").setValue(ManagersMediator.getInstance().GetCurrentUser().getUid());
         newGroupReference.child("Description").setValue(group.getDescription());
         newGroupReference.child("Password").setValue(group.getPassword());
         // Add the User as a member
@@ -169,7 +170,7 @@ public class FirebaseDatabaseManager {
         return groupId;
     }
     /**
-     get users name frome "Users" based on group id
+     get users name from "Users" based on group id
      **/
     //=====================================================NEW=================================================
     public void GroupMembersInformationRetriever(String groupId, IAction action, ExecutorService executorService){
@@ -180,7 +181,7 @@ public class FirebaseDatabaseManager {
                         executorService.execute(() -> {
                             mDataBase.getReference().child("Users").get()
                                     .addOnSuccessListener(usersEntity -> {
-                                        User membersInformation[] = new User[(int)membersEntity.getChildrenCount()];
+                                        User[] membersInformation = new User[(int)membersEntity.getChildrenCount()];
                                         int index = 0;
                                         DataSnapshot firebaseUser;
                                         for (DataSnapshot member : membersEntity.getChildren())
@@ -360,23 +361,33 @@ public class FirebaseDatabaseManager {
      * @return runnable to run the code in your thread
      */
 
-    public void GetSharedFiles(String groupId, IAction action,ExecutorService executorService){
+    public void GetSharedFileVersions(String fileId, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
-            mDataBase.getReference().child("Groups").child(groupId)
-                    .child("SharedFiles").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            mDataBase.getReference().child("Files").child(fileId)
+                    .get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
                 @Override
-                public void onSuccess(DataSnapshot dataSnapshot) {
-                    ArrayList<SharedFile> filesModes = new ArrayList<>();
-                    SharedFile sharedFile = new SharedFile();
-                    for (DataSnapshot file:dataSnapshot.getChildren()
-                    ) {
-                        sharedFile.Id = file.getKey();
-                        sharedFile.mode = file.child("Mode").getValue(String.class);
-                        sharedFile.Name = file.child("Name").getValue(String.class);
-                        sharedFile.Url = file.child("URL").getValue(String.class);
-                        filesModes.add(sharedFile);
+                public void onSuccess(DataSnapshot file) {
+                    UserFile userFile = new UserFile();
+                    userFile.Id = fileId;
+                    userFile.mode = file.child("Mode").getValue(String.class);
+                    userFile.Url = file.child("URL").getValue(String.class);
+
+                    Log.d(TAG, "onSuccess: --- Id = " + userFile.Id);
+                    Log.d(TAG, "onSuccess: --- mode = " + userFile.mode);
+                    Log.d(TAG, "onSuccess: --- Url = " + userFile.Url);
+
+                    for (DataSnapshot version : file.getChildren()) {
+                        if(version.getChildrenCount() == 1)
+                            continue;
+
+                        UserFileVersion userFileVersion = new UserFileVersion();
+                        userFileVersion.date = version.child("Date").getValue(String.class);
+                        userFileVersion.Name = version.child("Name").getValue(String.class);
+                        userFileVersion.change = version.child("Change").getValue(String.class);
+                        Log.d(TAG, "onSuccess: Version Added Date = " + userFileVersion.date);
+                        userFile.VersionInformation.add(userFileVersion);
                     }
-                    action.onSuccess(filesModes);
+                    action.onSuccess(userFile);
                 }
             });
         });

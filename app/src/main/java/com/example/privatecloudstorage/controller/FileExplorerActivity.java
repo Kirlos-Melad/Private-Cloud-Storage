@@ -204,6 +204,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                 PopupMenu popupMenu = new PopupMenu(activity,v);
                     popupMenu.getMenu().add("Rename");
                     popupMenu.getMenu().add("Delete");
+                    popupMenu.getMenu().add("Download Old Versions");
                     if(file.getName().contains(".txt"))
                         popupMenu.getMenu().add("Edit");
 
@@ -236,11 +237,11 @@ public class FileExplorerActivity extends AppCompatActivity {
                             });
                             renameDialog.show();
                         }
-                        if(item.getTitle().equals("Delete")){
+                        else if(item.getTitle().equals("Delete")){
                             FileManager.getInstance().DeleteFile(file);
                             action.onSuccess(null);
                         }
-                        if(item.getTitle().equals("Edit")){
+                        else if(item.getTitle().equals("Edit")){
                             //TODO : sync with firebase ---------------------------------------
                             AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
                             final EditText editText = new EditText(activity);
@@ -272,6 +273,10 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 }
                             });
                             editDialog.show();
+                        }
+
+                        else if(item.getTitle().equals("Download Old Versions")){
+                            new FileVersionDownloaderBox(file, activity).ShowDialog();
                         }
                         return true;
                     }
