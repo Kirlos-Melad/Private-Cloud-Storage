@@ -69,6 +69,9 @@ public class FirebaseDatabaseManager {
         return mFirebaseDatabaseManager;
     }
 
+    /**
+     * Add a user to the firebase
+     * */
     public void AddUser(String UserId, String userName, String email){
         mDataBase.getReference().child("Users").child(UserId).child("Name").setValue(userName);
         mDataBase.getReference().child("Users").child(UserId).child("Email").setValue(email);
@@ -107,13 +110,16 @@ public class FirebaseDatabaseManager {
                     boolean connected = snapshot.getValue(Boolean.class);
 
                     if(connected){
-                        // increment the counter
+                        // increment the counter if Connected
                         mDataBase.getReference().child("Groups").child(groupId).child("OnlineUsersCounter").setValue(ServerValue.increment(1));
+                        // decrement the counter on Disconnection
                         mDataBase.getReference().child("Groups").child(groupId).child("OnlineUsersCounter").onDisconnect().setValue(ServerValue.increment(-1));
+                        // if any user disconnects, set AllOnline to false
                         mDataBase.getReference().child("Groups").child(groupId).child("AllOnline").onDisconnect().setValue(false);
                         // set user value as Online
                         mDataBase.getReference().child("Groups").child(groupId).child("Members")
                                 .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).setValue("Online");
+                        // set user value as Offline on Disconnection
                         mDataBase.getReference().child("Groups").child(groupId).child("Members")
                                 .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).onDisconnect().setValue("Offline");
                     }
@@ -159,12 +165,11 @@ public class FirebaseDatabaseManager {
 
         // Monitor the new group
         mExecutorService.execute(MonitorSingleGroup(group, false));
-        //MonitorConnectionInSingleGroup(groupId);
 
         return groupId;
     }
     /**
-     get users name frome "Users" based on group id
+     * @param groupId get the Group's users
      **/
     //=====================================================NEW=================================================
     public void GroupMembersInformationRetriever(String groupId, IAction action, ExecutorService executorService){
@@ -330,6 +335,7 @@ public class FirebaseDatabaseManager {
 
     /**
      * Decides if we should download the file or not
+     * prepares the url for downloading whether it's in normal mode or striping
      *
      * @param fileSnapshot snapshot of the shared file
      * @param group group from which the snapshot was taken
@@ -338,9 +344,10 @@ public class FirebaseDatabaseManager {
     private void TakeAction(DataSnapshot fileSnapshot, Group group){
         // Get Location on Cloud and Physical Storage
         Uri cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class));
-        //String physicalLocation = group.getId() + " " + group.getName();
+
         // Download the file
         if(fileSnapshot.child("Mode").hasChild("Striping")) {
+            // adding user's id to download his own chunk
             cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
             ManagersMediator.getInstance().FileDownloadProcedure(group, cloudLocation,
                     fileSnapshot.getKey() + " " + ManagersMediator.getInstance().GetCurrentUser().getUid(),
@@ -361,6 +368,13 @@ public class FirebaseDatabaseManager {
         }});
     }
 
+    /**
+     * get all shared files in a group
+     *
+     * @param groupId
+     * @param action
+     * @param executorService
+     */
 
     public void GetSharedFiles(String groupId, IAction action,ExecutorService executorService){
         executorService.execute(() -> {
@@ -478,6 +492,8 @@ public class FirebaseDatabaseManager {
 
     /**
      * Add listener to the group Shared Files
+     * checks on th Online users Count and copare it with the number of members
+     * to check AllOnline or not
      *
      * @return runnable to run the code in your thread
      */
@@ -485,65 +501,72 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private Runnable MonitorSingleGroup(Group group, boolean fromJoin){
         return () -> {
+
                 MonitorConnectionInSingleGroup(group.getId());
 
             mDataBase.getReference().child("Groups").child(group.getId()).child("OnlineUsersCounter").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                         long onlineMembers = dataSnapshot.getValue(long.class);
+
                         mDataBase.getReference().child("Groups").child(group.getId()).child("Members").get().addOnSuccessListener(Snapshot -> {
                             long membersCount = Snapshot.getChildrenCount();
-                            Log.d(TAG, "MEMBERSCOUNT:============================================= "+ String.valueOf(membersCount) + "===========================");
-                            Log.d(TAG, "ONLINEMEMBERS:============================================= "+ String.valueOf(onlineMembers) + "===========================");
-                            boolean log = (onlineMembers == membersCount);
-                            Log.d(TAG, "onDataChange:-======================= "+String.valueOf(log) +"=============================");
+
                             if(onlineMembers == membersCount){
                                 mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").setValue(true);
                             }
-
                         });
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-
                 }
             });
 
             mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(SharedFilesEventListener(group));
-
+            // if all online, execute AllOnline Scenario
             mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").addValueEventListener(AllOnlineEventListener(group));
 
         };
     }
 
+    /**
+     * checks if all the members are online or not
+     * and execute the suitabl scenario for each case
+     *
+     * @param group
+     * @return
+     */
+
 private ValueEventListener AllOnlineEventListener(Group group) {
     return new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot snapshot) {
+            //check if all members are online in the group
             if (snapshot.getValue(boolean.class)) {
 
                 GetSharedFiles(group.getId(), new IAction() {
                     @Override
                     public void onSuccess(Object files) {
 
-                        ArrayList<SharedFile> filesdata = (ArrayList<SharedFile>) files;
+                        ArrayList<SharedFile> filesData = (ArrayList<SharedFile>) files;
 
                         GetMembersIDs(group.getId(), new IAction() {
                             @RequiresApi(api = Build.VERSION_CODES.Q)
                             @Override
                             public void onSuccess(Object memIds) {
-                                ArrayList<String> membersIds = (ArrayList<String>) memIds;
 
+                                ArrayList<String> membersIds = (ArrayList<String>) memIds;
                                 ArrayList<Uri> filesUris=new ArrayList<Uri>();
                                 ArrayList<String> filesNames = new ArrayList<>();
-                                for (SharedFile file:filesdata) {
+                                // adding members Ids to the url to be able to download there chunks
+                                //adding members Ids to the name so I can sort it later on according to the members IDs
+                                for (SharedFile file:filesData) {
                                     if (file.mode.equals("Striping")) {
                                         for (String id : membersIds) {
                                             filesUris.add(Uri.parse(file.Url+ " " + id));
                                             filesNames.add(file.Id+" "+id);
                                         }
+                                        // removing my chunk's url from the urls list
                                         filesNames.remove(file.Id+ " " +ManagersMediator.getInstance().GetCurrentUser().getUid());
                                         String fileName = file.Name;
                                         ManagersMediator.getInstance().MergeProcedure(group,fileName,filesUris,filesNames,mExecutorService);
@@ -557,7 +580,7 @@ private ValueEventListener AllOnlineEventListener(Group group) {
 
             }
             else{
-                //deleting merged files when AllOnline = false .... not everyone is online so delete the merged files
+                //deleting merged files when at least one of the group's members is Offline
                 File mergedToDelete = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
                         group.getId() + " " + group.getName(),"Merged Files");
                 File[] filesArray = mergedToDelete.listFiles();

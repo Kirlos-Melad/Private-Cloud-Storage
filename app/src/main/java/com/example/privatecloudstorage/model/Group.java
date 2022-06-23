@@ -129,7 +129,6 @@ public class Group {
     public boolean CreateGroup(String id){
 
         mId=id;
-
         return CreateGroup();
     }
 

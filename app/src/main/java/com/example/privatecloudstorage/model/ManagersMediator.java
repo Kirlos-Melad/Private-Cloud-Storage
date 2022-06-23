@@ -451,76 +451,85 @@ public class ManagersMediator {
 
 
     /**
-     * TODO:
-     *  create private functions to extend other procedures
-     *  as the behaviour should change depending on the mode
+     * Download all chunks and merge them into Merged Files folder
+     *
+     * @param group
+     * @param toMergeFileName the name we will use to display the merged file
+     * @param filesUri the chunks URIs to be downloaded
+     * @param executorService
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void MergeProcedure(Group group, String toMergeFileName, ArrayList<Uri> filesUri,ArrayList<String> filesNames, ExecutorService executorService) {
         executorService.execute(() -> {
-
+            //downloading each chunk
             for (Uri uri:filesUri) {
                 FileDownloadProcedure(group, uri,
-                        uri.toString().substring(uri.toString().lastIndexOf(File.separator)+1,uri.toString().length()), FileManager.STRIP);
+                        uri.toString().substring(uri.toString().lastIndexOf(File.separator)+1,uri.toString().length()),
+                        FileManager.STRIP);
             }
 
+            // a file pointing to the striping folder (chunks folder)
+            File stripedFilesArr = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
+                    group.getId() + " " + group.getName(),"Stripped Files");
 
-                    //Start merging the downloaded chunks while all online
-                    File stripedFilesArr = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
-                            group.getId() + " " + group.getName(),"Stripped Files");
-
+            // using sleep to have a moment to allow all files to be downloaded before reading them into a list
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
+            // loading chunks to a list
             File[] filesArray = stripedFilesArr.listFiles();
+            //the file to be merged into using the merging function later
+            File mergedFile = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
+                    group.getId() + " " + group.getName(),"Merged Files"+File.separator+toMergeFileName);
+            ArrayList<File> chunks = new ArrayList<>();
+            // getting the files id (between the last '/' and " ")
+            String fileId=filesUri.get(0).toString().substring(filesUri.get(0).toString().lastIndexOf(File.separator)+1,
+                                                                filesUri.get(0).toString().lastIndexOf(" "));
 
-                    File mergedFile = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
-                            group.getId() + " " + group.getName(),"Merged Files"+File.separator+toMergeFileName);
-                    ArrayList<File> chunks = new ArrayList<>();
-
-                    String fileId=filesUri.get(0).toString().substring(filesUri.get(0).toString().lastIndexOf(File.separator)+1,
-                                                                        filesUri.get(0).toString().lastIndexOf(" "));
-
-                    for (File checkingFile : filesArray) {
-                        if (checkingFile.getName().contains(fileId)) {
-                            chunks.add(checkingFile);
-                        }
-                    }
-                    //sorting the chunks according to members IDs
-                    DATABASE_MANAGER.GetMembersIDs(group.getId(), new IAction() {
-                        @Override
-                        public void onSuccess(Object memIds) {
-                            ArrayList<String> membersIds = (ArrayList<String>)memIds;
-                            for(int i=0;i<membersIds.size();i++){
-                                for (int j=0;j<chunks.size();j++){
-                                    if (chunks.get(j).getName().contains(membersIds.get(i))) {
-                                        Collections.swap(chunks,i,j);
-                                    }
-                                }
+            //check for files that start with the same name (but with just different users ID)
+            //in case there's different files with totally different names
+            for (File checkingFile : filesArray) {
+                if (checkingFile.getName().contains(fileId)) {
+                    chunks.add(checkingFile);
+                }
+            }
+            // sorting the chunks according to members IDs.. as in the merging function, the chunks are ordered
+            // and the resulting file isn't just some garbage
+            DATABASE_MANAGER.GetMembersIDs(group.getId(), new IAction() {
+                @Override
+                public void onSuccess(Object memIds) {
+                    ArrayList<String> membersIds = (ArrayList<String>)memIds;
+                    for(int i=0;i<membersIds.size();i++){
+                        for (int j=0;j<chunks.size();j++){
+                            if (chunks.get(j).getName().contains(membersIds.get(i))) {
+                                Collections.swap(chunks,i,j);
                             }
                         }
-                    },EXECUTOR_SERVICE);
-
-                    try {
-                        Log.d(TAG, "MergeProcedure: ============================"+String.valueOf(chunks.size())+ "=========================================");
-                        FileManager.getInstance().MergeFiles(chunks,mergedFile);
-                        //Deleting all chunks after merging
-                        File chunksToDelete = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
-                                group.getId() + " " + group.getName(),"Stripped Files");
-                        File[] fileArr = chunksToDelete.listFiles();
-                        for(File file:fileArr){
-                            if(file.getName().contains(GetCurrentUser().getUid()))
-                                continue;
-                            file.delete();
-                        }
-                        FileManager.getInstance().EncryptDecryptFile(mergedFile,mergedFile.getName(),group, Cipher.DECRYPT_MODE);
-                        Log.d(TAG, "MergeProcedure: ====================== DECRYPTION ENDED ===================================");
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                }
+            },EXECUTOR_SERVICE);
+
+            try {
+
+                FileManager.getInstance().MergeFiles(chunks,mergedFile);
+                //decrypting the merged file
+                FileManager.getInstance().EncryptDecryptFile(mergedFile,mergedFile.getName(),group, Cipher.DECRYPT_MODE);
+
+                //Deleting all chunks after merging
+                File chunksToDelete = new File(FileManager.getInstance().GetApplicationDirectory()+File.separator+
+                        group.getId() + " " + group.getName(),"Stripped Files");
+                File[] fileArr = chunksToDelete.listFiles();
+                for(File file:fileArr){
+                    if(file.getName().contains(GetCurrentUser().getUid())) {
+                        continue;
+                    }
+                    file.delete();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
     }
 }
