@@ -329,7 +329,7 @@ public class FirebaseDatabaseManager {
 
         if(fileSnapshot.getValue() instanceof String)
             return;
-
+        // if true, rename and exit
         if(isRename){
             String folder = null;
             if(fileSnapshot.child("Mode").getValue().equals("Striping")){
@@ -345,6 +345,7 @@ public class FirebaseDatabaseManager {
                     File.separator + folder, fileSnapshot.child("Name").getValue(String.class));
 
             try {
+                // rename
                 Files.copy(oldFile.toPath(), newFile.toPath());
                 oldFile.delete();
             } catch (IOException e) {
@@ -355,7 +356,7 @@ public class FirebaseDatabaseManager {
         }
 
         // Download the file
-        if(fileSnapshot.child("Mode").hasChild("Striping")) {
+        if(fileSnapshot.child("Mode").getValue().equals("Striping")) {
             // adding user's id to download his own chunk
             cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/" + fileSnapshot.getKey() +
                     " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
@@ -365,8 +366,7 @@ public class FirebaseDatabaseManager {
                     FileManager.STRIP);
 
         }
-
-        else {
+        else if(fileSnapshot.child("Mode").getValue().equals("Normal")){
             cloudLocation = Uri.parse(fileSnapshot.child("URL").getValue(String.class) + "/" + fileSnapshot.getKey());
             String fileName = fileSnapshot.child("Name").getValue(String.class);;
             //String physicalLocation = group.getId() + " " + group.getName();
@@ -509,7 +509,7 @@ public class FirebaseDatabaseManager {
                     else if(mode.equals("Striping")){
                         file = new File(FileManager.getInstance().GetApplicationDirectory(),
                                 group.getId() + " " + groupName + File.separator + "Merged Files" + File.separator +fileName);
-                        FileManager.getInstance().DeleteFile(file);
+                        FileManager.getInstance().DeleteFile(file,FileManager.STRIP);
 
                         File chunk = new File(FileManager.getInstance().GetApplicationDirectory(),
                                 group.getId() + " " + groupName + File.separator + "Stripped Files" + File.separator + fileName + " " + ManagersMediator.getInstance().GetCurrentUser().getUid());
@@ -577,9 +577,9 @@ mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles
                 @Override
                 public void onSuccess(DataSnapshot dataSnapshot) {
                     ArrayList<UserFile> filesModes = new ArrayList<>();
-                    UserFile sharedFile = new UserFile();
                     for (DataSnapshot file:dataSnapshot.getChildren()
                     ) {
+                        UserFile sharedFile = new UserFile();
                         sharedFile.Id = file.getKey();
                         sharedFile.mode = file.child("Mode").getValue(String.class);
                         UserFileVersion userFileVersion = new UserFileVersion();
@@ -620,14 +620,14 @@ private ValueEventListener AllOnlineEventListener(Group group) {
                             public void onSuccess(Object memIds) {
 
                                 ArrayList<String> membersIds = (ArrayList<String>) memIds;
-                                ArrayList<Uri> filesUris=new ArrayList<Uri>();
-                                ArrayList<String> filesNames = new ArrayList<>();
                                 // adding members Ids to the url to be able to download there chunks
                                 //adding members Ids to the name so I can sort it later on according to the members IDs
                                 for (UserFile file:filesData) {
+                                    ArrayList<Uri> filesUris=new ArrayList<Uri>();
+                                    ArrayList<String> filesNames = new ArrayList<>();
                                     if (file.mode.equals("Striping")) {
                                         for (String id : membersIds) {
-                                            filesUris.add(Uri.parse(file.Url+ " " + id));
+                                            filesUris.add(Uri.parse(file.Url+ "/" + file.Id + " " + id));
                                             filesNames.add(file.Id+" "+id);
                                         }
                                         // removing my chunk's url from the urls list
@@ -720,7 +720,7 @@ private ValueEventListener AllOnlineEventListener(Group group) {
         executorService.execute(() -> {
             HashMap<String,String>children=new HashMap<String,String>(){{
                 put("Mode", Mode==FileManager.NORMAL ? "Normal":"Striping");
-                put("URL",fileId +"/"+ groupId);
+                put("URL",groupId +"/"+ fileId);
                 put("Md5Hash",metadata.getMd5Hash());
             }};
             mDataBase.getReference().child("Files")

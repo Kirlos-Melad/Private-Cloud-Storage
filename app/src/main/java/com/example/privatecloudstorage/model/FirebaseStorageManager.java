@@ -46,10 +46,10 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void UploadGroupFile(String groupId, Uri file, int versionNumber, IAction action, ExecutorService executorService) {
+    public void UploadGroupFile(String groupId,String fileId ,Uri file, int versionNumber, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             String fileName = file.getLastPathSegment();
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName).child(String.valueOf(versionNumber)).child(fileName);
+            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileId).child(String.valueOf(versionNumber)).child(fileName);
 
             //Start uploading file
             fileReference.putFile(file)
