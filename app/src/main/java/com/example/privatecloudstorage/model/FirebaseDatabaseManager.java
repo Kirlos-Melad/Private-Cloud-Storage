@@ -78,6 +78,10 @@ public class FirebaseDatabaseManager {
         mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("ProfilePicture").setValue(url);
     }
     @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void SetGroupProfilePicture(String url,String groupId){
+        mDataBase.getReference().child("Groups").child(groupId).child("Picture").setValue(url);
+    }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserName(String name){
         mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Name").setValue(name);
     }
@@ -121,7 +125,19 @@ public class FirebaseDatabaseManager {
 
 
     }
+    public void GetGroupDescription(String groupId,IAction action, ExecutorService executorService){
+            mDataBase.getReference().child("Groups").child(groupId).child("Description").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                  action.onSuccess ((String)snapshot.getValue());
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
 
+
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetUserAbout(String about){
@@ -192,6 +208,7 @@ public class FirebaseDatabaseManager {
         newGroupReference.child("Name").setValue(group.getName());
         newGroupReference.child("Description").setValue(group.getDescription());
         newGroupReference.child("Password").setValue(group.getPassword());
+        newGroupReference.child("Picture").setValue(group.getPicture());
         // Add the User as a member
         newGroupReference.child("Members").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).setValue(ManagersMediator.getInstance().GetCurrentUser().getDisplayName());
         newGroupReference.child("SharedFiles").setValue("NoFile");
@@ -265,15 +282,30 @@ public class FirebaseDatabaseManager {
 
         return true;
     }
+public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorService executorService){
+    executorService.execute(() -> {
+        mDataBase.getReference().child("Groups").child(groupId).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot group) {
+                Group g = new Group(
+                        group.getKey(),
+                        group.child("Name").getValue(String.class),
+                        group.child("Description").getValue(String.class),
+                        "",
+                        group.child("Picture").getValue(String.class)
+                );
+                action.onSuccess(g);
+            }
+        });
+    });
 
+}
     /**
      * Create an Observable that works on this class thread
      * The observable emits User Groups as Pair<String, String>(ID, Name)
-     *
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void UserGroupsRetriever(IAction action, ExecutorService executorService){
         executorService.execute(() -> {
@@ -281,12 +313,14 @@ public class FirebaseDatabaseManager {
                     .child("Groups").get().addOnSuccessListener(dataSnapshot -> {
                 executorService.execute(() -> {
                     ArrayList<Group> retGroup = new ArrayList<>();
-
+                    //Group newGroup =new Group("","","","");
                     for(DataSnapshot group : dataSnapshot.getChildren()){
                         Group g = new Group(
                                 group.getKey(),
                                 group.getValue(String.class),
-                                "", ""
+                                "",
+                                "",
+                                ""
                         );
                         retGroup.add(g);
                     }
@@ -337,7 +371,7 @@ public class FirebaseDatabaseManager {
                     mExecutorService.execute(MonitorSingleGroup(new Group(
                             group.getKey(),
                             group.getValue(String.class),
-                            "", ""
+                            "", "",""
                     )));
                 }
             }

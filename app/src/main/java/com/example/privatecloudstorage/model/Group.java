@@ -30,6 +30,7 @@ public class Group {
     private String mName;
     private String mDescription;
     private String mPassword;
+    private String mPicture;
 
     /**
      *
@@ -38,8 +39,8 @@ public class Group {
      * @param password
      * @throws NoSuchAlgorithmException failed to use SHA-256 to hash the password
      */
-    public Group(String id, String name, String description, String password)  {
-        this(name, description, password);
+    public Group(String id, String name, String description, String password,String picture)  {
+        this(name, description, password,picture);
         mId = id;
     }
 
@@ -50,12 +51,15 @@ public class Group {
      * @param password
      * @throws NoSuchAlgorithmException failed to use SHA-256 to hash the password
      */
-    public Group(String name, String description, String password)  {
+    public Group(String name, String description, String password,String picture)  {
         this.mName = name;
         this.mDescription = description;
+        this.mPicture=picture;
         setPassword(password);
     }
-
+    public  Group Clone(Group group){
+        return new Group(group.getId(),group.getName(),group.getDescription(),group.getPicture());
+    }
     /**
      * Receives the password from the user and hash it using SHA-256 Hashing function
      *
@@ -85,13 +89,24 @@ public class Group {
     public void setId(String id){
         mId = id;
     }
-
+    public void setName(String name){
+        mName = name;
+    }
+    public void setDescription(String description){
+        mDescription = description;
+    }
+    public void setPicture(String picture){
+        mPicture = picture;
+    }
     public String getId() {
         return mId;
     }
 
     public String getName() {
         return mName;
+    }
+    public String getPicture() {
+        return mPicture;
     }
 
     public String getDescription() {

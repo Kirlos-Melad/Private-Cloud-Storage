@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import android.app.AlertDialog;
 
@@ -12,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,6 +26,7 @@ import android.view.View;
 
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 
@@ -45,6 +48,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     Uri uri;
+    ImageView imgv;
     private String mName;
     private String mDescription;
     private String mUri;
@@ -75,8 +79,11 @@ public class ProfileActivity extends AppCompatActivity {
         mCaller = bundle.getString("Caller");
 
         if(mUri.equals("NoPicture")){
-            _ActivityProfileBinding.profileImage.setImageURI( mFirebaseAuthenticationManager.getInstance()
-                    .getCurrentUser().getPhotoUrl());
+            imgv=(ImageView)findViewById(R.id.profile_image);
+            Drawable myDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.person_24, null);
+            imgv.setImageDrawable(myDrawable);
+            /*_ActivityProfileBinding.profileImage.setImageURI( mFirebaseAuthenticationManager.getInstance()
+                    .getCurrentUser().getPhotoUrl());*/
         }else{
             _ActivityProfileBinding.profileImage.setImageURI(Uri.parse(mUri));
         }

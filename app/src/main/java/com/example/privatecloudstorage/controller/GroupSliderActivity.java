@@ -40,6 +40,7 @@ import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.Group;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
@@ -80,18 +81,19 @@ public class GroupSliderActivity extends AppCompatActivity {
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private FragmentStateAdapter pagerAdapter;
+    private  ManagersMediator MANAGER_MEDIATOR;
     private String mSelectedGroupName;
-    private String mName;
     private String mSelectedGroupKey;
     private String mSelectedGroupDescription;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _ActivityGroupSliderBinding = ActivityGroupSliderBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupSliderBinding.getRoot());
         TabLayout tabLayout;
-
+        MANAGER_MEDIATOR = ManagersMediator.getInstance();
         _ActivityGroupSliderBinding.menu.setVisibility(View.VISIBLE);
 
         Bundle bundle = getIntent().getExtras();
@@ -99,7 +101,8 @@ public class GroupSliderActivity extends AppCompatActivity {
             finish();
         mSelectedGroupName = bundle.getString("selectedGroupName");
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
-        mSelectedGroupDescription=bundle.getString("selectedGroupDescription");
+
+       // mSelectedGroupDescription= bundle.getString("selectedGroupDescription");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
         viewPager = findViewById(R.id.pager);
@@ -181,15 +184,17 @@ public class GroupSliderActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.item2:
-                Intent intent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("Name", mName);
-                bundle.putString("Description", mSelectedGroupDescription);
-                bundle.putString("Uri", "NoPicture");
-                bundle.putString("Caller", "Group");
+                ManagersMediator.getInstance().UserSingleGroupRetriever(mSelectedGroupKey, group->{
+                    Intent intent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Name", mSelectedGroupName);
+                    bundle.putString("Description",((Group)group).getDescription());
+                    bundle.putString("Uri", ((Group)group).getPicture());
+                    bundle.putString("Caller", "Group");
+                    intent.putExtras(bundle);//Put Group number to your next Intent
+                    startActivity(intent);
 
-                intent.putExtras(bundle);//Put Group number to your next Intent
-                startActivity(intent);
+                });
                 //Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.item3:

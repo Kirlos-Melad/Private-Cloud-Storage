@@ -115,10 +115,21 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE)
         );
     }
-
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void SetGroupProfilePicture(Uri physicalPath,String groupId){
+                STORAGE_MANAGER.UploadGroupFile(groupId,physicalPath, metaData ->{
+                    DATABASE_MANAGER.SetGroupProfilePicture(((StorageMetadata) metaData).getPath(),groupId);
+                }, EXECUTOR_SERVICE);
+    }
+    public void UserSingleGroupRetriever(String groupId,IAction action){
+            DATABASE_MANAGER.UserSingleGroupRetriever(groupId,action,EXECUTOR_SERVICE);
+    }
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void GetUserProfileData(IAction action){
         DATABASE_MANAGER.GetUserProfileData(action,EXECUTOR_SERVICE);
+    }
+    public void GetGroupDescription(String groupId,IAction action){
+        DATABASE_MANAGER.GetGroupDescription(groupId,action,EXECUTOR_SERVICE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
