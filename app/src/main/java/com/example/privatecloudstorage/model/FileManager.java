@@ -2,6 +2,7 @@ package com.example.privatecloudstorage.model;
 
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -79,7 +80,7 @@ public class FileManager implements IFileNotify {
         mApplicationDirectory = managedDirectory;
         mObserver = new Vector<>();
 
-        // Create temp directory for downloads directories
+        // Create needed directories
         CreateDirectory(new File(mApplicationDirectory.toString(), TEMPORARY_DIRECTORY));
 
         CreateDirectory(new File(mApplicationDirectory.toString(), USER_DIRECTORY));
@@ -146,10 +147,10 @@ public class FileManager implements IFileNotify {
                         fileEventListener.onFileAdded(oldFile,mode);
                         break;
                     case CHANGE:
-                        fileEventListener.onFileChanged(oldFile);
+                        fileEventListener.onFileChanged(oldFile,mode);
                         break;
                     case RENAME:
-                        fileEventListener.onFileRenamed(oldFile, newFile.getName());
+                        fileEventListener.onFileRenamed(newFile, oldFile.getName(),mode);
                         break;
                     case DELETE:
                         fileEventListener.onFileRemoved(oldFile);
@@ -166,12 +167,12 @@ public class FileManager implements IFileNotify {
      * @param newName new file name
      * @return true on success
      */
-    public boolean RenameFile(File oldFile, String newName){
+    public boolean RenameFile(File oldFile, String newName, byte mode){
         File newFile = new File(oldFile.getPath().substring(0, oldFile.getPath().lastIndexOf(File.separator)), newName);
         boolean isRenamed = oldFile.renameTo(newFile);
 
         if(isRenamed){
-            Notify(RENAME,NORMAL, oldFile ,newFile);
+            Notify(RENAME,mode, oldFile ,newFile);
             return true;
         }
 
@@ -187,11 +188,11 @@ public class FileManager implements IFileNotify {
      *
      * @throws IOException
      */
-    public boolean CreateFile(File file) throws IOException {
+    public boolean CreateFile(File file,byte mode) throws IOException {
         boolean success = file.createNewFile();
 
         if(success){
-            Notify(CREATE,NORMAL, file, null);
+            Notify(CREATE,mode, file, null);
             return true;
         }
 
@@ -217,7 +218,6 @@ public class FileManager implements IFileNotify {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean CopyFile(Path src, Path dst,byte mode) throws IOException {
-
         Files.copy(src, dst);
 
         Notify(CREATE, mode, new File(dst.toString()),null);
@@ -238,7 +238,7 @@ public class FileManager implements IFileNotify {
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     public boolean MoveFile(Path src, Path dst, byte mode) throws IOException {
-        return (CopyFile(src, dst, mode) && DeleteFile(src.toFile()));
+        return (CopyFile(src, dst, mode) && DeleteFile(src.toFile(),mode));
     }
 
     /**
@@ -290,10 +290,10 @@ public class FileManager implements IFileNotify {
      *
      * @return true on success
      */
-    public boolean DeleteFile(File file) {
+    public boolean DeleteFile(File file, byte mode) {
         boolean success = file.delete();
         if(success){
-            Notify(DELETE, NORMAL, file,null);
+            Notify(DELETE, mode, file,null);
             return true;
         }
 
@@ -385,10 +385,7 @@ public class FileManager implements IFileNotify {
         }
     }
 
-    /*
-     * TODO:
-     *  2 public functions for stripping and merging the files
-     */
+ 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public ArrayList<File> SplitFile(File f, ArrayList<String> fileNames) throws IOException {
         long originalFileSize = Files.size(f.toPath());
@@ -404,11 +401,10 @@ public class FileManager implements IFileNotify {
             int i=0;
             while ((bytesAmount = bis.read(buffer)) > 0) {
                 //write each chunk of data into separate file with different number in name
-                String filePartName = fileName + " " + fileNames.get(i);
+                String filePartName = fileName + " " + fileNames.get(i++);
                 File newFile = new File(f.getParent(), filePartName);
                 try (FileOutputStream out = new FileOutputStream(newFile)) {
                     Files.add(newFile);
-                    i++;
                     out.write(buffer, 0, bytesAmount);
                 }
             }

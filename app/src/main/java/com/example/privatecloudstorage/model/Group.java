@@ -118,15 +118,7 @@ public class Group {
      * Create group folder in the root directory
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public boolean CreateGroup(boolean isJoin){
-        if(isJoin){
-            // Join an existing group in the Real-Time Database
-            FirebaseDatabaseManager.getInstance().JoinGroup(this);
-        }
-        else {
-            // Add this group to Real-Time Database
-            mId = FirebaseDatabaseManager.getInstance().AddGroup(this);
-        }
+    public boolean CreateGroup(){
 
         // Create group folder = GroupID GroupName
         File groupDirectory = new File(FileManager.getInstance().GetApplicationDirectory(), mId + " " + mName);
@@ -148,6 +140,14 @@ public class Group {
 
         return isCreated;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public boolean CreateGroup(String id){
+
+        mId=id;
+        return CreateGroup();
+    }
+
 
     /**
      * Generate and Save the group QR code to the group folder

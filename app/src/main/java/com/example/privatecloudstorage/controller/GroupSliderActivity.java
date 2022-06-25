@@ -273,7 +273,7 @@ public class GroupSliderActivity extends AppCompatActivity {
                 }
                 else
                     try {
-                        FileManager.getInstance().CreateFile(txtFile);
+                        FileManager.getInstance().CreateFile(txtFile,FileManager.NORMAL);
                         recreate();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -296,7 +296,7 @@ public class GroupSliderActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 try {
-                    FileManager.getInstance().CreateFile(file);
+                    FileManager.getInstance().CreateFile(file,FileManager.NORMAL);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

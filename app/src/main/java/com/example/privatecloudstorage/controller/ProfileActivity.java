@@ -112,8 +112,11 @@ public class ProfileActivity extends AppCompatActivity {
         /**
          * handle change user profile name
          */
-        _ActivityProfileBinding.edetName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
+
             @RequiresApi(api = Build.VERSION_CODES.Q)
+
+        _ActivityProfileBinding.editName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
+
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String editUserName = _UserNameEditText.getText().toString();
@@ -131,8 +134,11 @@ public class ProfileActivity extends AppCompatActivity {
         /**
          * handle change user profile about
          */
-        _ActivityProfileBinding.edetAbout.setOnClickListener(EditUserButtonClickListener("User About",_UserAboutView,new DialogInterface.OnClickListener() {
+
             @RequiresApi(api = Build.VERSION_CODES.Q)
+
+        _ActivityProfileBinding.editAbout.setOnClickListener(EditUserButtonClickListener("User About",_UserAboutView,new DialogInterface.OnClickListener() {
+
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 
