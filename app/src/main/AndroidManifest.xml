@@ -17,13 +17,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
+            android:name=".RecyclerBinActivity"
+            android:exported="false" />
+        <activity
             android:name=".controller.FileExplorerActivity"
             android:exported="false" />
         <activity
             android:name=".controller.GroupSliderActivity"
             android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity"
-            />
+            android:parentActivityName=".controller.GroupListActivity" />
         <activity
             android:name=".controller.ProfileActivity"
             android:exported="false"

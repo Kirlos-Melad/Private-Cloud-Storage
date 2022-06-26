@@ -64,7 +64,7 @@ public class JoinGroupActivity extends AppCompatActivity implements ZXingScanner
 
         // groupInformation array holds [Group ID, Group Name]
         String[] groupInformation = result.getText().split(",");
-        Group group = new Group(groupInformation[0], groupInformation[1], "", "");
+        Group group = new Group(groupInformation[0], groupInformation[1], "", "","");
 
         if(!ManagersMediator.getInstance().JoinGroup(group)){
             Toast.makeText(this, "Failed to Join group", Toast.LENGTH_LONG).show();

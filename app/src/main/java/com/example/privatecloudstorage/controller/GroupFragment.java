@@ -38,9 +38,10 @@ public class GroupFragment extends Fragment {
     private View _Fragment;
     private ArrayAdapterView mAdapter;
     private ArrayList<RecyclerViewItem> mItems;
+    private RecyclerView _Recyclerview;
+
     private  ManagersMediator MANAGER_MEDIATOR;
     private byte mTab;
-    private RecyclerView _Recyclerview;
     private TextView _TextView;
     private Stack<File> mParentFolder;
     private File mOpenedFolder;
@@ -59,8 +60,8 @@ public class GroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        _Fragment = inflater.inflate(R.layout.fragment_group, container, false);
-        _TextView = _Fragment.findViewById(R.id.fragment_text);
+        _Fragment = inflater.inflate(R.layout.recycler_view, container, false);
+        _TextView = _Fragment.findViewById(R.id.RecyclerView_Text);
 
         _Recyclerview = _Fragment.findViewById(R.id.recycler_view);
         _Recyclerview.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -114,7 +115,7 @@ public class GroupFragment extends Fragment {
         ManagersMediator.getInstance().GroupMembersInformationRetriever(mSelectedGroupKey, membersInfo -> {
             for (User member : (User[]) membersInfo) {
                 RecyclerViewItem item = new RecyclerViewItem(member.mName, member.mAbout,null, null, null);
-                item.mImage=GetResourceUri(R.drawable.ic_person);
+                item.mImage=GetResourceUri(R.drawable.person_24);
 
                 mItems.add(item);
             }

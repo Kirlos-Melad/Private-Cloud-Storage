@@ -58,9 +58,6 @@ public class ManagersMediator {
 
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
         mMonitoringStarted=false;
-
-        
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -142,12 +139,12 @@ public class ManagersMediator {
                 }, EXECUTOR_SERVICE)
         );
     }
-    @RequiresApi(api = Build.VERSION_CODES.Q)
+    /*@RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetGroupProfilePicture(Uri physicalPath,String groupId){
                 STORAGE_MANAGER.UploadGroupFile(groupId,physicalPath, metaData ->{
                     DATABASE_MANAGER.SetGroupProfilePicture(((StorageMetadata) metaData).getPath(),groupId);
                 }, EXECUTOR_SERVICE);
-    }
+    }*/
     public void UserSingleGroupRetriever(String groupId,IAction action){
             DATABASE_MANAGER.UserSingleGroupRetriever(groupId,action,EXECUTOR_SERVICE);
     }
@@ -163,7 +160,7 @@ public class ManagersMediator {
     public void ExitGroup(String groupId, String groupName){
         DATABASE_MANAGER.ExitGroup(groupId);
         File folder = new File(FILE_MANAGER.GetApplicationDirectory(), groupId + " " + groupName);
-        FILE_MANAGER.DeleteFile(folder);
+        FILE_MANAGER.DeleteDirectory(folder);
     }
 
 
@@ -210,6 +207,14 @@ public class ManagersMediator {
 
     /* =============================================== File Functions ===============================================*/
 
+    public void RestoreRecycledFile(String groupId,String fileId,IAction action){
+        EXECUTOR_SERVICE.execute(()->{
+        DATABASE_MANAGER.DeleteRecycledFile(groupId,fileId,object -> {
+            DATABASE_MANAGER.RestoreRecycledFile(groupId,fileId,action,EXECUTOR_SERVICE);
+
+        },EXECUTOR_SERVICE);
+        });
+    }
     /**
      * Add Event listener to the file manager
      */
@@ -331,7 +336,6 @@ public class ManagersMediator {
                 //Uri fileUri = Uri.fromFile(encryptedFile);
 
                 if (mode == FILE_MANAGER.NORMAL){
-
                     if(change.equals("New")){
                         // Get encrypted file location in physical storage
                         Uri fileUri = Uri.fromFile(encryptedFile);
@@ -344,7 +348,6 @@ public class ManagersMediator {
 
                             // Add the file to Database
                             DATABASE_MANAGER.AddFile(groupId, (String)fileId, fileName,FILE_MANAGER.NORMAL,storageMetadata, null, EXECUTOR_SERVICE);
-
 
                             // Clear temp directory
                             FILE_MANAGER.DeleteFile(encryptedFile,FILE_MANAGER.NORMAL);
@@ -374,7 +377,6 @@ public class ManagersMediator {
                     DATABASE_MANAGER.GetMembersIDs(group.getId(), new IAction() {
                         @Override
                         public void onSuccess(Object memIds) {
-
                             DATABASE_MANAGER.VersionNumberRetriever((String)fileId, versionNumber ->{
                                 try {
                                     ArrayList<String> membersIds = (ArrayList<String>)memIds;
@@ -385,9 +387,7 @@ public class ManagersMediator {
                                     // Delete encrypted file
                                     FILE_MANAGER.DeleteFile(encryptedFile,FILE_MANAGER.STRIP);
 
-
                                     boolean isFirst=true;
-
 
                                     if(change.equals("New")) {
 
@@ -423,11 +423,9 @@ public class ManagersMediator {
                                                 }, EXECUTOR_SERVICE);
                                             }
                                         }
-
                                     }
                                     else{
                                         for (File chunk : splitFiles) {
-
 
                                             Uri chunkUri = Uri.fromFile(chunk);
                                             if (isFirst) {
@@ -458,7 +456,6 @@ public class ManagersMediator {
                                                 }, EXECUTOR_SERVICE);
                                             }
                                         }
-
                                     }
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -515,7 +512,7 @@ public class ManagersMediator {
      */
     private void FileRemoveProcedure(String groupId, String fileName){
         DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
-            DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
+            DATABASE_MANAGER.DeleteFile(groupId, (String)fileId,fileName, null, EXECUTOR_SERVICE);
 
             // DON'T DELETE THE FILE
                 /*DATABASE_MANAGER.VersionNumberRetriever((String)fileId, versionNumber -> {
@@ -527,7 +524,9 @@ public class ManagersMediator {
             }, EXECUTOR_SERVICE);*/
         }, EXECUTOR_SERVICE);
     }
-
+    public void RecycledFilesRetriever(String groupId,IAction action ){
+        DATABASE_MANAGER.RecycledFilesRetriever(groupId,action,EXECUTOR_SERVICE);
+    }
     /**
      * Download all chunks and merge them into Merged Files folder
      *
@@ -565,7 +564,7 @@ public class ManagersMediator {
 
             // getting the files id (between the last '/' and " ")
             String fileId=filesUri.get(0).toString().substring(filesUri.get(0).toString().lastIndexOf(File.separator)+1,
-                                                                filesUri.get(0).toString().lastIndexOf(" "));
+                    filesUri.get(0).toString().lastIndexOf(" "));
 
             //check for files that start with the same name (but with just different users ID)
             //in case there's different files with totally different names
@@ -632,5 +631,4 @@ public class ManagersMediator {
 
         });
     }
-
 }

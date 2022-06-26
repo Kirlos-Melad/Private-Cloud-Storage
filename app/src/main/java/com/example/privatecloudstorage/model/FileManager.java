@@ -58,19 +58,6 @@ public class FileManager implements IFileNotify {
     public static final byte RENAME = 0x03;
     public static final byte CHANGE = 0x04;
 
-    /*
-    * TODO:
-    *  add these modes as parameters to the functions
-    *  has a default value = NORMAL
-    *  Depending on the mode choose a directory [STRIPPED_FILES_DIRECTORY, NORMAL_FILES_DIRECTORY]
-    *  and weather to perform stripping or not
-    *  then perform the action
-    */
-
-    /**
-     * TODO:
-     *  modes should be sent with the event as a parameter in event listeners
-     */
     // Modes
     public static final byte NORMAL = 0x00;
     public static final byte STRIP = (byte) 0xff; // -1
@@ -260,6 +247,9 @@ public class FileManager implements IFileNotify {
         }
 
         return false;
+    }
+    public void DeleteDirectory(File directory){
+        directory.delete();
     }
 
     /**

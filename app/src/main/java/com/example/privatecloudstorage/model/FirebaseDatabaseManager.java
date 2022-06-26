@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.Pair;
 
 //3rd Party Libraries
 import androidx.annotation.NonNull;
@@ -183,8 +184,6 @@ public class FirebaseDatabaseManager {
                         mDataBase.getReference().child("Groups").child(groupId).child("Members")
                                 .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).onDisconnect().setValue("Offline");
                     }
-
-
                 }
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
@@ -235,6 +234,53 @@ public class FirebaseDatabaseManager {
         mExecutorService.execute(MonitorSingleGroup(group));
 
         return groupId;
+    }
+    public void RecycledFilesRetriever(String groupId,IAction action ,ExecutorService executorService){
+        executorService.execute(() -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("RecycledFiles").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                        @Override
+                        public void onSuccess(DataSnapshot sharedFiles) {
+                            ArrayList<Pair<String,String>>sharedFilesArray=new ArrayList<>();
+                            for (DataSnapshot file : sharedFiles.getChildren()){
+                                sharedFilesArray.add(new Pair<>(file.getKey(),file.getValue(String.class)));
+                            }
+                            action.onSuccess(sharedFilesArray);
+                        }
+                    });
+        });
+    }
+    public void DeleteRecycledFile(String groupId, String fileId,IAction action,ExecutorService executorService){
+        mDataBase.getReference().child("Groups").child(groupId).child("RecycledFiles").child(fileId).removeValue();
+    }
+    public void RestoreRecycledFile(String groupId, String fileId,IAction action,ExecutorService executorService) {
+        DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
+        FilesReference.get().addOnSuccessListener(dataSnapshot -> {
+            executorService.execute(() -> {
+                int versionNumber = (int) dataSnapshot.getChildrenCount();
+                versionNumber -= 4;
+
+                DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
+                        .child(fileId);
+
+                int finalVersionNumber = versionNumber;
+                HashMap<String, Object> sharedFileChildren = new HashMap<String, Object>() {{
+                    put("URL", dataSnapshot.child("URL").getValue() + "/" + finalVersionNumber);
+                    put("Name", dataSnapshot.child(String.valueOf(finalVersionNumber)).child("Name").getValue(String.class));
+
+                    put("Mode", dataSnapshot.child("Mode").getValue(String.class));
+                    put("Change", dataSnapshot.child(String.valueOf(finalVersionNumber)).child("Change").getValue(String.class));
+                }};
+
+                if (!((String) sharedFileChildren.get("Change")).equals("New")) {
+                    sharedFileChildren.put("PreviousName", dataSnapshot.child(String.valueOf(versionNumber - 1)).child("Name").getValue());
+
+                }
+
+                SharedFileReference.updateChildren(sharedFileChildren);
+                action.onSuccess(null);
+            });
+        });
     }
     /**
      * @param groupId get the Group's users
@@ -820,15 +866,20 @@ private ValueEventListener AllOnlineEventListener(Group group) {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void DeleteFile(String groupId, String fileId, IAction action, ExecutorService executorService){
+    public void DeleteFile(String groupId, String fileId,String fileName, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
-            VersionNumberRetriever(fileId, versionNumber -> {
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("RecycledFiles").child(fileId).setValue(fileName);
+            mDataBase.getReference().child("Groups").child(groupId)
+                    .child("SharedFiles").child(fileId).removeValue();
+
+           /* VersionNumberRetriever(fileId, versionNumber -> {
                 mDataBase.getReference().child("Groups").child(groupId)
                         .child("RecycledFiles").child(fileId).setValue((int)versionNumber - 1);
 
                 mDataBase.getReference().child("Groups").child(groupId)
                         .child("SharedFiles").child(fileId).removeValue();
-            }, executorService);
+            }, executorService);*/
         });
     }
 

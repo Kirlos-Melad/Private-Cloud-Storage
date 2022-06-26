@@ -1,17 +1,22 @@
 package com.example.privatecloudstorage.controller;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 
 
+import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.os.Build;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -21,15 +26,18 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupListBinding;
+import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
-import com.example.privatecloudstorage.model.FirebaseDatabaseManager;
 import com.example.privatecloudstorage.model.FirebaseStorageManager;
 import com.example.privatecloudstorage.model.Group;
 import com.example.privatecloudstorage.model.ManagersMediator;
+import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
@@ -43,14 +51,19 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * GroupListActivity class is to make a dynamic List to view user's Group(s)
  */
 public class GroupListActivity extends AppCompatActivity {
+
     private static final String TAG = "GroupListActivity";
-    ArrayList<String> mItems;
-    ArrayAdapter<String> _Adapter;
+
+    private ArrayAdapterView mAdapter;
+    private ArrayList<RecyclerViewItem> mItems;
+
     ActionBarDrawerToggle _ActionBarDrawerToggle;
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     TextView _HeaderName;
     TextView _HeaderEmail;
     CircleImageView _Profile;
+    RecyclerView recyclerView;
+
 
     private @NonNull
     ActivityGroupListBinding _ActivityGroupListBinding;
@@ -66,6 +79,8 @@ public class GroupListActivity extends AppCompatActivity {
         setContentView(_ActivityGroupListBinding.getRoot());
 
         mFirebaseAuthenticationManager =FirebaseAuthenticationManager.getInstance();
+        recyclerView=_ActivityGroupListBinding.recyclerView;
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Start monitoring Cloud and Physical storage
         // MUST CALL THIS HERE
@@ -93,22 +108,45 @@ public class GroupListActivity extends AppCompatActivity {
 
 
         mItems = new ArrayList<>();
-        //connecting _Adapter with the mItems List
-        _Adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, mItems);
-        //setting the ListView Adapter with _Adapter
-        _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
 
         //getting user's group(s)
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
-                mItems.add(group.getName());
+                ManagersMediator.getInstance().UserSingleGroupRetriever(group.getId(),g->{
+                    RecyclerViewItem item = new RecyclerViewItem(((Group)g).getName(), ((Group)g).getDescription(),null, null, null);
+                    item.mImage = GetResourceUri(R.drawable.ic_group);
+                    item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
+                        @Override
+                        public void onSuccess(Object object) {
+                            Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("selectedGroupName", ((Group)g).getName());
+                            bundle.putString("selectedGroupKey", ((Group)g).getId());
+                            bundle.putString("selectedGroupDescription",((Group)g).getDescription());
+
+                            intent.putExtras(bundle);//Put Group number to your next Intent
+                            startActivity(intent);
+                        }
+                    });
+                    mItems.add(item);
+                });
+
             }
-            _ActivityGroupListBinding.Listview.setAdapter(_Adapter);
+            mAdapter = new ArrayAdapterView(mItems);
+            recyclerView.setAdapter( mAdapter);
+
+
+            if (mItems.isEmpty()) {
+                _ActivityGroupListBinding.ViewText.setText("NO GROUPS TO SHOW");
+                _ActivityGroupListBinding.ViewText.setVisibility(View.VISIBLE);
+            }
+
         });
         /**
          * retrieve group key and name and move to GroupSliderActivity
          */
-        _ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        /*_ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override //on any click (choosing a group) to enter and view group contents
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
@@ -124,7 +162,7 @@ public class GroupListActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
             }
-        });
+        });*/
 
         //Manage navigation bar----------------------------------------------------------
         _ActionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
@@ -184,5 +222,16 @@ public class GroupListActivity extends AppCompatActivity {
         if(_ActionBarDrawerToggle.onOptionsItemSelected(item))
             return true;
         return super.onOptionsItemSelected(item);
+    }
+    private Uri GetResourceUri(int resourceId){
+        Resources resources =getApplicationContext().getResources();
+        Uri uri = new Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(resources.getResourcePackageName(resourceId))
+                .appendPath(resources.getResourceTypeName(resourceId))
+                .appendPath(resources.getResourceEntryName(resourceId))
+                .build();
+
+        return uri;
     }
 }
