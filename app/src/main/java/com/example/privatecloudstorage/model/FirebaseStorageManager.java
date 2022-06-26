@@ -22,17 +22,9 @@ import java.util.concurrent.ExecutorService;
 public class FirebaseStorageManager {
     // Used for debugging
     public static final String TAG = "FirebaseStorageManager";
+
     private FirebaseStorage mStorage;
-    private ArrayList<String> mOnlineUsers = new ArrayList<>();
     private static FirebaseStorageManager mFirebaseStorageManager;
-
-    public ArrayList<String> getOnlineUsers() {
-        return mOnlineUsers;
-    }
-
-    public void setOnlineUsers(ArrayList<String> mOnlineUsers) {
-        this.mOnlineUsers = mOnlineUsers;
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private FirebaseStorageManager(){
@@ -54,10 +46,10 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void UploadGroupFile(String groupId, Uri file, IAction action, ExecutorService executorService) {
+    public void UploadGroupFile(String groupId,String fileId ,Uri file, int versionNumber, IAction action, ExecutorService executorService) {
         executorService.execute(() -> {
             String fileName = file.getLastPathSegment();
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
+            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileId).child(String.valueOf(versionNumber)).child(fileName);
 
             //Start uploading file
             fileReference.putFile(file)
@@ -117,7 +109,7 @@ public class FirebaseStorageManager {
                         });
                     })
                     .addOnFailureListener(e -> {
-                        Log.d(TAG, "Download: line 203");
+
                         e.printStackTrace();
                     });
         });
@@ -134,7 +126,7 @@ public class FirebaseStorageManager {
                         });
                     })
                     .addOnFailureListener(e -> {
-                        Log.d(TAG, "Download: line 203");
+
                         e.printStackTrace();
                     });
         });
@@ -148,15 +140,16 @@ public class FirebaseStorageManager {
      * @param action action to be executed on success
      * @param executorService thread to run on
      */
-    public void DeleteGroupFile(String groupId, String fileName, IAction action, ExecutorService executorService){
+    public void DeleteGroupFile(Uri url, IAction action, ExecutorService executorService){
         executorService.execute(() -> {
-            StorageReference fileReference = mStorage.getReference().child(groupId).child(fileName);
+
+            StorageReference fileReference = mStorage.getReference().child(url.toString());
             fileReference.delete().addOnSuccessListener(unused -> {
                 executorService.execute(() -> {
                     action.onSuccess(null);
                 });
             }).addOnFailureListener(e -> {
-                Log.d(TAG, "onFailure: line 219");
+
                 e.printStackTrace();
             });
         });

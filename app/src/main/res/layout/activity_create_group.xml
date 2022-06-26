@@ -10,17 +10,49 @@
     android:padding="30dp"
     tools:context=".controller.CreateGroupActivity">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="371dp"
-        android:layout_height="189dp"
-        android:src="@drawable/creategroup"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <TextView
+        android:layout_width="317dp"
+        android:layout_height="44dp"
+        android:text="Provide group information and optional group icon"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_image">
+
+    </TextView>
+
+    <ImageView
+        android:id="@+id/edit_image"
+        android:layout_width="64dp"
+        android:layout_height="60dp"
+        android:layout_alignEnd="@+id/profile_image"
+        android:layout_alignBottom="@+id/profile_image"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintEnd_toEndOf="@+id/profile_image"
+        app:srcCompat="@drawable/camera_24" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_image"
+        android:layout_width="174dp"
+        android:layout_height="165dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="69dp"
+        android:layout_marginBottom="383dp"
+        android:backgroundTint="#6C8C84"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.527"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.084"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintVertical_bias="0.28"
+        tools:ignore="MissingConstraints">
+
+    </de.hdodenhof.circleimageview.CircleImageView>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/groupname"

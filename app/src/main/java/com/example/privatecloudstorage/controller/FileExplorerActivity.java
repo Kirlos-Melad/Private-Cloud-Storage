@@ -202,13 +202,14 @@ public class FileExplorerActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 PopupMenu popupMenu = new PopupMenu(activity,v);
-                    popupMenu.getMenu().add("Rename");
-                    popupMenu.getMenu().add("Delete");
-                    if(file.getName().contains(".txt"))
-                        popupMenu.getMenu().add("Edit");
+                popupMenu.getMenu().add("Rename");
+                popupMenu.getMenu().add("Delete");
+                popupMenu.getMenu().add("Download Old Versions");
+                if(file.getName().contains(".txt"))
+                    popupMenu.getMenu().add("Edit");
 
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @RequiresApi(api = Build.VERSION_CODES.Q)
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         if(item.getTitle().equals("Rename")){
@@ -224,7 +225,8 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     String newName = fileNameEditText.getText().toString();
-                                    FileManager.getInstance().RenameFile(file ,newName);
+                                    FileManager.getInstance().RenameFile(file ,newName,
+                                            file.getParentFile().getName().equals("Normal Files") ? FileManager.NORMAL:FileManager.STRIP);
                                     action.onSuccess(null);
                                 }
                             });
@@ -236,11 +238,12 @@ public class FileExplorerActivity extends AppCompatActivity {
                             });
                             renameDialog.show();
                         }
-                        if(item.getTitle().equals("Delete")){
-                            FileManager.getInstance().DeleteFile(file);
+                        else if(item.getTitle().equals("Delete")){
+                            FileManager.getInstance().DeleteFile(file,
+                                    file.getParentFile().getName().equals("Normal Files") ? FileManager.NORMAL:FileManager.STRIP);
                             action.onSuccess(null);
                         }
-                        if(item.getTitle().equals("Edit")){
+                        else if(item.getTitle().equals("Edit")){
                             //TODO : sync with firebase ---------------------------------------
                             AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
                             final EditText editText = new EditText(activity);
@@ -272,6 +275,10 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 }
                             });
                             editDialog.show();
+                        }
+
+                        else if(item.getTitle().equals("Download Old Versions")){
+                            new FileVersionDownloaderBox(file, activity).ShowDialog();
                         }
                         return true;
                     }
@@ -345,7 +352,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 byte mode = (byte) object;
                                 if (mode == FileManager.NORMAL) {
                                     try {
-                                        FileManager.getInstance().CopyFile(file.toPath(), normalDst.toPath(), mode);
+                                        FileManager.getInstance().CopyFile(file.toPath(), normalDst.toPath(),FileManager.NORMAL);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                         Toast.makeText(context.getApplicationContext(), "The Group is not exist", Toast.LENGTH_LONG).show();
@@ -353,7 +360,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                                 }
                                 if (mode == FileManager.STRIP) {
                                     try {
-                                        FileManager.getInstance().CopyFile(file.toPath(), stripDst.toPath(), mode);
+                                        FileManager.getInstance().CopyFile(file.toPath(), stripDst.toPath(),FileManager.STRIP);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                         Toast.makeText(context.getApplicationContext(), "The Group is not exist", Toast.LENGTH_LONG).show();
@@ -364,11 +371,11 @@ public class FileExplorerActivity extends AppCompatActivity {
                         return true;
                     }
 
-            });
+                });
                 popupMenu.show();
                 return true;
+            };
         };
-    };
     }
 
 }

@@ -3,11 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/item2"
-        android:title="Group info"
+        android:id="@+id/GroupInformation"
+        android:title="Group information"
         app:showAsAction="never" />
     <item
-        android:id="@+id/item3"
+        android:id="@+id/RecyclerBin"
+        android:title="Recycler Bin"
+        android:visible="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/ExitGroup"
         android:title="Exit group"
         app:showAsAction="never" />
 </menu>

@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.R;
+import com.google.firebase.database.FirebaseDatabase;
 
 /**
  * It is used as an interface for the Application

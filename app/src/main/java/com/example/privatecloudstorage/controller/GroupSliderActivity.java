@@ -2,17 +2,13 @@ package com.example.privatecloudstorage.controller;
 
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -20,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -30,18 +25,15 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.privatecloudstorage.BuildConfig;
 import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
-import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.Group;
 import com.example.privatecloudstorage.model.ManagersMediator;
-import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -49,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Stack;
 
 //replace fragment activity with AppCompatActivity
 
@@ -80,18 +71,19 @@ public class GroupSliderActivity extends AppCompatActivity {
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private FragmentStateAdapter pagerAdapter;
+    private  ManagersMediator MANAGER_MEDIATOR;
     private String mSelectedGroupName;
-    private String mName;
     private String mSelectedGroupKey;
     private String mSelectedGroupDescription;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _ActivityGroupSliderBinding = ActivityGroupSliderBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupSliderBinding.getRoot());
         TabLayout tabLayout;
-
+        MANAGER_MEDIATOR = ManagersMediator.getInstance();
         _ActivityGroupSliderBinding.menu.setVisibility(View.VISIBLE);
 
         Bundle bundle = getIntent().getExtras();
@@ -99,7 +91,8 @@ public class GroupSliderActivity extends AppCompatActivity {
             finish();
         mSelectedGroupName = bundle.getString("selectedGroupName");
         mSelectedGroupKey = bundle.getString("selectedGroupKey");
-        mSelectedGroupDescription=bundle.getString("selectedGroupDescription");
+
+       // mSelectedGroupDescription= bundle.getString("selectedGroupDescription");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
         viewPager = findViewById(R.id.pager);
@@ -179,28 +172,39 @@ public class GroupSliderActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.item2:
-                Intent intent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("Name", mName);
-                bundle.putString("Description", mSelectedGroupDescription);
-                bundle.putString("Uri", "NoPicture");
-                bundle.putString("Caller", "Group");
 
-                intent.putExtras(bundle);//Put Group number to your next Intent
-                startActivity(intent);
+        switch (item.getItemId()) {
+            case R.id.GroupInformation:
+                ManagersMediator.getInstance().UserSingleGroupRetriever(mSelectedGroupKey, group->{
+                    Intent groupInformationIntent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Name", mSelectedGroupName);
+                    bundle.putString("Description",((Group)group).getDescription());
+                    bundle.putString("Uri", ((Group)group).getPicture());
+                    bundle.putString("Caller", "Group");
+                    groupInformationIntent.putExtras(bundle);//Put Group number to your next Intent
+                    startActivity(groupInformationIntent);
+
+                });
                 //Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.item3:
+                break;
+            case R.id.ExitGroup:
                 ManagersMediator.getInstance().ExitGroup(mSelectedGroupKey, mSelectedGroupName);
                 Toast.makeText(this, "Exit group is done :( ", Toast.LENGTH_SHORT).show();
-                Intent intent2=new Intent(GroupSliderActivity.this,GroupListActivity.class);
-                startActivity(intent2);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+                Intent sxitgroupIntent=new Intent(GroupSliderActivity.this,GroupListActivity.class);
+                startActivity(sxitgroupIntent);
+                break;
+
+            case R.id.RecyclerBin:
+                Intent recyclerBinIntent = new Intent(GroupSliderActivity.this, RecyclerBinActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("Key", mSelectedGroupKey);
+                recyclerBinIntent.putExtras(bundle);
+                startActivity(recyclerBinIntent);
+                break;
+
         }
+        return true;
     }
 
     /**
@@ -268,7 +272,7 @@ public class GroupSliderActivity extends AppCompatActivity {
                 }
                 else
                     try {
-                        FileManager.getInstance().CreateFile(txtFile);
+                        FileManager.getInstance().CreateFile(txtFile,FileManager.NORMAL);
                         recreate();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -291,7 +295,7 @@ public class GroupSliderActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 try {
-                    FileManager.getInstance().CreateFile(file);
+                    FileManager.getInstance().CreateFile(file,FileManager.NORMAL);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

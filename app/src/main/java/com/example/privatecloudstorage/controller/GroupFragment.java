@@ -59,10 +59,10 @@ public class GroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        _Fragment = inflater.inflate(R.layout.fragment_group, container, false);
-        _TextView = _Fragment.findViewById(R.id.fragment_text);
+        _Fragment = inflater.inflate(R.layout.recycler_view, container, false);
+        _TextView = _Fragment.findViewById(R.id.RecyclerView_Text);
 
-        _Recyclerview = _Fragment.findViewById(R.id.recycler_view);
+        _Recyclerview = _Fragment.findViewById(R.id.Recyclerview);
         _Recyclerview.setLayoutManager(new LinearLayoutManager(getContext()));
 
         return _Fragment;

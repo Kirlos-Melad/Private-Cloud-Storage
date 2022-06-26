@@ -6,7 +6,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
+        android:id="@+id/Recyclerview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?colorOnSecondary"
@@ -16,15 +16,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.005" />
     <TextView
-        android:id="@+id/fragment_text"
+        android:id="@+id/RecyclerView_Text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/recycler_view" />
+        app:layout_constraintTop_toTopOf="@+id/Recyclerview" />
 
 
 </RelativeLayout>
