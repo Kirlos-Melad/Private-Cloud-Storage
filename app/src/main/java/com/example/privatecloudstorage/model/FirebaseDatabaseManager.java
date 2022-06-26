@@ -250,35 +250,40 @@ public class FirebaseDatabaseManager {
                     });
         });
     }
-    public void DeleteRecycledFile(String groupId, String fileId,IAction action,ExecutorService executorService){
-        mDataBase.getReference().child("Groups").child(groupId).child("RecycledFiles").child(fileId).removeValue();
-    }
+
+
     public void RestoreRecycledFile(String groupId, String fileId,IAction action,ExecutorService executorService) {
         DatabaseReference FilesReference = mDataBase.getReference().child("Files").child(fileId);
-        FilesReference.get().addOnSuccessListener(dataSnapshot -> {
+        FilesReference.get().addOnSuccessListener(fileSnapshot -> {
             executorService.execute(() -> {
-                int versionNumber = (int) dataSnapshot.getChildrenCount();
+                mDataBase.getReference().child("Groups").child(groupId).child("RecycledFiles").child(fileId).removeValue();
+
+                int versionNumber = (int) fileSnapshot.getChildrenCount();
                 versionNumber -= 4;
 
-                DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles")
-                        .child(fileId);
+                DatabaseReference SharedFileReference = mDataBase.getReference().child("Groups")
+                        .child(groupId).child("SharedFiles").child(fileId);
 
                 int finalVersionNumber = versionNumber;
                 HashMap<String, Object> sharedFileChildren = new HashMap<String, Object>() {{
-                    put("URL", dataSnapshot.child("URL").getValue() + "/" + finalVersionNumber);
-                    put("Name", dataSnapshot.child(String.valueOf(finalVersionNumber)).child("Name").getValue(String.class));
+                    put("URL", fileSnapshot.child("URL").getValue() + "/" + finalVersionNumber);
+                    put("Name", fileSnapshot.child(String.valueOf(finalVersionNumber)).child("Name").getValue(String.class));
 
-                    put("Mode", dataSnapshot.child("Mode").getValue(String.class));
-                    put("Change", dataSnapshot.child(String.valueOf(finalVersionNumber)).child("Change").getValue(String.class));
+                    put("Mode", fileSnapshot.child("Mode").getValue(String.class));
+                    put("Change", fileSnapshot.child(String.valueOf(finalVersionNumber)).child("Change").getValue(String.class));
                 }};
 
-                if (!((String) sharedFileChildren.get("Change")).equals("New")) {
-                    sharedFileChildren.put("PreviousName", dataSnapshot.child(String.valueOf(versionNumber - 1)).child("Name").getValue());
-
+                if (sharedFileChildren.get("Change").equals("Rename")) {
+                    sharedFileChildren.put("PreviousName", fileSnapshot.child(String.valueOf(versionNumber - 1)).child("Name").getValue());
                 }
 
                 SharedFileReference.updateChildren(sharedFileChildren);
-                action.onSuccess(null);
+
+                // MUST be called from main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    action.onSuccess(null);
+                });
+
             });
         });
     }

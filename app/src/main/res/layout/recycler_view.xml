@@ -6,7 +6,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
+        android:id="@+id/Recyclerview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?colorOnSecondary"
@@ -24,7 +24,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/recycler_view" />
+        app:layout_constraintTop_toTopOf="@+id/Recyclerview" />
 
 
 </RelativeLayout>

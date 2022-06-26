@@ -209,10 +209,9 @@ public class ManagersMediator {
 
     public void RestoreRecycledFile(String groupId,String fileId,IAction action){
         EXECUTOR_SERVICE.execute(()->{
-        DATABASE_MANAGER.DeleteRecycledFile(groupId,fileId,object -> {
+
             DATABASE_MANAGER.RestoreRecycledFile(groupId,fileId,action,EXECUTOR_SERVICE);
 
-        },EXECUTOR_SERVICE);
         });
     }
     /**

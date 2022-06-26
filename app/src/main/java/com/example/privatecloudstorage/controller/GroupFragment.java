@@ -63,7 +63,7 @@ public class GroupFragment extends Fragment {
         _Fragment = inflater.inflate(R.layout.recycler_view, container, false);
         _TextView = _Fragment.findViewById(R.id.RecyclerView_Text);
 
-        _Recyclerview = _Fragment.findViewById(R.id.recycler_view);
+        _Recyclerview = _Fragment.findViewById(R.id.Recyclerview);
         _Recyclerview.setLayoutManager(new LinearLayoutManager(getContext()));
 
         return _Fragment;

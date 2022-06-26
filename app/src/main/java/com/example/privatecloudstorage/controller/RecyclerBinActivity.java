@@ -1,8 +1,14 @@
 package com.example.privatecloudstorage.controller;
 
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Build;
@@ -19,6 +25,17 @@ import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.example.privatecloudstorage.model.User;
 
+import android.view.View;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+
+import com.example.privatecloudstorage.R;
+import com.example.privatecloudstorage.databinding.ActivityCreateGroupBinding;
+import com.example.privatecloudstorage.databinding.RecyclerViewBinding;
+import com.example.privatecloudstorage.model.ManagersMediator;
+import com.example.privatecloudstorage.model.RecyclerViewItem;
+
+
 import java.util.ArrayList;
 
 public class RecyclerBinActivity extends AppCompatActivity {
@@ -33,9 +50,13 @@ public class RecyclerBinActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LayoutInflater inflater = getLayoutInflater();
-        _RecyclerViewBinding = RecyclerViewBinding.inflate(inflater);
+
+
+        _RecyclerViewBinding = RecyclerViewBinding.inflate(getLayoutInflater());
         setContentView(_RecyclerViewBinding.getRoot());
+
+        _RecyclerViewBinding.Recyclerview.setLayoutManager(new LinearLayoutManager(this));
+
 
         Bundle bundle = getIntent().getExtras();
         if(bundle == null)
@@ -45,6 +66,9 @@ public class RecyclerBinActivity extends AppCompatActivity {
 
             ArrayList<Pair<String,String>>recycledFilesArray=(ArrayList<Pair<String, String>>) recycledFiles;
             if(!recycledFilesArray.isEmpty()){
+
+                mItems = new ArrayList<>();
+
                 _RecyclerViewBinding.RecyclerViewText.setVisibility(View.GONE);
                 ShowRecycledFiles(recycledFilesArray);
 
@@ -54,39 +78,39 @@ public class RecyclerBinActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void ShowRecycledFiles(ArrayList<Pair<String,String>>recycledFilesArray){
         for(Pair<String,String> file :  recycledFilesArray){
-            RecyclerViewItem item = new RecyclerViewItem(file.second, null, null, null, new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),v);
-                    popupMenu.getMenu().add("Restore");
-                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @RequiresApi(api = Build.VERSION_CODES.Q)
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            if(item.getTitle().equals("Restore")){
-                                ManagersMediator.getInstance().RestoreRecycledFile(mGroupKey,file.first,object->{
-                                    int index=-1;
-                                    for(int i=0;i<recycledFilesArray.size(); i++){
-                                        if(file.first.equals(recycledFilesArray.get(i).first)){
-                                            index=i;
-                                        }
-                                    }
-                                    recycledFilesArray.remove(index);
-                                    ShowRecycledFiles(recycledFilesArray);
-                                });
+            RecyclerViewItem item = new RecyclerViewItem(file.second, null, null, null, v -> {
+                PopupMenu popupMenu = new PopupMenu(getApplicationContext(),v);
+                popupMenu.getMenu().add("Restore");
+                popupMenu.setOnMenuItemClickListener(item1 -> {
+                    if(item1.getTitle().equals("Restore")){
+                        ManagersMediator.getInstance().RestoreRecycledFile(mGroupKey,file.first,object->{
+                            int index=-1;
+                            for(int i=0;i<recycledFilesArray.size(); i++){
+                                if(file.first.equals(recycledFilesArray.get(i).first)){
+                                    index=i;
+                                }
                             }
-                            return true;
-                        }
-                    });
-                    popupMenu.show();
+                            recycledFilesArray.remove(index);
+                            ShowRecycledFiles(recycledFilesArray);
+                        });
+                    }
                     return true;
-                }
+                });
+                popupMenu.show();
+                return true;
+
             });
             mItems.add(item);
         }
         mAdapter = new ArrayAdapterView(mItems);
-        _Recyclerview.setAdapter(mAdapter);
+
+        _RecyclerViewBinding.Recyclerview.setAdapter(mAdapter);
+
     }
 }
