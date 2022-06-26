@@ -9,7 +9,7 @@
     <item
         android:id="@+id/RecyclerBin"
         android:title="Recycler Bin"
-        android:visible="true"
+        android:visible="false"
         app:showAsAction="never" />
     <item
         android:id="@+id/ExitGroup"

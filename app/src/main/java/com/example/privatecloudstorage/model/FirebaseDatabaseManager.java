@@ -359,6 +359,7 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
                         "",
                         group.child("Picture").getValue(String.class)
                 );
+                g.mOwner=group.child("Owner").getValue().toString();
                 action.onSuccess(g);
             }
         });

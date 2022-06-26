@@ -3,6 +3,7 @@ package com.example.privatecloudstorage.controller;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -95,6 +96,8 @@ public class GroupSliderActivity extends AppCompatActivity {
        // mSelectedGroupDescription= bundle.getString("selectedGroupDescription");
         getSupportActionBar().setTitle(mSelectedGroupName);
 
+
+
         viewPager = findViewById(R.id.pager);
         pagerAdapter = new ScreenSlidePagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
@@ -166,7 +169,18 @@ public class GroupSliderActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.setting_menu, menu);
+
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MANAGER_MEDIATOR.UserSingleGroupRetriever(mSelectedGroupKey,group->{
+            if(((Group)group).mOwner.equals(MANAGER_MEDIATOR.GetCurrentUser().getUid())){
+                menu.findItem(R.id.RecyclerBin).setVisible(true);
+            }
+        });
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)

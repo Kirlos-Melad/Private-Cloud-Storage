@@ -31,6 +31,7 @@ public class Group {
     private String mDescription;
     private String mPassword;
     private String mPicture;
+    public String mOwner;
 
     /**
      *
