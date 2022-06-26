@@ -108,13 +108,14 @@ public class GroupListActivity extends AppCompatActivity {
 
 
         mItems = new ArrayList<>();
-
+       // mItems[0]=new ArrayList<>();
         //getting user's group(s)
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
                 ManagersMediator.getInstance().UserSingleGroupRetriever(group.getId(),g->{
                     RecyclerViewItem item = new RecyclerViewItem(((Group)g).getName(), ((Group)g).getDescription(),null, null, null);
                     item.mImage = GetResourceUri(R.drawable.ic_group);
+                    mItems.add(item);
                     item._onClickListener=FileExplorerActivity.FolderOnClickListener(new IAction() {
                         @Override
                         public void onSuccess(Object object) {
@@ -127,42 +128,25 @@ public class GroupListActivity extends AppCompatActivity {
                             intent.putExtras(bundle);//Put Group number to your next Intent
                             startActivity(intent);
                         }
+
                     });
-                    mItems.add(item);
+                    mAdapter = new ArrayAdapterView(mItems);
+                    recyclerView.setAdapter( mAdapter);
+
+                    if (mItems.isEmpty()) {
+                        _ActivityGroupListBinding.ViewText.setText("NO GROUPS TO SHOW");
+                        _ActivityGroupListBinding.ViewText.setVisibility(View.VISIBLE);
+                    }
                 });
 
             }
-            mAdapter = new ArrayAdapterView(mItems);
-            recyclerView.setAdapter( mAdapter);
 
-
-            if (mItems.isEmpty()) {
-                _ActivityGroupListBinding.ViewText.setText("NO GROUPS TO SHOW");
-                _ActivityGroupListBinding.ViewText.setVisibility(View.VISIBLE);
-            }
 
         });
         /**
          * retrieve group key and name and move to GroupSliderActivity
          */
 
-        /*_ActivityGroupListBinding.Listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override //on any click (choosing a group) to enter and view group contents
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
-                    Group group = ((ArrayList<Group>) groups).get(position);
-                    //before go to new activity send group name and id as a parameter
-                    Intent intent = new Intent(GroupListActivity.this, GroupSliderActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("selectedGroupName", group.getName());
-                    bundle.putString("selectedGroupKey", group.getId());
-                    bundle.putString("selectedGroupDescription",group.getDescription());
-
-                    intent.putExtras(bundle);//Put Group number to your next Intent
-                    startActivity(intent);
-                });
-            }
-        });*/
 
         //Manage navigation bar----------------------------------------------------------
         _ActionBarDrawerToggle = new ActionBarDrawerToggle(this,_ActivityGroupListBinding.drawerLayout,R.string.menu_open,R.string.menu_close);
@@ -203,6 +187,7 @@ public class GroupListActivity extends AppCompatActivity {
 
                             intent.putExtras(bundle);//Put Group number to your next Intent
                             startActivity(intent);
+                            finish();
                         });
                         recreate();
                         _ActivityGroupListBinding.drawerLayout.closeDrawer(GravityCompat.START);

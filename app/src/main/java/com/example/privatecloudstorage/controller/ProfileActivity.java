@@ -211,4 +211,20 @@ public class ProfileActivity extends AppCompatActivity {
         };
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(mCaller.equals("User")){
+            startActivity(new Intent(ProfileActivity.this,GroupListActivity.class));
+
+        }else{
+            Intent intent = new Intent(ProfileActivity.this, GroupSliderActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("selectedGroupName", mName);
+            bundle.putString("selectedGroupKey", getIntent().getExtras().getString("Key"));
+            intent.putExtras(bundle);//Put Group number to your next Intent
+            startActivity(intent);
+        }
+        finish();
+    }
 }

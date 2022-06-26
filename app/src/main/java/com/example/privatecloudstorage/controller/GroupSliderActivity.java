@@ -178,12 +178,14 @@ public class GroupSliderActivity extends AppCompatActivity {
                 ManagersMediator.getInstance().UserSingleGroupRetriever(mSelectedGroupKey, group->{
                     Intent groupInformationIntent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
                     Bundle bundle = new Bundle();
+                    bundle.putString("Key",mSelectedGroupKey);
                     bundle.putString("Name", mSelectedGroupName);
                     bundle.putString("Description",((Group)group).getDescription());
                     bundle.putString("Uri", ((Group)group).getPicture());
                     bundle.putString("Caller", "Group");
                     groupInformationIntent.putExtras(bundle);//Put Group number to your next Intent
                     startActivity(groupInformationIntent);
+                    finish();
 
                 });
                 //Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();

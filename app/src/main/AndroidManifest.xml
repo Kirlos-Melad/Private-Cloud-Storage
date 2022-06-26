@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
-            android:name=".RecyclerBinActivity"
+            android:name=".controller.RecyclerBinActivity"
             android:exported="false" />
         <activity
             android:name=".controller.FileExplorerActivity"
@@ -25,11 +25,12 @@
         <activity
             android:name=".controller.GroupSliderActivity"
             android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity" />
+            android:parentActivityName=".controller.GroupListActivity"
+             />
         <activity
             android:name=".controller.ProfileActivity"
             android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity" />
+             />
         <activity
             android:name=".controller.SplashScreenActivity"
             android:exported="true"
@@ -62,7 +63,7 @@
         <activity
             android:name=".controller.CreateGroupActivity"
             android:exported="true"
-            android:parentActivityName=".controller.GroupListActivity" />
+             />
         <activity
             android:name=".controller.JoinGroupActivity"
             android:exported="true" />
