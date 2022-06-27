@@ -200,7 +200,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file, file.getName(), "New", mode);
+                            FileUploadProcedure(group, file, "New", mode);
                             break;
                         }
                     }
@@ -236,7 +236,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group, file,file.getName(), "Modified", mode);
+                            FileUploadProcedure(group, file, "Modified", mode);
                             break;
                         }
                     }
@@ -254,7 +254,7 @@ public class ManagersMediator {
                     String path = file.getAbsolutePath();
                     for(Group group : groups){
                         if (path.contains(group.getId() + " " + group.getName())){
-                            FileUploadProcedure(group,file,oldName,"Renamed", mode);
+                            FileUploadProcedure(group,file,"Renamed", mode);
                             break;
                         }
                     }
@@ -270,13 +270,13 @@ public class ManagersMediator {
      * @param file the file being uploaded
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void FileUploadProcedure(Group group, File file,String fileName, String change, byte mode){
+    private void FileUploadProcedure(Group group, File file, String change, byte mode){
         EXECUTOR_SERVICE.execute(() -> {
             if(change.equals("New")){
                 DATABASE_MANAGER.GenerateNewFileId(UploadAction(group, file, change,mode), EXECUTOR_SERVICE);
             }
             else{
-                DATABASE_MANAGER.FindFileId(group.getId(), fileName, UploadAction(group, file, change,mode), EXECUTOR_SERVICE);
+                DATABASE_MANAGER.FindFileId(group.getId(), file.getName(), UploadAction(group, file, change,mode), EXECUTOR_SERVICE);
             }
         });
     }
@@ -327,7 +327,7 @@ public class ManagersMediator {
                         Uri fileUri = Uri.fromFile(encryptedFile);
                         DATABASE_MANAGER.VersionNumberRetriever((String) fileId,versionNumber->{
                             // Upload the file to cloud Storage
-                            STORAGE_MANAGER.UploadGroupFile(group.getId(), (String) fileId, fileUri,(int)versionNumber, object -> EXECUTOR_SERVICE.execute(() -> {
+                            STORAGE_MANAGER.UploadGroupFile(group.getId(), fileUri.getLastPathSegment(), fileUri,(int)versionNumber, object -> EXECUTOR_SERVICE.execute(() -> {
                                 // Extract information
                                 StorageMetadata storageMetadata = (StorageMetadata) object;
                                 String groupId = group.getId();
@@ -405,8 +405,7 @@ public class ManagersMediator {
                                                     String fileName = file.getName();
 
                                                     // Add the file to Database
-                                                    //DATABASE_MANAGER.Versioning(fileName,(String) fileId,groupId,change,storageMetadata,null,EXECUTOR_SERVICE);
-                                                    DATABASE_MANAGER.Versioning(fileName, (String) fileId, groupId,change , storageMetadata, null, EXECUTOR_SERVICE);
+                                                    DATABASE_MANAGER.AddFile(groupId, (String) fileId, fileName, FILE_MANAGER.STRIP, storageMetadata, null, EXECUTOR_SERVICE);
 
                                                     try {
                                                         File path = new File(file.getPath().substring(0, file.getPath().lastIndexOf(File.separator)),
@@ -577,6 +576,7 @@ public class ManagersMediator {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                Log.d(TAG, "MergeProcedure: =======================i'LL Decrypt IMAGE=======================");
                 FileManager.getInstance().EncryptDecryptFile(mergedFile,mergedFile.getName(),group, Cipher.DECRYPT_MODE);
             } catch (IOException e) {
                 e.printStackTrace();
