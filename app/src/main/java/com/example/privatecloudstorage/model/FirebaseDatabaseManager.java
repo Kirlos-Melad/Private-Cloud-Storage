@@ -240,13 +240,11 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public boolean JoinGroup(Group group){
         //Add the User as a member
-        mDataBase.getReference().child("Groups").child(group.getId())
-                .child("Members").updateChildren(new HashMap<String,Object>() {{
-                    put(ManagersMediator.getInstance().GetCurrentUser().getUid(), "Online");
-                }});
+        DatabaseReference memberReference = mDataBase.getReference().child("Groups").child(group.getId())
+                .child("Members").child(ManagersMediator.getInstance().GetCurrentUser().getUid());
 
-        mDataBase.getReference().child("Groups").child(group.getId())
-                .child("Members").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).updateChildren(new HashMap<String,Object>() {{
+        memberReference.updateChildren(new HashMap<String,Object>() {{
+                    put("Status", "Online");
                     put("Vote", "NoVote");
                 }});
 
@@ -612,7 +610,7 @@ public class FirebaseDatabaseManager {
                                             if(agreed > membersCount/2)
                                                 ExitGroup(group.getId());
 
-                                            if(disagreed <= membersCount/2){
+                                            else if(disagreed <= membersCount/2){
                                                 mDataBase.getReference().child("Groups").child(group.getId()).child("Members")
                                                         .child(ManagersMediator.getInstance().GetCurrentUser().getUid())
                                                         .child("Vote").setValue("NoVote");
