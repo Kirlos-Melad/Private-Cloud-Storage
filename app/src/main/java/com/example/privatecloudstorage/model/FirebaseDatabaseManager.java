@@ -608,7 +608,7 @@ public class FirebaseDatabaseManager {
                                         else if(data.getValue(boolean.class) == false)
                                             disagreed++;
 
-                                        if((agreed+disagreed) == membersCount){
+                                        if((agreed+disagreed) == membersCount-1){
                                             if(agreed > membersCount/2)
                                                 ExitGroup(group.getId());
 
