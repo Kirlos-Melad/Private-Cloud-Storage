@@ -209,7 +209,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                     popupMenu.getMenu().add("Edit");
 
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @RequiresApi(api = Build.VERSION_CODES.Q)
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         if(item.getTitle().equals("Rename")){

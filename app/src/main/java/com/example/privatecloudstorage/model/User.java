@@ -6,6 +6,7 @@ public class User {
     public String mId;
     public String mName;
     public String mAbout;
+    public boolean mIsBeingKicked;
     /**
      * URL in Firebase
      */

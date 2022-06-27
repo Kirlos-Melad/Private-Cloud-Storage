@@ -40,6 +40,7 @@ import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -170,6 +171,7 @@ public class GroupSliderActivity extends AppCompatActivity {
         inflater.inflate(R.menu.setting_menu, menu);
         return true;
     }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -180,7 +182,7 @@ public class GroupSliderActivity extends AppCompatActivity {
                 Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.item3:
-                Toast.makeText(this, "Item 3 selected", Toast.LENGTH_SHORT).show();
+                ManagersMediator.getInstance().ExitGroup(mSelectedGroupKey,mSelectedGroupName);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

@@ -138,7 +138,7 @@ public class FileManager implements IFileNotify {
                         fileEventListener.onFileChanged(oldFile,mode);
                         break;
                     case RENAME:
-                        fileEventListener.onFileRenamed(oldFile, newFile.getName(),mode);
+                        fileEventListener.onFileRenamed(newFile, oldFile.getName(),mode);
                         break;
                     case DELETE:
                         fileEventListener.onFileRemoved(oldFile);
@@ -250,6 +250,10 @@ public class FileManager implements IFileNotify {
         return false;
     }
 
+    public void DeleteDirectory(File directory){
+        directory.delete();
+    }
+
     /**
      * Create a new directory and its parents if doesn't exist
      *
@@ -322,7 +326,6 @@ public class FileManager implements IFileNotify {
      */
     public File EncryptDecryptFile(File file, String fileName, Group group, int cipherMode) throws IOException {
         try {
-            Log.d(TAG, "MergeProcedure: =======================I'M Decrypting IMAGE=======================");
             String HASH_FUNCTION = "SHA-256";
             String CIPHER_ALGORITHM = "AES";
             String CIPHER_TRANSFORMATION = "AES";

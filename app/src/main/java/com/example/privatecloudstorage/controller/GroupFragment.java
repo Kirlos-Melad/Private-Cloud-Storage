@@ -7,12 +7,15 @@ import androidx.fragment.app.Fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -25,6 +28,8 @@ import com.example.privatecloudstorage.model.FileManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.example.privatecloudstorage.model.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.collection.LLRBNode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -116,6 +121,53 @@ public class GroupFragment extends Fragment {
                 RecyclerViewItem item = new RecyclerViewItem(member.mName, member.mAbout,null, null, null);
                 item.mImage=GetResourceUri(R.drawable.ic_person);
 
+                if(member.mIsBeingKicked == true){
+                    item.mNameColor = Color.RED;
+                }
+
+                if(!member.mId.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                    item._onLongClickListener = new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View view) {
+                            PopupMenu popupMenu = new PopupMenu(getContext(),view);
+                            MANAGER_MEDIATOR.IsNoVote(mSelectedGroupKey, member.mId, isNoVote ->{
+                                MANAGER_MEDIATOR.VotedRecently(mSelectedGroupKey,member.mId,isFound ->{
+                                    if((boolean)isNoVote){
+                                        popupMenu.getMenu().add("Kick");
+                                        item.mNameColor = R.attr.colorOnPrimary;
+                                    }
+                                    else{
+                                        item.mNameColor = Color.RED;
+                                        if(!((boolean)isFound)){
+                                            popupMenu.getMenu().add("Kick");
+                                            popupMenu.getMenu().add("Don't Kick");
+                                        }
+                                        else{
+                                            popupMenu.getMenu().clear();
+                                        }
+                                    }
+                                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                        @Override
+                                        public boolean onMenuItemClick(MenuItem menuItem) {
+                                            if(menuItem.getTitle().equals("Kick")){
+                                                //mAdapter.mItems.get(finalIndex).mNameColor = Color.RED;
+                                                ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId, true);
+                                            }
+                                            if(menuItem.getTitle().equals("Don't Kick")){
+                                                //mAdapter.mItems.get(finalIndex).mNameColor = R.attr.colorOnPrimary;
+                                                ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId,false);
+                                            }
+                                            _Recyclerview.setAdapter(mAdapter);
+                                            return true;
+                                        }
+                                    });
+                                    popupMenu.show();
+                                });
+                            });
+                            return true;
+                        };
+                    };
+                }
                 mItems.add(item);
             }
             mAdapter = new ArrayAdapterView(mItems);

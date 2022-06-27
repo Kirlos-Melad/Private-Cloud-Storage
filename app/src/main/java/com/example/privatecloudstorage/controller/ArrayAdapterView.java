@@ -38,6 +38,8 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
         holder._SubTextView.setText(mItems.get(position).mSubTitle);
         // image
         holder._ImageView.setImageURI(mItems.get(position).mImage);
+        //color
+        holder._TextView.setTextColor(mItems.get(position).mNameColor);
 
         holder.itemView.setOnClickListener(mItems.get(position)._onClickListener);
         holder.itemView.setOnLongClickListener(mItems.get(position)._onLongClickListener);
