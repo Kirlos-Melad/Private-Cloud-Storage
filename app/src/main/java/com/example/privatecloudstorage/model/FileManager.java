@@ -58,7 +58,6 @@ public class FileManager implements IFileNotify {
     public static final byte RENAME = 0x03;
     public static final byte CHANGE = 0x04;
 
-    
     // Modes
     public static final byte NORMAL = 0x00;
     public static final byte STRIP = (byte) 0xff; // -1
@@ -249,7 +248,6 @@ public class FileManager implements IFileNotify {
 
         return false;
     }
-
     public void DeleteDirectory(File directory){
         directory.delete();
     }

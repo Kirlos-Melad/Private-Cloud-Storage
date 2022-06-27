@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.privatecloudstorage">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
@@ -18,16 +17,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrivateCloudStorage">
         <activity
+            android:name=".controller.RecyclerBinActivity"
+            android:exported="false" />
+        <activity
             android:name=".controller.FileExplorerActivity"
             android:exported="false" />
         <activity
             android:name=".controller.GroupSliderActivity"
             android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity"/>
+            android:parentActivityName=".controller.GroupListActivity"
+             />
         <activity
             android:name=".controller.ProfileActivity"
             android:exported="false"
-            android:parentActivityName=".controller.GroupListActivity" />
+             />
         <activity
             android:name=".controller.SplashScreenActivity"
             android:exported="true"
@@ -55,18 +58,12 @@
         </provider>
 
         <activity
-            android:name=".controller.FileExplorerListActivity"
-            android:exported="false" />
-        <activity
-            android:name=".controller.GroupContentActivity"
-            android:exported="true" />
-        <activity
             android:name=".controller.GroupListActivity"
             android:exported="true" />
         <activity
             android:name=".controller.CreateGroupActivity"
             android:exported="true"
-            android:parentActivityName=".controller.GroupListActivity" />
+             />
         <activity
             android:name=".controller.JoinGroupActivity"
             android:exported="true" />

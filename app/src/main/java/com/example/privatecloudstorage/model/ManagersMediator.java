@@ -44,7 +44,10 @@ public class ManagersMediator {
     private final FirebaseAuthenticationManager AUTHENTICATION_MANAGER;
     private final FileManager FILE_MANAGER;
 
+
+
     private boolean mMonitoringStarted;
+
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private ManagersMediator(){
@@ -55,9 +58,6 @@ public class ManagersMediator {
 
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
         mMonitoringStarted=false;
-
-        // Listen to directory changes
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -112,13 +112,6 @@ public class ManagersMediator {
         DATABASE_MANAGER.GroupMembersInformationRetriever(groupId,action, EXECUTOR_SERVICE);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    public void ExitGroup(String groupId, String groupName){
-        DATABASE_MANAGER.ExitGroup(groupId);
-        File folder = new File(FILE_MANAGER.GetApplicationDirectory(), groupId + " " + groupName);
-        FILE_MANAGER.DeleteDirectory(folder);
-    }
-
     /**
      * Get current user
      *
@@ -146,6 +139,29 @@ public class ManagersMediator {
                     DATABASE_MANAGER.SetUserProfilePicture((String) cloudPath);
                 }, EXECUTOR_SERVICE)
         );
+    }
+    /*@RequiresApi(api = Build.VERSION_CODES.Q)
+    public void SetGroupProfilePicture(Uri physicalPath,String groupId){
+                STORAGE_MANAGER.UploadGroupFile(groupId,physicalPath, metaData ->{
+                    DATABASE_MANAGER.SetGroupProfilePicture(((StorageMetadata) metaData).getPath(),groupId);
+                }, EXECUTOR_SERVICE);
+    }*/
+    public void UserSingleGroupRetriever(String groupId,IAction action){
+            DATABASE_MANAGER.UserSingleGroupRetriever(groupId,action,EXECUTOR_SERVICE);
+    }
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void GetUserProfileData(IAction action){
+        DATABASE_MANAGER.GetUserProfileData(action,EXECUTOR_SERVICE);
+    }
+    public void GetGroupDescription(String groupId,IAction action){
+        DATABASE_MANAGER.GetGroupDescription(groupId,action,EXECUTOR_SERVICE);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void ExitGroup(String groupId, String groupName){
+        DATABASE_MANAGER.ExitGroup(groupId);
+        File folder = new File(FILE_MANAGER.GetApplicationDirectory(), groupId + " " + groupName);
+        FILE_MANAGER.DeleteDirectory(folder);
     }
 
 
@@ -201,6 +217,13 @@ public class ManagersMediator {
 
     /* =============================================== File Functions ===============================================*/
 
+    public void RestoreRecycledFile(String groupId,String fileId,IAction action){
+        EXECUTOR_SERVICE.execute(()->{
+
+            DATABASE_MANAGER.RestoreRecycledFile(groupId,fileId,action,EXECUTOR_SERVICE);
+
+        });
+    }
     /**
      * Add Event listener to the file manager
      */
@@ -497,7 +520,7 @@ public class ManagersMediator {
      */
     private void FileRemoveProcedure(String groupId, String fileName){
         DATABASE_MANAGER.FindFileId(groupId, fileName, fileId -> {
-            DATABASE_MANAGER.DeleteFile(groupId, (String)fileId, null, EXECUTOR_SERVICE);
+            DATABASE_MANAGER.DeleteFile(groupId, (String)fileId,fileName, null, EXECUTOR_SERVICE);
 
             // DON'T DELETE THE FILE
                 /*DATABASE_MANAGER.VersionNumberRetriever((String)fileId, versionNumber -> {
@@ -509,7 +532,9 @@ public class ManagersMediator {
             }, EXECUTOR_SERVICE);*/
         }, EXECUTOR_SERVICE);
     }
-
+    public void RecycledFilesRetriever(String groupId,IAction action ){
+        DATABASE_MANAGER.RecycledFilesRetriever(groupId,action,EXECUTOR_SERVICE);
+    }
     /**
      * Download all chunks and merge them into Merged Files folder
      *

@@ -4,7 +4,7 @@ package com.example.privatecloudstorage.controller;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -40,8 +40,8 @@ import com.example.privatecloudstorage.R;
 import com.example.privatecloudstorage.databinding.ActivityGroupSliderBinding;
 import com.example.privatecloudstorage.interfaces.IAction;
 import com.example.privatecloudstorage.model.FileManager;
+import com.example.privatecloudstorage.model.Group;
 import com.example.privatecloudstorage.model.ManagersMediator;
-import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -80,16 +80,19 @@ public class GroupSliderActivity extends AppCompatActivity {
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private FragmentStateAdapter pagerAdapter;
+    private  ManagersMediator MANAGER_MEDIATOR;
     private String mSelectedGroupName;
     private String mSelectedGroupKey;
+    private String mSelectedGroupDescription;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _ActivityGroupSliderBinding = ActivityGroupSliderBinding.inflate(getLayoutInflater());
         setContentView(_ActivityGroupSliderBinding.getRoot());
         TabLayout tabLayout;
-
+        MANAGER_MEDIATOR = ManagersMediator.getInstance();
         _ActivityGroupSliderBinding.menu.setVisibility(View.VISIBLE);
 
         Bundle bundle = getIntent().getExtras();
@@ -171,22 +174,53 @@ public class GroupSliderActivity extends AppCompatActivity {
         inflater.inflate(R.menu.setting_menu, menu);
         return true;
     }
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MANAGER_MEDIATOR.UserSingleGroupRetriever(mSelectedGroupKey,group->{
+            if(((Group)group).mOwner.equals(MANAGER_MEDIATOR.GetCurrentUser().getUid())){
+                menu.findItem(R.id.RecyclerBin).setVisible(true);
+            }
+        });
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.item1:
-                Toast.makeText(this, "Item 1 selected", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.item2:
-                Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.item3:
-                ManagersMediator.getInstance().ExitGroup(mSelectedGroupKey,mSelectedGroupName);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            case R.id.GroupInformation:
+                ManagersMediator.getInstance().UserSingleGroupRetriever(mSelectedGroupKey, group->{
+                    Intent groupInformationIntent = new Intent(GroupSliderActivity.this, ProfileActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Key",mSelectedGroupKey);
+                    bundle.putString("Name", mSelectedGroupName);
+                    bundle.putString("Description",((Group)group).getDescription());
+                    bundle.putString("Uri", ((Group)group).getPicture());
+                    bundle.putString("Caller", "Group");
+                    groupInformationIntent.putExtras(bundle);//Put Group number to your next Intent
+                    startActivity(groupInformationIntent);
+                    finish();
+
+                });
+                //Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.ExitGroup:
+                ManagersMediator.getInstance().ExitGroup(mSelectedGroupKey, mSelectedGroupName);
+                Toast.makeText(this, "Exit group is done :( ", Toast.LENGTH_SHORT).show();
+                Intent sxitgroupIntent=new Intent(GroupSliderActivity.this,GroupListActivity.class);
+                startActivity(sxitgroupIntent);
+                break;
+
+            case R.id.RecyclerBin:
+                Intent recyclerBinIntent = new Intent(GroupSliderActivity.this, RecyclerBinActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("Key", mSelectedGroupKey);
+                recyclerBinIntent.putExtras(bundle);
+                startActivity(recyclerBinIntent);
+                break;
+
         }
+        return true;
     }
 
     /**

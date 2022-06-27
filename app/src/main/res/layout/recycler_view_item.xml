@@ -21,7 +21,7 @@
         android:layout_marginStart="2dp"
         android:layout_toEndOf="@id/item_image"
         android:padding="20dp"
-        android:textColor="@color/black"
+        android:textColor="?colorOnPrimary"
         android:textSize="20dp"
         tools:text="Documents" />
 
@@ -33,7 +33,7 @@
         android:layout_marginStart="37dp"
         android:layout_marginTop="-23dp"
         android:layout_toEndOf="@id/item_image"
-        android:textColor="@color/black"
+        android:textColor="?colorOnPrimary"
         tools:text="hello" />
 
     <LinearLayout

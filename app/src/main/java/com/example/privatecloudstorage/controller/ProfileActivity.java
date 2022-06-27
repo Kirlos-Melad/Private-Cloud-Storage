@@ -4,23 +4,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import android.app.AlertDialog;
 
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
 import android.text.TextUtils;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 
@@ -29,6 +35,12 @@ import com.example.privatecloudstorage.databinding.ActivityProfileBinding;
 import com.example.privatecloudstorage.model.FirebaseAuthenticationManager;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 /**
  * show user profile allow him editing user name and user about
  */
@@ -36,24 +48,47 @@ public class ProfileActivity extends AppCompatActivity {
 
     FirebaseAuthenticationManager mFirebaseAuthenticationManager;
     Uri uri;
+    ImageView imgv;
+    private String mName;
+    private String mDescription;
+    private String mUri;
+    private  Bundle bundle;
+    private String mCaller;
 
     private @NonNull ActivityProfileBinding _ActivityProfileBinding;
     /**
      * handle user profile activity
      * @param savedInstanceState
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         LayoutInflater inflater = getLayoutInflater();
 
-        _ActivityProfileBinding = ActivityProfileBinding.inflate(getLayoutInflater());
+        _ActivityProfileBinding = ActivityProfileBinding.inflate(inflater);
         setContentView(_ActivityProfileBinding.getRoot());
         getSupportActionBar().setTitle("Profile");
 
-        String userName = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getDisplayName();
-        Uri imageUri = mFirebaseAuthenticationManager.getInstance().getCurrentUser().getPhotoUrl();
+        bundle = getIntent().getExtras();
+        if(bundle == null)
+            finish();
+        mName = bundle.getString("Name");
+        mDescription = bundle.getString("Description");
+        mUri = bundle.getString("Uri");
+        mCaller = bundle.getString("Caller");
+
+        if(mUri.equals("NoPicture")){
+            imgv=(ImageView)findViewById(R.id.profile_image);
+            Drawable myDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.person_24, null);
+            imgv.setImageDrawable(myDrawable);
+
+        }/*else{
+            _ActivityProfileBinding.profileImage.setImageURI();
+        }*/
+        _ActivityProfileBinding.aboutText.setText(mDescription);
+        _ActivityProfileBinding.userName.setText(mName);
 
         View _UserNameView = inflater.inflate(R.layout.user_custom_dialog,null);
         View _UserAboutView= inflater.inflate(R.layout.user_custom_dialog,null);
@@ -61,8 +96,6 @@ public class ProfileActivity extends AppCompatActivity {
         EditText _UserAboutEditText = _UserAboutView.findViewById(R.id.edit_text);
 
 
-        _ActivityProfileBinding.userName.setText(userName);
-        _ActivityProfileBinding.profileImage.setImageURI(imageUri);
         /**
          * handle change user profile image
          */
@@ -79,7 +112,10 @@ public class ProfileActivity extends AppCompatActivity {
         /**
          * handle change user profile name
          */
+
         _ActivityProfileBinding.editName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
+
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String editUserName = _UserNameEditText.getText().toString();
@@ -88,13 +124,21 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.userName.setText(editUserName);
-                ManagersMediator.getInstance().SetUserName(editUserName);
+                if(mCaller.equals("User")){
+                    ManagersMediator.getInstance().SetUserName(editUserName);
+                }
+
             }
         }));
         /**
          * handle change user profile about
          */
+
+
+
         _ActivityProfileBinding.editAbout.setOnClickListener(EditUserButtonClickListener("User About",_UserAboutView,new DialogInterface.OnClickListener() {
+
+            @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 
@@ -104,7 +148,10 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
                 _ActivityProfileBinding.aboutText.setText(editUserAbout);
-                ManagersMediator.getInstance().SetUserAbout(editUserAbout);
+                if(mCaller.equals("User")){
+                    ManagersMediator.getInstance().SetUserAbout(editUserAbout);
+                }
+
             }
         }));
     }
@@ -121,7 +168,11 @@ public class ProfileActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            ManagersMediator.getInstance().SetUserProfilePicture(uri);
+            /*if(mCaller.equals("User") && mCaller.equals("Group")){
+                _ActivityProfileBinding.profileImage.setImageURI(uri);
+                //ManagersMediator.getInstance().SetUserProfilePicture(uri);
+            }*/
+
 
         }
     }
@@ -158,6 +209,21 @@ public class ProfileActivity extends AppCompatActivity {
             }
         };
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(mCaller.equals("User")){
+            startActivity(new Intent(ProfileActivity.this,GroupListActivity.class));
+
+        }else{
+            Intent intent = new Intent(ProfileActivity.this, GroupSliderActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putString("selectedGroupName", mName);
+            bundle.putString("selectedGroupKey", getIntent().getExtras().getString("Key"));
+            intent.putExtras(bundle);//Put Group number to your next Intent
+            startActivity(intent);
+        }
+        finish();
+    }
 }
-
-

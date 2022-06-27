@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/activity_create_group.xml" value="0.2" />
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/activity_file_manager_list.xml" value="0.18802083333333333" />
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/activity_group_content.xml" value="0.18802083333333333" />
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/activity_profile.xml" value="0.36666666666666664" />
@@ -14,6 +15,11 @@
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/recycler_item.xml" value="0.190625" />
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/recycler_view_item.xml" value="0.190625" />
         <entry key="..\:/Private Cloud Storage/app/src/main/res/layout/user_custom_dialog.xml" value="0.190625" />
+        <entry key="..\:/Private Cloud Storage/app/src/main/res/menu/main_menu.xml" value="0.36666666666666664" />
+        <entry key="..\:/Private Cloud Storage/app/src/main/res/menu/setting_menu.xml" value="0.36666666666666664" />
+        <entry key="..\:/Private-Cloud-Storage-connect-ui-with-logic/app/src/main/res/drawable/person_24.xml" value="0.1" />
+        <entry key="..\:/Private-Cloud-Storage-connect-ui-with-logic/app/src/main/res/layout/activity_create_group.xml" value="0.21510416666666668" />
+        <entry key="..\:/Private-Cloud-Storage-connect-ui-with-logic/app/src/main/res/layout/activity_profile.xml" value="0.15677083333333333" />
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_create_group.xml" value="0.20260416666666667" />
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_group_content.xml" value="0.18854166666666666" />
         <entry key="..\:/Users/KirlosMelad/Desktop/PrivateCloudStorage/app/src/main/res/layout/activity_home_page.xml" value="0.18854166666666666" />
@@ -103,6 +109,24 @@
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/nav_header.xml" value="0.24048913043478262" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/recycler_item.xml" value="0.24048913043478262" />
         <entry key="..\:/Users/user/Documents/GitHub/Private-Cloud-Storage/app/src/main/res/layout/recycler_view_item.xml" value="0.24048913043478262" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/drawable/ic_group.xml" value="0.1405" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/drawable/ic_person.xml" value="0.1135" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/drawable/info_24.xml" value="0.1135" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/drawable/login_btn_bg.xml" value="0.1135" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/drawable/person_24.xml" value="0.1135" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_file_version_downloader_box.xml" value="0.209375" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_group_list.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_group_slider.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_profile.xml" value="0.23854166666666668" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_recycler_bin.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_sign_in.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/activity_sign_up.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/fragment_group.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/recycler_view.xml" value="0.25416666666666665" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/recycler_view_item.xml" value="0.22239583333333332" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/layout/user_custom_dialog.xml" value="0.209375" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/menu/main_menu.xml" value="0.19427083333333334" />
+        <entry key="..\:/newProject/Private-Cloud-Storage/app/src/main/res/menu/setting_menu.xml" value="0.22239583333333332" />
       </map>
     </option>
   </component>

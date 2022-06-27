@@ -91,7 +91,7 @@ public class FileVersionDownloaderBox {
                         Group group = new Group(
                                 file.getParentFile().getParentFile().getName().split(" ")[0],
                                 file.getParentFile().getParentFile().getName().split(" ")[1],
-                                "", "");
+                                "", "","");
 
                         ManagersMediator.getInstance().CustomDownload(group, cloudPath, physicalPath, null);
 
