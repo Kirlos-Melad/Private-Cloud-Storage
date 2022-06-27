@@ -80,13 +80,14 @@ public class FirebaseDatabaseManager {
     public void AddUser(String UserId, String userName, String email){
         mDataBase.getReference().child("Users").child(UserId).child("Name").setValue(userName);
         mDataBase.getReference().child("Users").child(UserId).child("Email").setValue(email);
-        mDataBase.getReference().child("Users").child(UserId).child("ProfilePicture").setValue("NoPicture");
+        mDataBase.getReference().child("Users").child(UserId).child("PictureAtStorage").setValue("NoPicture");
         mDataBase.getReference().child("Users").child(UserId).child("About").setValue("Write something");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public void SetUserProfilePicture(String url){
-        mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("ProfilePicture").setValue(url);
+    public void SetUserProfilePicture(String StorageLocation){
+        mDataBase.getReference().child("Users").child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("PictureAtStorage").setValue(StorageLocation);
+
     }
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void SetGroupProfilePicture(String url,String groupId){

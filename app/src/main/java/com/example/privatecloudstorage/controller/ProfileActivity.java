@@ -60,6 +60,7 @@ public class ProfileActivity extends AppCompatActivity {
      * handle user profile activity
      * @param savedInstanceState
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,11 +83,10 @@ public class ProfileActivity extends AppCompatActivity {
             imgv=(ImageView)findViewById(R.id.profile_image);
             Drawable myDrawable = ResourcesCompat.getDrawable(getResources(), R.drawable.person_24, null);
             imgv.setImageDrawable(myDrawable);
-            /*_ActivityProfileBinding.profileImage.setImageURI( mFirebaseAuthenticationManager.getInstance()
-                    .getCurrentUser().getPhotoUrl());*/
-        }else{
-            _ActivityProfileBinding.profileImage.setImageURI(Uri.parse(mUri));
-        }
+
+        }/*else{
+            _ActivityProfileBinding.profileImage.setImageURI();
+        }*/
         _ActivityProfileBinding.aboutText.setText(mDescription);
         _ActivityProfileBinding.userName.setText(mName);
 
@@ -112,8 +112,6 @@ public class ProfileActivity extends AppCompatActivity {
         /**
          * handle change user profile name
          */
-
-
 
         _ActivityProfileBinding.editName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
 
@@ -170,9 +168,10 @@ public class ProfileActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            if(mCaller.equals("User")){
-                ManagersMediator.getInstance().SetUserProfilePicture(uri);
-            }
+            /*if(mCaller.equals("User") && mCaller.equals("Group")){
+                _ActivityProfileBinding.profileImage.setImageURI(uri);
+                //ManagersMediator.getInstance().SetUserProfilePicture(uri);
+            }*/
 
 
         }
