@@ -14,29 +14,17 @@
         android:layout_width="317dp"
         android:layout_height="44dp"
         android:text="Provide group information and optional group icon"
-        android:textColor="@color/colorPrimary"
+        android:textColor="?colorOnPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_image">
 
     </TextView>
 
-    <ImageView
-        android:id="@+id/edit_image"
-        android:layout_width="64dp"
-        android:layout_height="60dp"
-        android:layout_alignEnd="@+id/profile_image"
-        android:layout_alignBottom="@+id/profile_image"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="2dp"
-        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
-        app:layout_constraintEnd_toEndOf="@+id/profile_image"
-        app:srcCompat="@drawable/camera_24" />
-
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profile_image"
-        android:layout_width="174dp"
-        android:layout_height="165dp"
+        android:layout_width="175dp"
+        android:layout_height="182dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
@@ -44,6 +32,7 @@
         android:layout_marginEnd="69dp"
         android:layout_marginBottom="383dp"
         android:backgroundTint="#6C8C84"
+        android:src="@drawable/ic_group"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.527"
@@ -53,6 +42,18 @@
         tools:ignore="MissingConstraints">
 
     </de.hdodenhof.circleimageview.CircleImageView>
+
+    <ImageView
+        android:id="@+id/edit_image"
+        android:layout_width="51dp"
+        android:layout_height="39dp"
+        android:layout_alignEnd="@+id/profile_image"
+        android:layout_alignBottom="@+id/profile_image"
+        android:layout_marginEnd="1dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintEnd_toEndOf="@+id/profile_image"
+        app:srcCompat="@drawable/camera_24" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/groupname"

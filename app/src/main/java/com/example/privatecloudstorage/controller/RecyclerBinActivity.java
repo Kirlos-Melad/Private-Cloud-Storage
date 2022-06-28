@@ -22,8 +22,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
-import com.example.privatecloudstorage.databinding.ActivityProfileBinding;
-import com.example.privatecloudstorage.databinding.RecyclerViewBinding;
 import com.example.privatecloudstorage.model.ManagersMediator;
 import com.example.privatecloudstorage.model.RecyclerViewItem;
 import com.example.privatecloudstorage.model.User;
@@ -113,7 +111,7 @@ public class RecyclerBinActivity extends AppCompatActivity {
             });
             mItems.add(item);
         }
-        mAdapter = new ArrayAdapterView(mItems, getApplicationContext());
+        mAdapter = new ArrayAdapterView(mItems, this);
 
         _RecyclerViewBinding.Recyclerview.setAdapter(mAdapter);
 

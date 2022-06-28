@@ -100,7 +100,7 @@ public class GroupListActivity extends AppCompatActivity {
         /* TODO: retrive user info
          *  if there is no photo url == NoPhoto
          */
-        _Profile = (CircleImageView)view.findViewById(R.id.img_second);
+        _Profile = view.findViewById(R.id.img_second);
 
         _Profile.setImageURI(mFirebaseAuthenticationManager.getUserImage());
         _HeaderName.setText(mFirebaseAuthenticationManager.getCurrentUser().getDisplayName());
@@ -108,8 +108,6 @@ public class GroupListActivity extends AppCompatActivity {
 
 
         mItems = new ArrayList<>();
-       // mItems[0]=new ArrayList<>();
-        //getting user's group(s)
         ManagersMediator.getInstance().UserGroupsRetriever(groups -> {
             for(Group group : (ArrayList<Group>) groups){
                 ManagersMediator.getInstance().UserSingleGroupRetriever(group.getId(),g->{

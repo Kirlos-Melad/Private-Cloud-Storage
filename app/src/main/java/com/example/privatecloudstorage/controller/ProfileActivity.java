@@ -66,7 +66,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         LayoutInflater inflater = getLayoutInflater();
-
+        mFirebaseAuthenticationManager =FirebaseAuthenticationManager.getInstance();
         _ActivityProfileBinding = ActivityProfileBinding.inflate(inflater);
         setContentView(_ActivityProfileBinding.getRoot());
         getSupportActionBar().setTitle("Profile");
@@ -87,6 +87,7 @@ public class ProfileActivity extends AppCompatActivity {
         }/*else{
             _ActivityProfileBinding.profileImage.setImageURI();
         }*/
+
         _ActivityProfileBinding.aboutText.setText(mDescription);
         _ActivityProfileBinding.userName.setText(mName);
 
@@ -166,7 +167,7 @@ public class ProfileActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            if(mCaller.equals("User") && mCaller.equals("Group"))
+            if(mCaller.equals("User"))
                 ManagersMediator.getInstance().SetUserProfilePicture(uri);
         }
     }
