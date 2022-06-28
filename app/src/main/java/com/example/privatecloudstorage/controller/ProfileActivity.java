@@ -95,7 +95,6 @@ public class ProfileActivity extends AppCompatActivity {
         EditText _UserNameEditText =_UserNameView.findViewById(R.id.edit_text);
         EditText _UserAboutEditText = _UserAboutView.findViewById(R.id.edit_text);
 
-
         /**
          * handle change user profile image
          */
@@ -109,10 +108,10 @@ public class ProfileActivity extends AppCompatActivity {
                         .start();
             }
         });
+
         /**
          * handle change user profile name
          */
-
         _ActivityProfileBinding.editName.setOnClickListener(EditUserButtonClickListener("User Name",_UserNameView,new DialogInterface.OnClickListener() {
 
             @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -130,12 +129,10 @@ public class ProfileActivity extends AppCompatActivity {
 
             }
         }));
+
         /**
          * handle change user profile about
          */
-
-
-
         _ActivityProfileBinding.editAbout.setOnClickListener(EditUserButtonClickListener("User About",_UserAboutView,new DialogInterface.OnClickListener() {
 
             @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -155,6 +152,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }));
     }
+
     /**
      * set image with new one using uri
      * @param requestCode
@@ -168,12 +166,8 @@ public class ProfileActivity extends AppCompatActivity {
         if(resultCode == RESULT_OK && null != data){
             uri = data.getData();
             _ActivityProfileBinding.profileImage.setImageURI(uri);
-            /*if(mCaller.equals("User") && mCaller.equals("Group")){
-                _ActivityProfileBinding.profileImage.setImageURI(uri);
-                //ManagersMediator.getInstance().SetUserProfilePicture(uri);
-            }*/
-
-
+            if(mCaller.equals("User") && mCaller.equals("Group"))
+                ManagersMediator.getInstance().SetUserProfilePicture(uri);
         }
     }
 

@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -134,7 +135,7 @@ public class GroupFragment extends Fragment {
                                 MANAGER_MEDIATOR.VotedRecently(mSelectedGroupKey,member.mId,isFound ->{
                                     if((boolean)isNoVote){
                                         popupMenu.getMenu().add("Kick");
-                                        item.mNameColor = R.attr.colorOnPrimary;
+                                        item.mNameColor = Color.GRAY;
                                     }
                                     else{
                                         item.mNameColor = Color.RED;
@@ -153,9 +154,8 @@ public class GroupFragment extends Fragment {
                                                 ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId, true);
 
                                             if(menuItem.getTitle().equals("Don't Kick"))
-                                                ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId,false);
+                                                ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId, false);
 
-                                            _Recyclerview.setAdapter(mAdapter);
                                             return true;
                                         }
                                     });
@@ -168,7 +168,7 @@ public class GroupFragment extends Fragment {
                 }
                 mItems.add(item);
             }
-            mAdapter = new ArrayAdapterView(mItems);
+            mAdapter = new ArrayAdapterView(mItems, getContext());
             _Recyclerview.setAdapter(mAdapter);
 
             if (mItems.isEmpty()) {
@@ -229,7 +229,7 @@ public class GroupFragment extends Fragment {
                 mItems.add(item);
             }
 
-            mAdapter = new ArrayAdapterView(mItems);
+            mAdapter = new ArrayAdapterView(mItems, getContext());
             _Recyclerview.setAdapter(mAdapter);
 
             if (mItems.isEmpty()) {

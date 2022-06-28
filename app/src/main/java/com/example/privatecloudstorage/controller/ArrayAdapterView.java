@@ -1,13 +1,19 @@
 package com.example.privatecloudstorage.controller;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.privatecloudstorage.R;
@@ -19,9 +25,11 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
     private static final String TAG = "ArrayAdapterView";
     // member / group / file name
     ArrayList<RecyclerViewItem> mItems;
+    Context _Context;
 
-    public ArrayAdapterView(ArrayList items){
+    public ArrayAdapterView(ArrayList items, Context context){
         this.mItems = items;
+        this._Context = context;
     }
 
     @Override
@@ -30,6 +38,7 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
         return new ViewHolder(view);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         // name
@@ -39,7 +48,12 @@ public class ArrayAdapterView extends RecyclerView.Adapter<ArrayAdapterView.View
         // image
         holder._ImageView.setImageURI(mItems.get(position).mImage);
         //color
-        holder._TextView.setTextColor(mItems.get(position).mNameColor);
+        TypedValue typedValue = new TypedValue();
+        _Context.getTheme().resolveAttribute((mItems.get(position).mNameColor),typedValue,true);
+        if(typedValue.isColorType())
+            holder._TextView.setTextColor(typedValue.data);
+        else
+            holder._TextView.setTextColor(mItems.get(position).mNameColor);
 
         holder.itemView.setOnClickListener(mItems.get(position)._onClickListener);
         holder.itemView.setOnLongClickListener(mItems.get(position)._onLongClickListener);

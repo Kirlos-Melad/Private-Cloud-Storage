@@ -133,7 +133,7 @@ public class FileExplorerActivity extends AppCompatActivity {
                 mItems.add(item);
             }
 
-            mAdapter = new ArrayAdapterView(mItems);
+            mAdapter = new ArrayAdapterView(mItems, getApplicationContext());
             _ActivityFileExplorerBinding.filesView.setAdapter(mAdapter);
 
             if (mItems.isEmpty()) {

@@ -327,6 +327,9 @@ public class FirebaseDatabaseManager {
                                             user.mName = firebaseUser.child("Name").getValue(String.class);
                                             user.mAbout = firebaseUser.child("About").getValue(String.class);
                                             user.mProfilePictureUrl = firebaseUser.child("ProfilePicture").getValue(String.class);
+
+                                            user.mIsBeingKicked = !(membersEntity.child(user.mId).child("Vote").getValue() == null || membersEntity.child(user.mId).child("Vote").getValue().getClass() == String.class);
+
                                             membersInformation[index++] = user;
                                         }
                                         action.onSuccess(membersInformation);
@@ -473,6 +476,7 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
                     }
                 });
     }
+
 
     /**
      * Monitor all user groups changes in cloud
@@ -756,7 +760,8 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
                                 if(voteSnapshot.getValue() == null || voteSnapshot.getValue().getClass() == String.class)
                                     return;
 
-                                mDataBase.getReference().child("Groups").child(group.getId()).child("Members").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                                mDataBase.getReference().child("Groups").child(group.getId()).child("Members").get()
+                                        .addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
                                     @Override
                                     public void onSuccess(DataSnapshot dataSnapshot) {
                                         int membersCount = (int) dataSnapshot.getChildrenCount();

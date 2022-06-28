@@ -128,9 +128,8 @@ public class GroupListActivity extends AppCompatActivity {
                             intent.putExtras(bundle);//Put Group number to your next Intent
                             startActivity(intent);
                         }
-
                     });
-                    mAdapter = new ArrayAdapterView(mItems);
+                    mAdapter = new ArrayAdapterView(mItems, this);
                     recyclerView.setAdapter( mAdapter);
 
                     if (mItems.isEmpty()) {

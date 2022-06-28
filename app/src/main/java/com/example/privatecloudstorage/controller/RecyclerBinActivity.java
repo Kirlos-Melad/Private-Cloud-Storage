@@ -113,7 +113,7 @@ public class RecyclerBinActivity extends AppCompatActivity {
             });
             mItems.add(item);
         }
-        mAdapter = new ArrayAdapterView(mItems);
+        mAdapter = new ArrayAdapterView(mItems, getApplicationContext());
 
         _RecyclerViewBinding.Recyclerview.setAdapter(mAdapter);
 
