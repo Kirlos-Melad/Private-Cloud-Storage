@@ -778,7 +778,7 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
                                                 if(agreed > membersCount/2)
                                                     ExitGroup(group.getId());
 
-                                                else if(disagreed >= membersCount/2){
+                                                else {
                                                     mDataBase.getReference().child("Groups").child(group.getId()).child("Members")
                                                             .child(ManagersMediator.getInstance().GetCurrentUser().getUid())
                                                             .child("Vote").setValue("NoVote");
