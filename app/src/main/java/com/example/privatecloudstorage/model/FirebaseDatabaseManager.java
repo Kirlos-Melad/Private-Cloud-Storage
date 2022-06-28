@@ -101,6 +101,10 @@ public class FirebaseDatabaseManager {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void ExitGroup(String groupId){
         String userId = ManagersMediator.getInstance().GetCurrentUser().getUid();
+
+        mDataBase.getReference().child("Groups").child(groupId).child("Members")
+                .child(userId).child("Status").onDisconnect().cancel();
+
         mDataBase.getReference().child("Groups").child(groupId).child("Members").child(userId).removeValue();
         mDataBase.getReference().child("Groups").child(groupId).child("SharedFiles").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -179,11 +183,18 @@ public class FirebaseDatabaseManager {
                         // if any user disconnects, set AllOnline to false
                         mDataBase.getReference().child("Groups").child(groupId).child("AllOnline").onDisconnect().setValue(false);
                         // set user value as Online
-                        mDataBase.getReference().child("Groups").child(groupId).child("Members")
-                                .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Status").setValue("Online");
-                        // set user value as Offline on Disconnection
-                        mDataBase.getReference().child("Groups").child(groupId).child("Members")
-                                .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Status").onDisconnect().setValue("Offline");
+                        mDataBase.getReference().child("Groups").child(groupId).child("Members").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                            @Override
+                            public void onSuccess(DataSnapshot dataSnapshot) {
+                                if(dataSnapshot.hasChild(ManagersMediator.getInstance().GetCurrentUser().getUid())){
+                                    mDataBase.getReference().child("Groups").child(groupId).child("Members")
+                                            .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Status").setValue("Online");
+                                    // set user value as Offline on Disconnection
+                                    mDataBase.getReference().child("Groups").child(groupId).child("Members")
+                                            .child(ManagersMediator.getInstance().GetCurrentUser().getUid()).child("Status").onDisconnect().setValue("Offline");
+                                }
+                            }
+                        });
                     }
 
 
@@ -425,8 +436,7 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
                     .child("Members").get().addOnSuccessListener(dataSnapshot -> {
                 executorService.execute(() -> {
                     ArrayList<String> membersIds = new ArrayList<>();
-                    for (DataSnapshot Member:dataSnapshot.getChildren()
-                    ) {
+                    for (DataSnapshot Member:dataSnapshot.getChildren()) {
                         membersIds.add(Member.getKey());
                     }
                     action.onSuccess(membersIds);
@@ -712,7 +722,7 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
     private Runnable MonitorSingleGroup(Group group){
         return () -> {
 
-                MonitorConnectionInSingleGroup(group.getId());
+            MonitorConnectionInSingleGroup(group.getId());
 
             mDataBase.getReference().child("Groups").child(group.getId()).child("OnlineUsersCounter").addValueEventListener(new ValueEventListener() {
                 @Override
@@ -733,10 +743,53 @@ public void UserSingleGroupRetriever(String groupId,IAction action, ExecutorServ
 
                 }
             });
-mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(SharedFilesEventListener(group));
+            mDataBase.getReference().child("Groups").child(group.getId()).child("SharedFiles").addChildEventListener(SharedFilesEventListener(group));
             // if all online, execute AllOnline Scenario
             mDataBase.getReference().child("Groups").child(group.getId()).child("AllOnline").addValueEventListener(AllOnlineEventListener(group));
 
+            try{
+                //Listener if there is running vote to kick user
+                mDataBase.getReference().child("Groups").child(group.getId()).child("Members").child(ManagersMediator.getInstance().GetCurrentUser().getUid())
+                        .child("Vote").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot voteSnapshot) {
+                                if(voteSnapshot.getValue() == null || voteSnapshot.getValue().getClass() == String.class)
+                                    return;
+
+                                mDataBase.getReference().child("Groups").child(group.getId()).child("Members").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                                    @Override
+                                    public void onSuccess(DataSnapshot dataSnapshot) {
+                                        int membersCount = (int) dataSnapshot.getChildrenCount();
+                                        int agreed = 0;
+                                        int disagreed = 0;
+                                        for(DataSnapshot data : voteSnapshot.getChildren()){
+                                            if(data.getValue(boolean.class) == true)
+                                                agreed++;
+
+                                            else if(data.getValue(boolean.class) == false)
+                                                disagreed++;
+
+                                            if((agreed+disagreed) == membersCount-1){
+                                                if(agreed > membersCount/2)
+                                                    ExitGroup(group.getId());
+
+                                                else if(disagreed >= membersCount/2){
+                                                    mDataBase.getReference().child("Groups").child(group.getId()).child("Members")
+                                                            .child(ManagersMediator.getInstance().GetCurrentUser().getUid())
+                                                            .child("Vote").setValue("NoVote");
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
+                        });
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         };
     }
 

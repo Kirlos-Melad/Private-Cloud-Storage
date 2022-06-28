@@ -122,9 +122,8 @@ public class GroupFragment extends Fragment {
                 RecyclerViewItem item = new RecyclerViewItem(member.mName, member.mAbout,null, null, null);
                 item.mImage=GetResourceUri(R.drawable.person_24);
 
-                if(member.mIsBeingKicked == true){
+                if(member.mIsBeingKicked == true)
                     item.mNameColor = Color.RED;
-                }
 
                 if(!member.mId.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
                     item._onLongClickListener = new View.OnLongClickListener() {
@@ -143,21 +142,19 @@ public class GroupFragment extends Fragment {
                                             popupMenu.getMenu().add("Kick");
                                             popupMenu.getMenu().add("Don't Kick");
                                         }
-                                        else{
+                                        else
                                             popupMenu.getMenu().clear();
-                                        }
+
                                     }
                                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                                         @Override
                                         public boolean onMenuItemClick(MenuItem menuItem) {
-                                            if(menuItem.getTitle().equals("Kick")){
-                                                //mAdapter.mItems.get(finalIndex).mNameColor = Color.RED;
+                                            if(menuItem.getTitle().equals("Kick"))
                                                 ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId, true);
-                                            }
-                                            if(menuItem.getTitle().equals("Don't Kick")){
-                                                //mAdapter.mItems.get(finalIndex).mNameColor = R.attr.colorOnPrimary;
+
+                                            if(menuItem.getTitle().equals("Don't Kick"))
                                                 ManagersMediator.getInstance().VoteProcedure(mSelectedGroupKey, member.mId,false);
-                                            }
+
                                             _Recyclerview.setAdapter(mAdapter);
                                             return true;
                                         }
