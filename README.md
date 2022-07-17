@@ -12,7 +12,7 @@ Application main features:
 ## Would you like to learn more? Check our documentation!
 we have also a user manual available to help you understand how to use the application and all its features
 
-[DMC_Documentation.pdf](./DMC_Documentation.pdf)
+[Distributed Mobile Cloud Documentation](./DMC_Documentation.pdf)
 
 ## Would you like to contribute or fork the project? Check our guidelines!
 Most of the guidelines were followed to bring this project to you, although you might find some unfollowed guidelines, but that's your turn to continue the journey
